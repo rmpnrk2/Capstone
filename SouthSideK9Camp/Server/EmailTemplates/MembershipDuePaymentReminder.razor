@@ -1,0 +1,61 @@
+﻿<head>
+	<style>
+		body {
+			font-family: Arial, sans-serif;
+			margin: 0;
+			padding: 20px;
+		}
+
+		.container {
+			max-width: 500px;
+			margin: 0 auto;
+			text-align: center;
+		}
+
+		h1 {
+			font-size: 24px;
+			margin-bottom: 10px;
+		}
+
+		a {
+			background-color: #4CAF50;
+			border: none;
+			color: white;
+			padding: 10px 20px;
+			text-align: center;
+			text-decoration: none;
+			display: inline-block;
+			font-size: 16px;
+		}
+	</style>
+</head>
+
+<body>
+	<div class="container">
+		<h1>SouthSide K9 Camp Member</h1>
+		<p>
+			This is a reminder from Southside K9 Camp that your membership dues.
+			Kindly note that your payment is due on @dueDate.ToString("dd MMMM yyyy").
+			Please ensure that your membership fee is submitted using the link provided below.
+		</p>
+		<a href="@link" target="_blank">Continue Registration</a>
+		<br />
+		<br />
+		<p>Best regards,</p>
+		<p>SouthSide K9 Camp</p>
+	</div>
+</body>
+
+@code
+{
+	[Parameter] public string client_guid { get; set; } = string.Empty;
+	[Parameter] public string host { get; set; } = string.Empty;
+	[Parameter] public DateTime dueDate { get; set; }
+
+	private string? link;
+	protected override void OnInitialized()
+	{
+		link = $"{host}/membership-due-payment/{client_guid}";
+		base.OnInitialized();
+	}
+}

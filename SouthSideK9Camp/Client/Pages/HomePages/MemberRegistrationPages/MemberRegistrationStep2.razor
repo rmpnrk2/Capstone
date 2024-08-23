@@ -1,0 +1,186 @@
+﻿@page "/membership-registration/{emailParameter}";
+
+@inject SouthSideK9CampHttpClient HttpClient
+@inject NavigationManager NavigationManager
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-16 mb-16">
+    <MudStack >
+
+
+    <MudText Typo="Typo.h4">SouthSide K9 Membership Registration</MudText>
+
+    <EditForm EditContext="_formContext" OnValidSubmit="@_SubmitAsync">
+        <FluentValidationValidator/>
+
+        <MudGrid Spacing="2">
+            <MudItem xs="12" sm="6">
+                <MudTextField @bind-Value="_client.FirstName" For="@(() => _client.FirstName)" Label="First Name" Variant="Variant.Outlined" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudTextField @bind-Value="_client.LastName" For="@(() => _client.LastName)" Label="Last Name" Variant="Variant.Outlined" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudTextField @bind-Value="_client.MiddleInitial" For="@(() => _client.MiddleInitial)" Label="Middle Initial" Variant="Variant.Outlined" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudSelect @bind-Value="_client.Sex" For="@(() => _client.Sex)" Label="Sex" Variant="Variant.Outlined">
+                    <MudSelectItem Value="@("Male")" />
+                    <MudSelectItem Value="@("Female")" />
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudTextField @bind-Value="_client.Email" For="@(() => _client.Email)" ReadOnly Label="Email" Variant="Variant.Outlined" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudNumericField @bind-Value="_client.Contact" For="@(() => _client.Contact)" Label="Contact" Variant="Variant.Outlined" HideSpinButtons />
+            </MudItem>
+            <MudItem xs="12">
+                <MudTextField @bind-Value="_client.Address" For="@(() => _client.Address)" Label="Address" Variant="Variant.Outlined" Lines="2" AutoGrow />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudDatePicker @bind-Date="_client.Birthday" For="@(() => _client.Birthday)" IsDateDisabledFunc="@((DateTime dt)=>((int)dt.Day > DateTime.UtcNow.Day))" Label="Birthday" Variant="Variant.Outlined" ShowToolbar="false" />
+            </MudItem>
+            @if(_client.Member is not null)
+            {
+                <MudItem xs="12" sm="6">
+                    <MudTextField @bind-Value="_client.Member.Occupation" For="@(() => _client.Member.Occupation)" Label="Occupation" Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudAutocomplete @bind-Value="_client.Member.WhereDidYouHereAboutUs" For="@(() => _client.Member.WhereDidYouHereAboutUs)" 
+                        Label="Where did you here about us?" SearchFunc="@_WhereDidYouHereAboutUsAutocomplete" Variant="Variant.Outlined" CoerceValue/>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudAutocomplete @bind-Value="_client.Member.PurposeOfJoining" For="@(() => _client.Member.PurposeOfJoining)" 
+                        Label="Purpose of joining" SearchFunc="@_PurposeOfJoiningAutocomplete" Variant="Variant.Outlined" CoerceValue/>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField @bind-Value="_client.Member.DogClinicAddress" For="@(() => _client.Member.DogClinicAddress)" Label="Dog's Veterinarian Clinic Address'" Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField @bind-Value="_client.Member.WhoTrainYourDog" For="@(() => _client.Member.WhoTrainYourDog)" Label="Who will train your dog?" Variant="Variant.Outlined" />
+                </MudItem>
+            }
+        </MudGrid>
+
+    </EditForm>
+
+    <MudButton OnClick="@_TermsAndConditionsMessage" ButtonType="ButtonType.Button" Color="@_termsAndConditionsButtonColor" EndIcon="@_termsAndConditionsButtonEndIcon" Variant="Variant.Outlined">Terms and Agreements</MudButton>
+    <MudButton OnClick="@_SubmitAsync" Disabled="@_submitButtonDisabled" Variant="Variant.Filled" Color="Color.Primary">Continue</MudButton>
+    <MudProgressLinear Style="@_linearProgressBar" Color="Color.Primary" Indeterminate="true" />
+
+    </MudStack>
+</MudContainer>
+
+@* Terms and Conditions *@
+<MudMessageBox @ref="_termsAndConditionsMessageBox" Title="Terms and Agreements">
+
+    <MessageContent>
+        <MudText Typo="Typo.body1" Class="mb-4">By registering, I hereby agree to the following terms and conditions:</MudText>
+        <MudText Typo="Typo.body1" Style="font-weight:bolder">Liability and Responsibility:</MudText>
+        <MudText Typo="Typo.body2" Class="ml-6 my-2">I acknowledge that I will take full responsibility for any harm or injury caused by myself or my dog during training, accidents, or any other circumstances.</MudText>
+        <MudText Typo="Typo.body2" Class="ml-6 my-2">I understand that the club, its members, and organizers will not be held liable for any such incidents.</MudText>
+        <MudText Typo="Typo.body1" Style="font-weight:bolder">Club Participation:</MudText>
+        <MudText Typo="Typo.body2" Class="ml-6 my-2">I am willing to actively participate in all events organized by the club.</MudText>
+        <MudText Typo="Typo.body2" Class="ml-6 my-2">I commit to contributing my time, effort, and support to club activities.</MudText>
+        <MudText Typo="Typo.body1" Style="font-weight:bolder">Adherence to Club Rules:</MudText>
+        <MudText Typo="Typo.body2" Class="ml-6 my-2">I agree to abide by the rules and regulations set forth by the club.</MudText>
+        <MudText Typo="Typo.body2" Class="ml-6 my-2">I understand that failure to comply with these rules may result in disciplinary action.</MudText>
+        <MudText Typo="Typo.body1" Style="font-weight:bolder">Accuracy of Information:</MudText>
+        <MudText Typo="Typo.body2" Class="ml-6 my-2">By registering, I attest that all information provided is **true and correct** from my personal knowledge and/or authentic documents.</MudText>
+    </MessageContent>
+
+    <YesButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled">I Accept</MudButton>
+    </YesButton>
+
+    <CancelButton>
+        <MudButton>Cancel</MudButton>
+    </CancelButton>
+
+</MudMessageBox>
+
+@code
+{
+    [Parameter] public string? emailParameter { get; set; }
+
+    // Form model
+    private EditContext? _formContext;
+    private Shared.Client _client = new()
+    {
+        Member = new()
+    };
+
+    // on initialize
+    protected override void OnInitialized()
+    {
+        _formContext = new EditContext(_client);
+    }
+
+    // on parameter
+    protected override void OnParametersSet()
+    {
+        _client.Email = emailParameter ?? string.Empty;
+    }
+
+    // submit form
+    string _linearProgressBar = "display: none";
+    private async Task _SubmitAsync()
+    {
+        if (_formContext!.Validate())
+        {
+            _submitButtonDisabled = true;
+            _linearProgressBar = string.Empty;
+
+            await HttpClient.Client().RegisterMember(_client);
+            NavigationManager.NavigateTo("/membership-registration-success");
+        }
+    }
+
+    // Where did you here about us autocomplete
+    private string[] _whereDidYouHereAboutUsAutocompleteAnswers =
+    {
+        "Friend", "Colleague", "Family",
+        "Advertisement", "Blog", "Facebook",
+        "X (formerly Twitter)", "YouTube",
+    };
+    private async Task<IEnumerable<string>> _WhereDidYouHereAboutUsAutocomplete(string value, CancellationToken token)
+    {
+        await Task.Delay(5, token);
+
+        if (string.IsNullOrEmpty(value))
+            return _whereDidYouHereAboutUsAutocompleteAnswers;
+        return _whereDidYouHereAboutUsAutocompleteAnswers.Where(x => x.Contains(value, StringComparison.InvariantCultureIgnoreCase));
+    }
+
+    // Where did you here about us autocomplete
+    private string[] _PurposeOfJoiningAutocompleteAnswers =
+    {
+        "Sports", "Hobby", "IGP",
+    };
+    private async Task<IEnumerable<string>> _PurposeOfJoiningAutocomplete(string value, CancellationToken token)
+    {
+        await Task.Delay(5, token);
+
+        if (string.IsNullOrEmpty(value))
+            return _PurposeOfJoiningAutocompleteAnswers;
+        return _PurposeOfJoiningAutocompleteAnswers.Where(x => x.Contains(value, StringComparison.InvariantCultureIgnoreCase));
+    }
+
+    // Terms and Conditions MessageBox
+    private bool _submitButtonDisabled = true;
+    private Color _termsAndConditionsButtonColor = Color.Dark;
+    private string _termsAndConditionsButtonEndIcon = string.Empty;
+    private MudMessageBox? _termsAndConditionsMessageBox { get; set; }
+    private async Task _TermsAndConditionsMessage()
+    {
+        bool? result = await _termsAndConditionsMessageBox!.ShowAsync();
+        if (result is not null)
+        {
+            _submitButtonDisabled = false;
+            _termsAndConditionsButtonColor = Color.Success;
+            _termsAndConditionsButtonEndIcon = Icons.Material.Filled.Check;
+        }
+        StateHasChanged();
+    }
+
+}

@@ -1,0 +1,94 @@
+﻿@inject NavigationManager NavigationManager;
+@inject SouthSideK9CampHttpClient HttpClient;
+
+<MudStack>
+
+    <MudTable Items="_clients" Hover="true">
+
+        <RowTemplate>
+
+            @* member data *@
+            <MudTd DataLabel="Name">
+                <MudStack Row>
+
+                    <MudAvatar Variant="Variant.Outlined" Color="Color.Primary">@context.FirstName[0]</MudAvatar>
+
+                    <MudStack Spacing="0" AlignItems="AlignItems.Start">
+                        <MudText Typo="Typo.body1">@context.FirstName @context.MiddleInitial @context.LastName</MudText>
+                        <MudText Typo="Typo.caption">@context.Email | @context.Contact</MudText>
+                    </MudStack>
+
+                </MudStack>
+            </MudTd>
+
+            <MudTd>
+                <MudStack Row>
+
+                    @if(context.Member != null)
+                    {
+                        @if(context.Member.RegistrationConfirmed)
+                        {
+                            <MudChip T="string" Variant="Variant.Text" Color="Color.Success">Approved</MudChip>
+                        }
+                        else if (context.Member.RegistrationPaymentURL != string.Empty)
+                        {
+                            <MudChip T="string" Variant="Variant.Text" Color="Color.Warning">Pending</MudChip>
+                        }
+                        else if(context.Member.RegistrationPaymentURL == string.Empty)
+                        {
+                            <MudChip T="string" Variant="Variant.Text" Color="Color.Error">Not Paid</MudChip>
+                        }
+                    }
+
+                </MudStack>
+            </MudTd>
+
+            @* buttons *@
+            <MudTd>
+                <MudStack AlignItems="AlignItems.End">
+                    <MudStack Row>
+
+                        <MudButtonGroup Variant="Variant.Filled" Color="Color.Primary">
+                            <MudButton OnClick="@(() => _OpenCustomer(context.ID))" StartIcon="@Icons.Material.Filled.Info">Open</MudButton>
+                        </MudButtonGroup>
+
+                    </MudStack>
+                </MudStack>
+            </MudTd>
+
+        </RowTemplate>
+
+        <PagerContent><MudTablePager /></PagerContent>
+
+    </MudTable>
+
+</MudStack>
+
+@code
+{
+    List<Shared.Client> _clients = new();
+
+    // on initialize
+    protected override async Task OnInitializedAsync()
+    {
+
+        await _RefreshDataAsync();
+    }
+
+    // refresh data
+    private async Task _RefreshDataAsync()
+    {
+        _clients = await HttpClient.Client().GetAsync();
+        _clients = _clients.Where(c => c.Member is not null).ToList();
+        StateHasChanged();
+
+        _clients = await HttpClient.Client().FetchAsync();
+        _clients = _clients.Where(c => c.Member is not null).ToList();
+    }
+
+    // open client
+    private void _OpenCustomer(int clientID)
+    {
+        NavigationManager.NavigateTo($"/admin/member/{clientID}");
+    }
+}

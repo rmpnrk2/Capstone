@@ -1,0 +1,41 @@
+﻿@inherits LayoutComponentBase
+
+@inject NavigationManager NavigationManager
+
+@* add mudblazor components *@
+<MudThemeProvider IsDarkMode/>
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<MudLayout>
+
+    <MudAppBar Elevation="1">
+        <MudIconButton Icon="@menuIcon" OnClick="@ToggleMudDrawer" />
+        <MudSpacer />
+    </MudAppBar>
+
+    <MudDrawer @bind-Open="@mudDrawerToggle" ClipMode="DrawerClipMode.Docked">
+        <MudNavMenu>
+            <MudNavLink Href="/admin/member-list" Icon="@Icons.Material.Filled.People" Match="NavLinkMatch.All">Members</MudNavLink>
+        </MudNavMenu>
+    </MudDrawer>
+
+    <MudMainContent>
+        @Body
+    </MudMainContent>
+
+</MudLayout>
+
+@code
+{
+    // muddrawer toggle
+    bool mudDrawerToggle = false;
+    string menuIcon = Icons.Material.Filled.Menu;
+    public void ToggleMudDrawer()
+    {
+        menuIcon = (mudDrawerToggle) ? @Icons.Material.Filled.Menu : @Icons.Material.Filled.MenuOpen;
+
+        mudDrawerToggle = !mudDrawerToggle;
+    }
+}

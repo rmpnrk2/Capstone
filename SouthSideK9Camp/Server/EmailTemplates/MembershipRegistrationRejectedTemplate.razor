@@ -1,0 +1,57 @@
+﻿<head>
+	<style>
+		body {
+			font-family: Arial, sans-serif;
+			margin: 0;
+			padding: 20px;
+		}
+
+		.container {
+			max-width: 500px;
+			margin: 0 auto;
+			text-align: center;
+		}
+
+		h1 {
+			font-size: 24px;
+			margin-bottom: 10px;
+		}
+
+		a {
+			background-color: #4CAF50;
+			border: none;
+			color: white;
+			padding: 10px 20px;
+			text-align: center;
+			text-decoration: none;
+			display: inline-block;
+			font-size: 16px;
+		}
+	</style>
+</head>
+
+<body>
+	<div class="container">
+		<h1>SouthSide K9 Camp Membership Registration</h1>
+		<p>Your previous payment was unsuccessful. To avoid any disruption, kindly resubmit your payment details using the link provided below:</p>
+		<a href="@link" target="_blank">Continue Registration</a>
+		<br />
+		<br />
+		<p>Best regards,</p>
+		<p>SouthSide K9 Camp</p>
+
+	</div>
+</body>
+
+@code
+{
+	[Parameter] public string client_guid { get; set; } = string.Empty;
+	[Parameter] public string host { get; set; } = string.Empty;
+
+	private string? link;
+	protected override void OnInitialized()
+	{
+		link = $"{host}/membership-registration-payment/{client_guid}";
+		base.OnInitialized();
+	}
+}

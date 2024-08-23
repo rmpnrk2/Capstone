@@ -1,0 +1,139 @@
+﻿@page "/membership-registration-payment/{clientGuid}";
+
+@inject SouthSideK9CampHttpClient HttpClient
+@inject NavigationManager NavigationManager
+
+@using FluentValidation
+@using System.Net.Http.Headers
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-16 mb-16">
+    <MudStack>
+
+    <MudText Typo="Typo.h4">SouthSide K9 Membership Payment</MudText>
+
+     @* editform for membership payment *@
+    <EditForm EditContext="@_FormContext" OnValidSubmit="@_SubmitAsync" Context="context">
+        <FluentValidationValidator />
+
+        @* image display *@
+        <MudStack AlignItems="AlignItems.Center">
+            <MudImage Src="@_imageString" Height="500" />
+            @if (_FormModel.file is not null)
+            {
+                <MudText><MudIcon Icon="@Icons.Material.Filled.AttachFile"/>@_FormModel.file.Name</MudText>
+                <MudText><code>@_FormModel.file.Size bytes</code></MudText>
+            }
+        </MudStack>
+
+        @* upload button *@
+        <MudFileUpload T="IBrowserFile" FilesChanged="UploadFiles" Accept=".png, .jpg" For="@(() => _FormModel.file)" MaxFileSize="10485760">
+            <ActivatorContent>
+                <MudButton HtmlTag="label" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.CloudUpload">
+                    Upload proof of payment
+                </MudButton>
+            </ActivatorContent>
+        </MudFileUpload>
+
+    </EditForm>
+
+    <MudButton OnClick="@_SubmitAsync" Disabled="@_submitButtonDisabled" Variant="Variant.Filled" Color="Color.Primary">Submit</MudButton>
+    <MudProgressLinear Style="@_linearProgressBarDisplay" Color="Color.Primary" Indeterminate="true" />
+
+    </MudStack>
+</MudContainer>
+
+@code
+{
+    [Parameter] public string clientGUID { get; set; } = string.Empty;
+
+    // on parameter set
+    Shared.Client? client = new();
+    protected override async Task OnParametersSetAsync()
+    {
+        client = await HttpClient.Member().GetByGuid(clientGUID);
+
+        if (client == null)
+        {
+            NavigationManager.NavigateTo("/not-found");
+            return;
+        }
+
+        if(client.Member == null)
+        {
+            NavigationManager.NavigateTo("/not-found");
+            return;
+        }
+
+        // if member has already sent payment
+        if(client.Member.RegistrationPaymentURL != string.Empty)
+            NavigationManager.NavigateTo($"/membership-registration-payment-success/{clientGUID}");
+    }
+
+
+    // form context with validation
+    private class FormModel
+    {
+        public IBrowserFile? file { get; set; }
+    }
+    private FormModel _FormModel = new();
+    private class FormModelValidator : AbstractValidator<FormModel>
+    {
+        private FormModelValidator()
+        {
+            RuleFor(e => e.file).NotEmpty().WithMessage("This field is required");
+        }
+    }
+
+    // on initialize
+    private EditContext? _FormContext;
+    protected override void OnInitialized()
+    {
+        _FormContext = new EditContext(_FormModel);
+    }
+
+    // image upload logic
+    private string _imageString = string.Empty;
+    private async Task UploadFiles(IBrowserFile file)
+    {
+        var resizedImage = await file.RequestImageFileAsync("image/png", 300, 300); // resize image
+        var buffer = new byte[resizedImage.Size]; // image to byte
+        await resizedImage.OpenReadStream().ReadAsync(buffer); // byte to stream
+
+        _imageString = $"data:image/png;base64,{Convert.ToBase64String(buffer)}"; // stream to string
+
+        _FormModel.file = file;
+
+        _submitButtonDisabled = false;
+    }
+
+    // submit
+    string _linearProgressBarDisplay = "display: none";
+    bool _submitButtonDisabled = true;
+    private async Task _SubmitAsync()
+    {
+        if(_FormContext is not null)
+        if (_FormContext.Validate())
+        {
+            _submitButtonDisabled = true;
+            _linearProgressBarDisplay = string.Empty;
+
+            // image to stream
+            MemoryStream stream = new MemoryStream();
+            await _FormModel.file!.OpenReadStream(10485760).CopyToAsync(stream);
+
+            // add stream to content
+            ByteArrayContent imageContent = new ByteArrayContent(stream.ToArray());
+            imageContent.Headers.ContentType = new MediaTypeHeaderValue(_FormModel.file.ContentType);
+
+            // add content to multipartcontent
+            MultipartFormDataContent multipartContent = new MultipartFormDataContent();
+            multipartContent.Add(imageContent, "imageContent", _FormModel.file.Name);
+
+            if(client.Member is not null)
+            await HttpClient.Member().RegistrationPayment(client.Member.ID, multipartContent);
+
+            NavigationManager.NavigateTo($"/membership-registration-payment-success/{clientGUID}");
+        }
+        return;
+    }
+}

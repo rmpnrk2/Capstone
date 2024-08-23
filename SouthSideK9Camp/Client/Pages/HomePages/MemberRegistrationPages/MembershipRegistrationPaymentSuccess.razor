@@ -1,0 +1,70 @@
+﻿@page "/membership-registration-payment-success/{clientGUID}";
+
+@inject SouthSideK9CampHttpClient HttpClient
+@inject NavigationManager NavigationManager
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-16 mb-16">
+   <MudStack>
+
+        <MudText Typo="Typo.h4">SouthSide K9 Membership Registration Payment Success</MudText>
+
+        <MudStack AlignItems="AlignItems.Center">
+            <MudImage Src="@_imageString" Height="500" />
+        </MudStack>
+
+        <MudText Typo="Typo.body1">Your payment submission has been received. You may now safely close this website and wait for the approval of your payment.</MudText>
+        <MudText Typo="Typo.body1">We will notify you once the payment has been successfully processed. If you have any questions in the meantime, please don't hesitate to contact us.</MudText>
+        <MudText Typo="Typo.body1">If you wish to make changes to your payment submission, please click the link below:</MudText>
+        <MudButton OnClick="_SubmitAsync" Disabled="@_resubmitButtonDisabled" Variant="Variant.Outlined">Resubmit Payment</MudButton>
+        <MudProgressLinear Style="@_linearProgressBar" Color="Color.Primary" Indeterminate="true" />
+
+   </MudStack>
+</MudContainer>
+
+@code
+{
+    [Parameter] public string clientGUID { get; set; } = string.Empty;
+    private string _imageString = string.Empty;
+
+    // on parameter set
+    Shared.Client? client;
+    protected override async Task OnParametersSetAsync()
+    {
+        client = await HttpClient.Member().GetByGuid(clientGUID);
+
+        if (client == null)
+        {
+            NavigationManager.NavigateTo("/not-found");
+            return;
+        }
+
+        if (client.Member == null)
+        {
+            NavigationManager.NavigateTo("/not-found");
+            return;
+        }
+
+        if(client.Member.RegistrationConfirmed)
+        {
+            NavigationManager.NavigateTo("/membership-payment-approved");
+            return;
+        }
+
+        _imageString = client.Member.RegistrationPaymentURL;
+    }
+
+    // resubmit
+    bool _resubmitButtonDisabled = false;
+    string _linearProgressBar = "display: none";
+    private async Task _SubmitAsync()
+    {
+        _resubmitButtonDisabled = true;
+        _linearProgressBar = string.Empty;
+
+        if (client != null)
+            if (client.Member != null)
+                await HttpClient.Member().RegistrationPaymentResubmit(client.Member.ID);
+
+        NavigationManager.NavigateTo($"/membership-registration-payment/{clientGUID}");
+    }
+}
