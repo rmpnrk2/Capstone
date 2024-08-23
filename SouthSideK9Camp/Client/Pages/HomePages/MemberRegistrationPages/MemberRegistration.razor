@@ -50,7 +50,7 @@
         {
             _continueButtonDisabled = true;
             _linearProgressBar = string.Empty;
-            bool emailAvailability = await HttpClient.Client().CheckMemberEmailAvailabilityAsync(_EmailAddress.EmailAddress);
+            bool emailAvailability = await HttpClient.Client.CheckMemberEmailAvailabilityAsync(_EmailAddress.EmailAddress);
 
             if(emailAvailability)
             {

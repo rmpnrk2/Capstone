@@ -105,7 +105,7 @@
 <MudMessageBox @ref="_confirmDeleteMessageBox" Title="Warning">
 
     <MessageContent>
-        <MudText Typo="Typo.body1">Confirm delete?</MudText>
+        Confirm delete?
     </MessageContent>
 
     <YesButton>
@@ -162,7 +162,7 @@
     protected override async Task OnInitializedAsync()
     {
         _editContext = new EditContext(_client);
-        _clients = await HttpClient.Client().GetAsync();
+        _clients = await HttpClient.Client.GetAsync();
     }
 
     // on parameterset
@@ -205,7 +205,7 @@
         {
             _editModeButtonsDisplay = "display: none";
             _editButtonDisplay = string.Empty;
-            await HttpClient.Member().UpdateAsync(_client);
+            await HttpClient.Member.UpdateAsync(_client);
             Snackbar.Add("Saved succesful", Severity.Success);
         }
     }
@@ -217,7 +217,7 @@
         bool? result = await _confirmDeleteMessageBox!.ShowAsync();
         if (result is not null)
         {
-            await HttpClient.Member().DeleteAsync(clientID);
+            await HttpClient.Member.DeleteAsync(clientID);
             Snackbar.Add("Delete succesful", Severity.Error);
             NavigationManager.NavigateTo($"/admin/member-list");
         }
@@ -238,13 +238,13 @@
     }
     private async Task _Approve()
     {
-        await HttpClient.Member().ApprovePaymentAsync(_client.ID);
+        await HttpClient.Member.ApprovePaymentAsync(_client.ID);
         await _RefreshData();
         Snackbar.Add("Approved succesfully", Severity.Success);
     }
     private async Task _Reject()
     {
-        await HttpClient.Member().RejectPaymentAsync(_client.ID);
+        await HttpClient.Member.RejectPaymentAsync(_client.ID);
         await _RefreshData();
         Snackbar.Add("Reject", Severity.Error);
     }
@@ -282,7 +282,7 @@
 
     private async Task _RefreshData()
     {
-        _clients = await HttpClient.Client().FetchAsync();
+        _clients = await HttpClient.Client.FetchAsync();
         _client = _clients.FirstOrDefault(c => c.ID == clientID) ?? new();
         StateHasChanged();
     }

@@ -3,82 +3,122 @@
 @inject SouthSideK9CampHttpClient HttpClient;
 @inject ISnackbar Snackbar;
 
-<MudTable Items="_clients" Hover="true">
+<MudStack>
 
+    @* toolbar *@
+    <MudPaper>
+        <MudToolBar>
 
-    @* datepicker *@
-    <ToolBarContent>
-        <MudStack Row>
-
-            <MudIconButton OnClick="_previousMonth" Icon="@Icons.Material.Filled.NavigateBefore"></MudIconButton>
+            <MudIconButton OnClick="_PreviousMonth" Icon="@Icons.Material.Filled.NavigateBefore"></MudIconButton>
             <MudDatePicker Variant="Variant.Outlined" Label="Month" @bind-Date="_yearMonth" OpenTo="OpenTo.Month" DateFormat="MMMM yyyy" FixDay="1" IsDateDisabledFunc="@((DateTime dt)=>((int)dt.Year > DateTime.UtcNow.Year || (int)dt.Month > DateTime.UtcNow.AddMonths(1).Month))" Margin="Margin.Dense" ShowToolbar="false" />
-            <MudIconButton OnClick="_nextMonth" Disabled="@_isNextMonthDisabled" Icon="@Icons.Material.Filled.NavigateNext"></MudIconButton>
- 
-        </MudStack>
-    </ToolBarContent>
+            <MudIconButton OnClick="_NextMonth" Disabled="@_isNextMonthDisabled" Icon="@Icons.Material.Filled.NavigateNext"></MudIconButton>
+
+            <MudSpacer />
+
+            <MudButton OnClick="@_EmailDues" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Email">Mail</MudButton>
+
+        </MudToolBar>
+    </MudPaper>
 
     @* table *@
-    <RowTemplate>
+    <MudTable Items="_clients" Hover="true">
 
-        @* member data *@
-        <MudTd DataLabel="Name">
-            <MudStack Row AlignItems="AlignItems.Center">
+        <RowTemplate>
 
-                <MudAvatar Variant="Variant.Outlined" Color="Color.Primary">@context.FirstName[0]</MudAvatar>
-                <MudText Typo="Typo.body1">@context.FirstName @context.MiddleInitial @context.LastName</MudText>
+            @* member data *@
+            <MudTd DataLabel="Name">
+                <MudStack Row AlignItems="AlignItems.Center">
 
-            </MudStack>
-        </MudTd>
-
-        <MudTd DataLabel="Expiration">
-            <MudStack Row>
-
-                <MudText Typo="Typo.body1">@context.Member?.MembershipDues?.FirstOrDefault()?.DateTimeDue.ToString("dd MMMM yyyy")</MudText>
-
-            </MudStack>
-        </MudTd>
-
-        <MudTd DataLabel="Due">
-            <MudStack Row>
-
-                @if(context.Member?.MembershipDues?.FirstOrDefault()?.DateTimeDue > DateTime.UtcNow)
-                {
-                    <MudChip T="string" Variant="Variant.Text">Not Expired</MudChip>
-                }
-                else if (context.Member?.MembershipDues.FirstOrDefault()?.PaymentConfirmed ?? false)
-                {
-                    <MudChip T="string" Variant="Variant.Text" Color="Color.Success">Approved</MudChip>
-                }
-                else if (context.Member?.MembershipDues.FirstOrDefault()?.ProofOfPaymentURL != string.Empty)
-                {
-                    <MudChip T="string" Variant="Variant.Text" Color="Color.Warning">Pending</MudChip>
-                }
-                else if (context.Member?.MembershipDues.FirstOrDefault()?.ProofOfPaymentURL == string.Empty)
-                {
-                    <MudChip T="string" Variant="Variant.Text" Color="Color.Error">Not Paid</MudChip>
-                }
-
-            </MudStack>
-        </MudTd>
-
-        @* buttons *@
-        <MudTd>
-            <MudStack AlignItems="AlignItems.End">
-                <MudStack Row>
-
-                    <MudButtonGroup Variant="Variant.Filled" Color="Color.Primary">
-                        <MudButton OnClick="@(() => _OpenCustomer(context.ID))" StartIcon="@Icons.Material.Filled.Info">Open</MudButton>
-                    </MudButtonGroup>
+                    <MudAvatar Variant="Variant.Outlined" Color="Color.Primary">@context.FirstName[0]</MudAvatar>
+                    <MudText Typo="Typo.body1">@context.FirstName @context.MiddleInitial @context.LastName</MudText>
 
                 </MudStack>
+            </MudTd>
+
+            <MudTd DataLabel="Expiration">
+                <MudStack Row>
+
+                    <MudText Typo="Typo.body1">@context.Member?.MembershipDues?.FirstOrDefault(d => d.DateTimeDue.Year == _yearMonth?.Year && d.DateTimeDue.Month == _yearMonth.Value.Month)?.DateTimeDue.ToString("dd MMMM yyyy")</MudText>
+
+                </MudStack>
+            </MudTd>
+
+            <MudTd DataLabel="Due">
+                <MudStack Row>
+
+                    @if(context.Member?.MembershipDues?.FirstOrDefault(d => d.DateTimeDue.Year == _yearMonth?.Year && d.DateTimeDue.Month == _yearMonth.Value.Month)?.DateTimeDue > DateTime.UtcNow)
+                    {
+                        <MudChip T="string" Variant="Variant.Text">Not Expired</MudChip>
+                    }
+                    else if (context.Member?.MembershipDues.FirstOrDefault(d => d.DateTimeDue.Year == _yearMonth?.Year && d.DateTimeDue.Month == _yearMonth.Value.Month)?.PaymentConfirmed ?? false)
+                    {
+                        <MudChip T="string" Variant="Variant.Text" Color="Color.Success">Approved</MudChip>
+                    }
+                    else if (context.Member?.MembershipDues.FirstOrDefault(d => d.DateTimeDue.Year == _yearMonth?.Year && d.DateTimeDue.Month == _yearMonth.Value.Month)?.ProofOfPaymentURL != string.Empty)
+                    {
+                        <MudChip T="string" Variant="Variant.Text" Color="Color.Warning">Pending</MudChip>
+                    }
+                    else if (context.Member?.MembershipDues.FirstOrDefault(d => d.DateTimeDue.Year == _yearMonth?.Year && d.DateTimeDue.Month == _yearMonth.Value.Month)?.ProofOfPaymentURL == string.Empty)
+                    {
+                        <MudChip T="string" Variant="Variant.Text" Color="Color.Error">Not Paid</MudChip>
+                    }
+
+                </MudStack>
+            </MudTd>
+
+            @* buttons *@
+            <MudTd>
+                <MudStack AlignItems="AlignItems.End">
+                    <MudStack Row>
+
+                        <MudButtonGroup Variant="Variant.Filled" Color="Color.Primary">
+
+                            @if (context.Member?.MembershipDues.FirstOrDefault(d => d.DateTimeDue.Year == _yearMonth?.Year && d.DateTimeDue.Month == _yearMonth.Value.Month)?.PaymentConfirmed ?? false)
+                            {
+                                <MudButton OnClick="@(() => _ShowReceipt(context.Member?.MembershipDues.FirstOrDefault()?.ID ?? 0))" StartIcon="@Icons.Material.Filled.Receipt">Receipt</MudButton>
+                            }
+                            else if (context.Member?.MembershipDues.FirstOrDefault(d => d.DateTimeDue.Year == _yearMonth?.Year && d.DateTimeDue.Month == _yearMonth.Value.Month)?.ProofOfPaymentURL != string.Empty)
+                            {
+                                <MudButton OnClick="@(() => _ShowReceipt(context.Member?.MembershipDues.FirstOrDefault()?.ID ?? 0))" StartIcon="@Icons.Material.Filled.Receipt">Receipt</MudButton>
+                            }
+
+                        </MudButtonGroup>
+
+                    </MudStack>
+                </MudStack>
+            </MudTd>
+
+        </RowTemplate>
+
+        <PagerContent><MudTablePager /></PagerContent>
+
+    </MudTable>
+
+</MudStack>
+
+@* view receipt messagebox *@
+<MudMessageBox @ref="_receiptMessageBox">
+
+    <MessageContent>
+            <MudStack AlignItems="AlignItems.Center">
+                <MudImage Src="@_due?.ProofOfPaymentURL" Fluid />
             </MudStack>
-        </MudTd>
+    </MessageContent>
 
-    </RowTemplate>
+    <YesButton>
+        @if (_due?.PaymentConfirmed ?? false)
+        {
 
-    <PagerContent><MudTablePager /></PagerContent>
+            <MudButton Disabled EndIcon="@Icons.Material.Filled.Check" Variant="Variant.Outlined">Approved</MudButton>
+        }
+        else
+        {
+            <MudButton OnClick="@(() => _Reject(_due?.ID ?? 0))" Color="Color.Error" Variant="Variant.Filled">Reject</MudButton>
+            <MudButton OnClick="@(() => _Approve(_due?.ID ?? 0))" Color="Color.Primary" Variant="Variant.Filled">Approve</MudButton>
+        }
+    </YesButton>
 
-</MudTable>
+</MudMessageBox>
 
 @code
 {
@@ -93,7 +133,7 @@
     // datepicker
     private DateTime? _yearMonth = DateTime.UtcNow;
     private bool _isNextMonthDisabled = false;
-    private async Task _nextMonth()
+    private async Task _NextMonth()
     {
         _yearMonth = _yearMonth?.AddMonths(1);
 
@@ -102,30 +142,56 @@
 
         await _RefreshDataAsync();
     }
-    private async Task _previousMonth()
+    private async Task _PreviousMonth()
     {
         _yearMonth = _yearMonth?.AddMonths(-1);
         _isNextMonthDisabled = false;
         await _RefreshDataAsync();
     }
 
+    // email all expired membershipdues
+    private async Task _EmailDues()
+    {
+        await HttpClient.MembershipDue.NotifyAsync();
+    }
+
+    // open receipt
+    private MudMessageBox? _receiptMessageBox { get; set; }
+    private Shared.MembershipDue? _due = new();
+    private async Task _ShowReceipt(int membershipDueID)
+    {
+        _due = _clients.Where(c => c.Member != null && c.Member.MembershipDues.Any(d => d.ID == membershipDueID))
+            .SelectMany(c => c.Member!.MembershipDues).Where(d => d.ID == membershipDueID).FirstOrDefault();
+
+        bool? result = await _receiptMessageBox!.ShowAsync(new DialogOptions()
+        {
+            FullScreen = true,
+            CloseButton = true
+        });
+        if (result != null) { }
+    }
+    private async Task _Approve(int membershipDueID)
+    {
+        await HttpClient.MembershipDue.ApprovePaymentAsync(membershipDueID);
+        await _RefreshDataAsync();
+        Snackbar.Add("Approved succesfully", Severity.Success);
+    }
+    private async Task _Reject(int membershipDueID)
+    {
+        await HttpClient.MembershipDue.RejectPaymentAsync(membershipDueID);
+        await _RefreshDataAsync();
+        Snackbar.Add("Reject", Severity.Error);
+    }
+
     // refresh data
     private async Task _RefreshDataAsync()
     {
-        _clients = await HttpClient.Client().GetAsync();
-        _clients = _clients.Where(c => c.Member != null).ToList();
-        _clients = _clients.Where(c => c.Member.MembershipDues.Any(d => d.DateTimeDue.Year == _yearMonth?.Year && d.DateTimeDue.Month == _yearMonth.Value.Month)).ToList();
+        _clients = await HttpClient.Client.GetAsync();
+        _clients = _clients.Where(c => c.Member != null && c.Member.MembershipDues.Any(d => d.DateTimeDue.Year == _yearMonth?.Year && d.DateTimeDue.Month == _yearMonth.Value.Month)).ToList();
         StateHasChanged();
 
-        _clients = await HttpClient.Client().FetchAsync();
-        _clients = _clients.Where(c => c.Member != null).ToList();
-        _clients = _clients.Where(c => c.Member.MembershipDues.Any(d => d.DateTimeDue.Year == _yearMonth?.Year && d.DateTimeDue.Month == _yearMonth.Value.Month)).ToList();
+        _clients = await HttpClient.Client.FetchAsync();
+        _clients = _clients.Where(c => c.Member != null && c.Member.MembershipDues.Any(d => d.DateTimeDue.Year == _yearMonth?.Year && d.DateTimeDue.Month == _yearMonth.Value.Month)).ToList();
         StateHasChanged();
-    }
-
-    // open client
-    private void _OpenCustomer(int clientID)
-    {
-        NavigationManager.NavigateTo($"/admin/member/{clientID}");
     }
 }

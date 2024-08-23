@@ -99,48 +99,6 @@ namespace SouthSideK9Camp.Server.Controller
             return Results.Ok();
         }
 
-        // membership due payment
-        [HttpPost("membershipdue-payment/{membershipDueID}")] public async Task<IResult> MembershipDuePayment(int membershipDueID, IFormFile imageContent)
-        {
-            // create unique GUID for image file
-            string imageFileName = $"{Guid.NewGuid()}{Extension()}";
-            string Extension()
-            {
-                if (imageContent.ContentType == "image/jpeg") return ".jpeg";
-                if (imageContent.ContentType == "image/png") return ".png";
-                return string.Empty;
-            }
-
-            // save image to wwwroot/Images/MembershipRegistrationPayment
-            string path = Path.Combine(_hostingEnvironment.WebRootPath, "Images/MembershipDuePayments", imageFileName);
-            using (FileStream stream = new FileStream(path, FileMode.Create))
-            {
-                await imageContent.CopyToAsync(stream);
-            }
-
-            // set member to paid
-            await _dataContext.MembershipDues.Where(due => due.ID == membershipDueID).ExecuteUpdateAsync(updates => updates
-                .SetProperty(due => due.ProofOfPaymentURL, _configuration["Host"] + "/Images/MembershipDuePayments/" + imageFileName)
-            );
-
-            await _dataContext.SaveChangesAsync();
-
-            return Results.Ok();
-        }
-
-        // membership due payment resubmit
-        [HttpPost("membershipdue-payment-resubmit/{membershipDueID}")] public async Task<IResult> MembershipDuePaymentResubmit(int membershipDueID)
-        {
-            // remove payment submission
-            await _dataContext.Members.Where(member => member.ID == membershipDueID).ExecuteUpdateAsync(updates => updates
-                .SetProperty(member => member.RegistrationPaymentURL, string.Empty)
-            );
-
-            await _dataContext.SaveChangesAsync();
-
-            return Results.Ok();
-        }
-
         // update
         [HttpPut("{clientID}")] public async Task<IResult> EditAsync(int clientID, Shared.Client updatedClient)
         {

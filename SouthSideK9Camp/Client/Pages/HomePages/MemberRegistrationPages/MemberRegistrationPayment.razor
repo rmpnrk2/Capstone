@@ -50,7 +50,7 @@
     Shared.Client? client = new();
     protected override async Task OnParametersSetAsync()
     {
-        client = await HttpClient.Member().GetByGuid(clientGUID);
+        client = await HttpClient.Member.GetByGuid(clientGUID);
 
         if (client == null)
         {
@@ -130,7 +130,7 @@
             multipartContent.Add(imageContent, "imageContent", _FormModel.file.Name);
 
             if(client.Member is not null)
-            await HttpClient.Member().RegistrationPayment(client.Member.ID, multipartContent);
+            await HttpClient.Member.RegistrationPayment(client.Member.ID, multipartContent);
 
             NavigationManager.NavigateTo($"/membership-registration-payment-success/{clientGUID}");
         }

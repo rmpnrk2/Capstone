@@ -78,11 +78,11 @@
     // refresh data
     private async Task _RefreshDataAsync()
     {
-        _clients = await HttpClient.Client().GetAsync();
+        _clients = await HttpClient.Client.GetAsync();
         _clients = _clients.Where(c => c.Member is not null).ToList();
         StateHasChanged();
 
-        _clients = await HttpClient.Client().FetchAsync();
+        _clients = await HttpClient.Client.FetchAsync();
         _clients = _clients.Where(c => c.Member is not null).ToList();
     }
 

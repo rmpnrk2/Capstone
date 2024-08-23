@@ -131,7 +131,7 @@
             _submitButtonDisabled = true;
             _linearProgressBar = string.Empty;
 
-            await HttpClient.Client().RegisterMember(_client);
+            await HttpClient.Client.RegisterMember(_client);
             NavigationManager.NavigateTo("/membership-registration-success");
         }
     }

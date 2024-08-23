@@ -1,10 +1,10 @@
-﻿@page "/membership-registration-payment-success/{clientGUID}";
+﻿@page "/membership-due-payment-pending/{membershipDueGUID}";
 
 @inject SouthSideK9CampHttpClient HttpClient
 @inject NavigationManager NavigationManager
 
 <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-16 mb-16">
-   <MudStack>
+    <MudStack>
 
         <MudText Typo="Typo.h4">SouthSide K9 Membership Registration Payment Success</MudText>
 
@@ -18,39 +18,39 @@
         <MudButton OnClick="_SubmitAsync" Disabled="@_resubmitButtonDisabled" Variant="Variant.Outlined">Resubmit Payment</MudButton>
         <MudProgressLinear Style="@_linearProgressBar" Color="Color.Primary" Indeterminate="true" />
 
-   </MudStack>
+    </MudStack>
 </MudContainer>
 
 @code
 {
-    [Parameter] public string clientGUID { get; set; } = string.Empty;
+    [Parameter] public string membershipDueGUID { get; set; } = string.Empty;
     private string _imageString = string.Empty;
 
     // on parameter set
     Shared.Client? client;
     protected override async Task OnParametersSetAsync()
     {
-        client = await HttpClient.Member.GetByGuid(clientGUID);
+        client = await HttpClient.MembershipDue.GetByGuid(membershipDueGUID);
 
-        if (client != null && client.Member == null)
+        if (client == null || client.Member == null)
         {
             NavigationManager.NavigateTo("/not-found");
             return;
         }
 
-        if (client != null && client.Member != null && client.Member.RegistrationPaymentURL == string.Empty)
+        if (client.Member.MembershipDues.First(d => d.GUID.ToString() == membershipDueGUID).PaymentConfirmed)
         {
-            NavigationManager.NavigateTo($"/membership-registration-payment/{clientGUID}");
+            NavigationManager.NavigateTo("/membership-due-payment-approved");
             return;
         }
 
-        if (client != null && client.Member != null && client.Member.RegistrationConfirmed)
+        if (client.Member.MembershipDues.First(d => d.GUID.ToString() == membershipDueGUID).ProofOfPaymentURL == string.Empty)
         {
-            NavigationManager.NavigateTo("/membership-payment-approved");
+            NavigationManager.NavigateTo($"/membership-due-payment/{membershipDueGUID}");
             return;
         }
 
-        _imageString = client.Member.RegistrationPaymentURL;
+        _imageString = client.Member.MembershipDues.First(d => d.GUID.ToString() == membershipDueGUID).ProofOfPaymentURL;
     }
 
     // resubmit
@@ -61,10 +61,9 @@
         _resubmitButtonDisabled = true;
         _linearProgressBar = string.Empty;
 
-        if (client != null)
-            if (client.Member != null)
-                await HttpClient.Member.RegistrationPaymentResubmit(client.Member.ID);
+        if (client != null && client.Member != null)
+            await HttpClient.MembershipDue.DuePaymentResubmitAsync(client.Member.MembershipDues.First(d => d.GUID.ToString() == membershipDueGUID).ID);
 
-        NavigationManager.NavigateTo($"/membership-registration-payment/{clientGUID}");
+        NavigationManager.NavigateTo($"/membership-due-payment/{membershipDueGUID}");
     }
 }

@@ -1,4 +1,4 @@
-﻿@page "/membership-due-payment/{clientGuid}";
+﻿@page "/membership-due-payment/{membershipDueGUID}";
 
 @inject SouthSideK9CampHttpClient HttpClient
 @inject NavigationManager NavigationManager
@@ -44,29 +44,23 @@
 
 @code
 {
-    [Parameter] public string clientGUID { get; set; } = string.Empty;
+    [Parameter] public string membershipDueGUID { get; set; } = string.Empty;
 
     // on parameter set
-    Shared.Client? client = new();
+    private Shared.Client? _client = new();
     protected override async Task OnParametersSetAsync()
     {
-        client = await HttpClient.Member().GetByGuid(clientGUID);
+        _client = await HttpClient.MembershipDue.GetByGuid(membershipDueGUID);
 
-        if (client == null)
-        {
-            NavigationManager.NavigateTo("/not-found");
-            return;
-        }
-
-        if (client.Member == null)
+        if (_client == null || _client.Member == null)
         {
             NavigationManager.NavigateTo("/not-found");
             return;
         }
 
         // if member has already sent payment
-        if (client.Member.RegistrationPaymentURL != string.Empty)
-            NavigationManager.NavigateTo($"/membership-due-payment-pending/{clientGUID}");
+        if (_client.Member.MembershipDues.First(d => d.GUID.ToString() == membershipDueGUID).ProofOfPaymentURL != string.Empty)
+            NavigationManager.NavigateTo($"/membership-due-payment-pending/{membershipDueGUID}");
     }
 
 
@@ -111,6 +105,8 @@
     bool _submitButtonDisabled = true;
     private async Task _SubmitAsync()
     {
+        if(_client != null)
+
         if (_FormContext is not null)
             if (_FormContext.Validate())
             {
@@ -129,10 +125,10 @@
                 MultipartFormDataContent multipartContent = new MultipartFormDataContent();
                 multipartContent.Add(imageContent, "imageContent", _FormModel.file.Name);
 
-                if (client.Member is not null)
-                    await HttpClient.Member().RegistrationPayment(client.Member.ID, multipartContent);
+                if (_client.Member is not null)
+                    await HttpClient.MembershipDue.DuePaymentAsync(_client.Member.MembershipDues.First(d => d.GUID.ToString() == membershipDueGUID).ID, multipartContent);
 
-                NavigationManager.NavigateTo($"/membership-due-payment-pending/{clientGUID}");
+                NavigationManager.NavigateTo($"/membership-due-payment-pending/{membershipDueGUID}");
             }
         return;
     }

@@ -48,14 +48,14 @@
 
 @code
 {
-	[Parameter] public string client_guid { get; set; } = string.Empty;
+	[Parameter] public string membershipDueGUID { get; set; } = string.Empty;
 	[Parameter] public string host { get; set; } = string.Empty;
 	[Parameter] public DateTime dueDate { get; set; }
 
 	private string? link;
 	protected override void OnInitialized()
 	{
-		link = $"{host}/membership-due-payment/{client_guid}";
+		link = $"{host}/membership-due-payment/{membershipDueGUID}";
 		base.OnInitialized();
 	}
 }
