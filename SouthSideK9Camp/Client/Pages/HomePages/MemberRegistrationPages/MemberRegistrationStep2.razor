@@ -38,7 +38,11 @@
                 <MudTextField @bind-Value="_client.Address" For="@(() => _client.Address)" Label="Address" Variant="Variant.Outlined" Lines="2" AutoGrow />
             </MudItem>
             <MudItem xs="12" sm="6">
-                <MudDatePicker @bind-Date="_client.Birthday" For="@(() => _client.Birthday)" IsDateDisabledFunc="@((DateTime dt)=>((int)dt.Day > DateTime.UtcNow.Day))" Label="Birthday" Variant="Variant.Outlined" ShowToolbar="false" />
+                <MudDatePicker @bind-Date="_client.Birthday" For="@(() => _client.Birthday)" Label="Birthday" Variant="Variant.Outlined" ShowToolbar="false"
+                    IsDateDisabledFunc="@((DateTime dt) =>(
+                    (int)dt.Year > DateTime.UtcNow.Year ||
+                    ((int)dt.Year == DateTime.UtcNow.Year && (int)dt.Month > DateTime.UtcNow.Month) ||
+                    ((int)dt.Year == DateTime.UtcNow.Year && (int)dt.Month == DateTime.UtcNow.Month && (int)dt.Day > DateTime.UtcNow.Day)))" />
             </MudItem>
             @if(_client.Member is not null)
             {

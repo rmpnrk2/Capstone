@@ -12,7 +12,7 @@ public class Client : BaseModel
     [EmailAddress][StringLength(50)] public string Email { get; set; } = string.Empty;
     [StringLength(11)] public string Contact { get; set; } = string.Empty;
     [StringLength(200)] public string Address { get; set; } = string.Empty;
-     public DateTime? Birthday { get; set; }
+    public DateTime? Birthday { get; set; } = DateTime.Today;
 
 
     // Relationships

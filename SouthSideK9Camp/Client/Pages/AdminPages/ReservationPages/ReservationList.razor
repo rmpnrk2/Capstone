@@ -1,0 +1,138 @@
+﻿@page "/admin/reservation-list"
+
+@layout AdminLayout
+
+@inject NavigationManager NavigationManager
+@inject SouthSideK9CampHttpClient HttpClient
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-16 mb-16">
+    <MudStack>
+
+        <MudText Typo="Typo.h3">Reservations</MudText>
+
+        @* toolbar *@
+        <MudPaper>
+            <MudToolBar>
+                <MudStack Row>
+
+                    <MudButton OnClick="@_OpenDialog" StartIcon="@Icons.Material.Filled.Add" Variant="Variant.Filled" Color="Color.Primary">New</MudButton>
+
+                </MudStack>
+            </MudToolBar>
+        </MudPaper>
+
+        @* reservation table *@
+        <MudTable Items="_reservations" Hover="true">
+
+            <RowTemplate>
+
+                <MudTd>
+                    <MudStack Row AlignItems="AlignItems.Center" Spacing="5">
+
+                        <MudText Typo="Typo.h6">@context.Name</MudText>
+
+                        <MudStack Row AlignItems="AlignItems.Center">
+
+                            <MudIcon Icon="@Icons.Material.Filled.DateRange" Size="Size.Small" />
+
+                            <MudStack Spacing="0">
+                                <MudText Typo="Typo.caption">@context.StartingDate?.ToString("dd MMMM yyyy")</MudText>
+                                <MudText Typo="Typo.caption">@context.EndingDate?.ToString("dd MMMM yyyy")</MudText>
+                            </MudStack>
+
+                        </MudStack>
+
+                    </MudStack>
+                </MudTd>
+
+                <MudTd>
+                    <MudStack Row>
+
+                        <MudAvatarGroup Max="@context.Slots" Spacing="2" MaxColor="Color.Primary">
+                            @foreach(Shared.Dog dog in context.Dogs)
+                            {
+                                <MudAvatar>
+                                    <MudImage Src="@dog.AvatarURL" />
+                                </MudAvatar>
+                            }
+                            @for(int i = @context.Dogs.Count; i < context.Slots; i++)
+                            {
+                                <MudAvatar Color="Color.Primary">
+                                    <MudIcon Icon="@Icons.Material.Filled.Pets" />
+                                </MudAvatar>
+                            }
+                        </MudAvatarGroup>
+
+
+                    </MudStack>
+                </MudTd>
+
+                @* buttons *@
+                <MudTd>
+                    <MudStack Row Justify="Justify.FlexEnd">
+                        <MudButton OnClick="@(() => _OpenReservation(context.ID))" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Info">Open</MudButton>
+                    </MudStack>
+                </MudTd>
+
+            </RowTemplate>
+
+            <PagerContent><MudTablePager /></PagerContent>
+
+        </MudTable>
+
+    </MudStack>
+</MudContainer>
+
+@code
+{
+    List<Shared.Reservation> _reservations = new();
+
+    // on initialize
+    protected override async Task OnInitializedAsync()
+    {
+        await _RefreshDataAsync();
+    }
+
+
+    // open add-reservation-dialog
+    private async Task _OpenDialog()
+    {
+
+        var dialog = await DialogService.ShowAsync<ReservationPagesComponents.AddReservationDialog>("Title",
+        new DialogParameters<ReservationPagesComponents.AddReservationDialog>
+        {
+
+        },
+        new DialogOptions()
+        {
+            BackdropClick = false,
+            MaxWidth = MaxWidth.Small,
+            FullWidth = true
+        });
+
+        // On dialog close
+        var result = await dialog.Result;
+        if (!result!.Canceled)
+        {
+            await _RefreshDataAsync();
+        }
+    }
+
+    // open reservation
+    private void _OpenReservation(int reservationID)
+    {
+        NavigationManager.NavigateTo($"/admin/reservation/{reservationID}");
+    }
+
+    // refresh data
+    private async Task _RefreshDataAsync()
+    {
+        _reservations = await HttpClient.Reservation.GetAsync();
+        StateHasChanged();
+
+        await HttpClient.Reservation.FetchAsync();
+        _reservations = await HttpClient.Reservation.GetAsync();
+    }
+}

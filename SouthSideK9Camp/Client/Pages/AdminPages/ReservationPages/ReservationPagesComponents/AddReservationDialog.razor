@@ -1,0 +1,71 @@
+﻿@inject SouthSideK9CampHttpClient HttpClient
+@inject ISnackbar Snackbar
+
+@using FluentValidation
+
+<MudDialog>
+
+    @* dialog content *@
+    <DialogContent>
+        <EditForm EditContext="@_formContext" OnValidSubmit="@_SubmitAsync" Context="Context">
+            <FluentValidationValidator />
+
+            <MudStack Spacing="2" >
+
+                    <MudTextField @bind-Value="_reservation.Name" For="@(() => _reservation.Name)" Label="Title" Variant="Variant.Outlined" FullWidth />
+
+                    <MudDatePicker @bind-Date="_reservation.StartingDate" Label="Starting Date" Variant="Variant.Outlined" ShowToolbar="false" IsDateDisabledFunc="@((DateTime dt)=>(
+                        (int)dt.Year < DateTime.UtcNow.Year ||
+                        ((int)dt.Year == DateTime.UtcNow.Year && (int)dt.Month < DateTime.UtcNow.Month) ||
+                        ((int)dt.Year == DateTime.UtcNow.Year && (int)dt.Month == DateTime.UtcNow.Month && (int)dt.Day < DateTime.UtcNow.Day) ||
+                        (int)dt.Year > _reservation.StartingDate?.Year ||
+                        ((int)dt.Year == _reservation.StartingDate?.Year && (int)dt.Month > _reservation.StartingDate?.Month) ||
+                        ((int)dt.Year == _reservation.StartingDate?.Year && (int)dt.Month == _reservation.StartingDate?.Month && (int)dt.Day >= _reservation.EndingDate?.Day)))" />
+
+                    <MudDatePicker @bind-Date="_reservation.EndingDate" Label="Ending Date" Variant="Variant.Outlined" ShowToolbar="false" IsDateDisabledFunc="@((DateTime dt) =>(
+                        (int)dt.Year < _reservation.StartingDate?.Year ||
+                        ((int)dt.Year == _reservation.StartingDate?.Year && (int)dt.Month < _reservation.StartingDate?.Month) ||
+                        ((int)dt.Year == _reservation.StartingDate?.Year && (int)dt.Month == _reservation.StartingDate?.Month && (int)dt.Day <= _reservation.StartingDate?.Day)))" />
+                    
+                    <MudNumericField @bind-Value="_reservation.Slots" For="@(() => _reservation.Slots)" Label="Slots" Variant="Variant.Outlined" FullWidth />
+
+            </MudStack>
+
+        </EditForm>
+    </DialogContent>
+
+    @* dialog button *@
+    <DialogActions>
+        <MudButton OnClick="_SubmitAsync" Variant="Variant.Filled" Color="Color.Primary">Continue</MudButton>
+        <MudButton OnClick="@_Cancel" Variant="Variant.Filled">Cancel</MudButton>
+    </DialogActions>
+
+</MudDialog>
+
+@code
+{
+    [CascadingParameter] private MudDialogInstance? MudDialog { get; set; }
+
+    // form model
+    private EditContext? _formContext;
+    private Shared.Reservation _reservation = new();
+    protected override void OnParametersSet()
+    {
+        _formContext = new EditContext(_reservation);
+    }
+
+    // submit form
+    private async Task _SubmitAsync()
+    {
+        if (!_formContext!.Validate()) return;
+
+        MudDialog!.Close();
+        await HttpClient.Reservation.AddAsync(_reservation);
+        Snackbar.Add("Added new Reservation");
+
+        return;
+    }
+
+    // close dialog
+    private void _Cancel() => MudDialog!.Cancel();
+}

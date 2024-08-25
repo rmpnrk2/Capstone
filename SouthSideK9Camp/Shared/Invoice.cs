@@ -32,5 +32,5 @@ public class Invoice : BaseModel
     public List<Item> Items { get; set; } = new();
 
     public int DogID { get; set; }
-    [JsonIgnore] public Dog? Dog { get; set; }
+    public Dog? Dog { get; set; }
 }

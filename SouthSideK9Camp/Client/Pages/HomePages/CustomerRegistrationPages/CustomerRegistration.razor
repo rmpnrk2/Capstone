@@ -1,0 +1,67 @@
+﻿@page "/customer-registration";
+
+@inject NavigationManager NavigationManager
+@inject SouthSideK9CampHttpClient HttpClient
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-16 mb-16">
+
+    <MudText Typo="Typo.h4">SouthSide K9 Membership Registration</MudText>
+
+    <EditForm EditContext="_FormContext" OnValidSubmit="@_SubmitAsync" Context="Context">
+        <FluentValidationValidator />
+
+        <MudStack Spacing="2" AlignItems="AlignItems.Center">
+
+            <MudTextField @bind-Value="_EmailAddress.EmailAddress" For="@(() => _EmailAddress.EmailAddress)" Label="Email address"
+                          Variant="Variant.Outlined" Error="@_emailFieldError" FullWidth />
+
+        </MudStack>
+    </EditForm>
+
+    <MudText Color="Color.Error">@_emailFieldErrorMessage</MudText>
+    <MudButton OnClick="_SubmitAsync" Disabled="@_continueButtonDisabled" Variant="Variant.Filled" Color="Color.Primary">Continue</MudButton>
+    <MudProgressLinear Style="@_linearProgressBar" Color="Color.Primary" Indeterminate="true" />
+
+</MudContainer>
+
+@code
+{
+    // Form model
+    private EditContext? _FormContext;
+
+    private Shared.EmailValidation _EmailAddress = new();
+
+    protected override void OnInitialized()
+    {
+        _FormContext = new EditContext(_EmailAddress);
+    }
+
+    bool _emailFieldError = false;
+    bool _continueButtonDisabled = false;
+    string _emailFieldErrorMessage = string.Empty;
+    string _linearProgressBar = "display: none";
+
+    private async Task _SubmitAsync()
+    {
+        if (_FormContext!.Validate())
+        {
+            _continueButtonDisabled = true;
+            _linearProgressBar = string.Empty;
+            bool emailAvailability = await HttpClient.Client.CheckMemberEmailAvailabilityAsync(_EmailAddress.EmailAddress);
+
+            if (emailAvailability)
+            {
+                string email = _EmailAddress.EmailAddress;
+                NavigationManager.NavigateTo($"/membership-registration/{email}");
+            }
+            else
+            {
+                _emailFieldErrorMessage = "Email already registered";
+                _emailFieldError = true;
+                _linearProgressBar = "display: none";
+                _continueButtonDisabled = false;
+            }
+        }
+        return;
+    }
+}

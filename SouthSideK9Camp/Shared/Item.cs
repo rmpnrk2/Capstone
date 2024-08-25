@@ -23,5 +23,5 @@ public class Item : BaseModel
 
     // Relationships
     public int InvoiceID { get; set; }
-    [JsonIgnore] public Invoice? Invoice { get; set; }
+    public Invoice? Invoice { get; set; }
 }

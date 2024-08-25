@@ -33,5 +33,5 @@ public class Contract : BaseModel
 
     // Relationships
     public int DogID { get; set; }
-    [JsonIgnore] public Dog? Dog { get; set; }
+    public Dog? Dog { get; set; }
 }

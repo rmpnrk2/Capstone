@@ -35,6 +35,8 @@ namespace SouthSideK9Camp.Server.Controller
                         .ThenInclude(invoices => invoices.Items)
                 .Include(client => client.Dogs)
                     .ThenInclude(dog => dog.Reservation)
+                .Include(client => client.Dogs)
+                    .ThenInclude(dog => dog.Contract)
                 .AsNoTracking().ToListAsync();
 
             return Results.Ok(clients);
@@ -64,19 +66,6 @@ namespace SouthSideK9Camp.Server.Controller
             return Results.Ok(client);
         }
 
-        // check email availability for customers
-        [HttpGet("check-customer-email-availability/{email}")] public async Task<IResult> GetCustomerEmailAvailabilityAsync(string email)
-        {
-            List<string> clientEmails = await _dataContext.Clients.Where(m => m.Customer != null).Select(m => m.Email).ToListAsync();
-
-            foreach(string clientEmail in clientEmails)
-            {
-                if(email == clientEmail) return Results.Conflict("Email already exist");
-            }
-
-            return Results.Ok("Email is available");
-        }
-
         // check email availability for member
         [HttpGet("check-member-email-availability/{email}")] public async Task<IResult> GetMemberEmailAvailabilityAsync(string email)
         {
@@ -88,14 +77,6 @@ namespace SouthSideK9Camp.Server.Controller
             }
 
             return Results.Ok("Email is available");
-        }
-
-        // customer registration
-        [HttpPost("customer-registration")] public async Task<IResult> CustomerRegistrationAsync(Shared.Client client)
-        {
-            _dataContext.Clients.Add(client);
-            await _dataContext.SaveChangesAsync();
-            return Results.CreatedAtRoute("GetClient", new {clientID = client.ID}, client);
         }
 
         // membership registration
@@ -112,22 +93,6 @@ namespace SouthSideK9Camp.Server.Controller
                 .Render();
             await _smtp.SendEmailAsync(client.Email, emailSubject, emailBody);
 
-            return Results.CreatedAtRoute("GetClient", new {clientID = client.ID}, client);
-        }
-
-        // TODO: customer registration with existing email
-        [HttpPost("customer-registration-existing-email")] public async Task<IResult> CustomerRegistrationWithExistingEmailAsync(Shared.Client client)
-        {
-            _dataContext.Clients.Add(client);
-            await _dataContext.SaveChangesAsync();
-            return Results.CreatedAtRoute("GetClient", new {clientID = client.ID}, client);
-        }
-
-        // TODO: membership registration with existing email
-        [HttpPost("member-registration-existing-email")] public async Task<IResult> MemberRegistrationWithExistingEmailAsync(Shared.Client client)
-        {
-            _dataContext.Clients.Add(client);
-            await _dataContext.SaveChangesAsync();
             return Results.CreatedAtRoute("GetClient", new {clientID = client.ID}, client);
         }
 

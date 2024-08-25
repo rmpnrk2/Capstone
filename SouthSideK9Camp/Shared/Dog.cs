@@ -31,9 +31,9 @@ public class Dog : BaseModel
     public List<Invoice> Invoices { get; set; } = new();
 
     public int ClientID { get; set; }
-    [JsonIgnore] public Client? Client { get; set; }
+    public Client? Client { get; set; }
     public int ReservationID { get; set; }
-    [JsonIgnore] public Reservation? Reservation { get; set; }
+    public Reservation? Reservation { get; set; }
 }
 
 public class DogValidator : AbstractValidator<Dog>

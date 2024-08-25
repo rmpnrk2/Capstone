@@ -1,6 +1,6 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using SouthSideK9Camp.Server.Data;
 using SouthSideK9Camp.Shared;
 
@@ -15,6 +15,7 @@ namespace SouthSideK9Camp.Server.Controller
             _dataContext = dataContext;
         }
 
+        // getall
         [HttpGet()] public async Task<IResult> GetAsync()
         {
             List<Reservation> reservations = await _dataContext.Reservations
@@ -22,22 +23,35 @@ namespace SouthSideK9Camp.Server.Controller
                     .ThenInclude(dogs => dogs.Client)
                 .AsNoTracking().ToListAsync();
 
-            return Results.Ok(reservations);
+            var json = JsonConvert.SerializeObject(reservations, new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
+            return Results.Ok(JsonConvert.DeserializeObject<List<Shared.Reservation>>(json));
         }
 
-        [HttpGet("{reservationID}")] public async Task<IResult> GetAsync(int reservationID)
+        // get by id
+        [HttpGet("{reservationID}", Name = "GetReservation")] public async Task<IResult> GetAsync(int reservationID)
         {
             Reservation? reservation = await _dataContext.Reservations.Where(reservation => reservation.ID == reservationID).FirstOrDefaultAsync();
 
             if(reservation == null)
                 return Results.NotFound();
 
-            return Results.Ok(reservation);
+            var json = JsonConvert.SerializeObject(reservation, new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
+            return Results.Ok(json);
         }
 
-        [HttpPut("{reservationID}")] public async Task<IResult> PutAsync(int reservationID, Reservation updatedReservation)
+        // add
+        [HttpPost()] public async Task<IResult> PostAsync(Reservation reservation)
         {
-            int rowsAffected = await _dataContext.Reservations.Where(reservation => reservation.ID == reservationID).ExecuteUpdateAsync(updates => updates
+            await _dataContext.AddAsync(reservation);
+            await _dataContext.SaveChangesAsync();
+
+            return Results.CreatedAtRoute("GetReservation", new {reservationID = reservation.ID}, reservation);
+        }
+
+        // update
+        [HttpPut()] public async Task<IResult> PutAsync(Reservation updatedReservation)
+        {
+            int rowsAffected = await _dataContext.Reservations.Where(reservation => reservation.ID == updatedReservation.ID).ExecuteUpdateAsync(updates => updates
                 .SetProperty(user => user.Name, updatedReservation.Name)
                 .SetProperty(user => user.StartingDate, updatedReservation.StartingDate)
                 .SetProperty(user => user.EndingDate, updatedReservation.EndingDate)
@@ -47,6 +61,7 @@ namespace SouthSideK9Camp.Server.Controller
             return rowsAffected == 0 ? Results.NotFound() : Results.NoContent();
         }
 
+        // delete
         [HttpDelete("{reservationID}")] public async Task<IResult> DeleteAsync(int reservationID)
         {
             var rowsAffected = await _dataContext.Reservations.Where(reservation => reservation.ID == reservationID).ExecuteDeleteAsync();

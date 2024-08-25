@@ -1,0 +1,152 @@
+﻿@page "/admin/reservation/{reservationID:int}"
+
+@layout AdminLayout
+
+@inject NavigationManager NavigationManager
+@inject SouthSideK9CampHttpClient HttpClient
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+@using FluentValidation
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-16 mb-16">
+    <MudStack>
+
+        @* toolbar *@
+        <MudPaper>
+            <MudToolBar>
+                <MudStack Row>
+
+                    <MudButton OnClick="@_Back" StartIcon="@Icons.Material.Filled.ArrowBack"/>
+                    <MudButton OnClick="@_EditMode" Style="@_editButtonDisplay" StartIcon="@Icons.Material.Filled.Edit" Variant="Variant.Filled" Color="Color.Primary">Edit</MudButton>
+                    <MudButton OnClick="@_CancelAsync" Style="@_editModeButtonDisplay" StartIcon="@Icons.Material.Filled.Cancel" Variant="Variant.Filled">Cancel</MudButton>
+                    <MudButton OnClick="@_SaveAsync" Style="@_editModeButtonDisplay" StartIcon="@Icons.Material.Filled.Save" Variant="Variant.Filled" Color="Color.Primary">Save</MudButton>
+
+                </MudStack>
+            </MudToolBar>
+        </MudPaper>
+
+        <EditForm EditContext="@_formContext" Context="Context">
+            <FluentValidationValidator />
+
+            <MudGrid Spacing="1">
+
+                <MudItem xs="12" sm="6">
+                    <MudTextField @bind-Value="_reservation.Name" For="@(() => _reservation.Name)" Label="Title" Variant="Variant.Outlined" FullWidth ReadOnly="_isFormReadonly" />
+                </MudItem>
+
+                <MudItem xs="12" sm="6">
+                    <MudNumericField @bind-Value="_reservation.Slots" For="@(() => _reservation.Slots)" Label="Slots" Variant="Variant.Outlined" FullWidth ReadOnly="_isFormReadonly" />
+                </MudItem>
+
+                <MudItem xs="12" sm="6">
+                    <MudDatePicker @bind-Date="_reservation.StartingDate" For="@(() => _reservation.StartingDate)" Label="Starting Date" Variant="Variant.Outlined" ShowToolbar="false" ReadOnly="_isFormReadonly" IsDateDisabledFunc="@((DateTime dt) =>(
+                        (int)dt.Year > _reservation.StartingDate?.Year ||
+                        ((int)dt.Year == _reservation.StartingDate?.Year && (int)dt.Month > _reservation.StartingDate?.Month) ||
+                        ((int)dt.Year == _reservation.StartingDate?.Year && (int)dt.Month == _reservation.StartingDate?.Month && (int)dt.Day >= _reservation.EndingDate?.Day)))" />
+                </MudItem>
+
+                <MudItem xs="12" sm="6">
+                    <MudDatePicker @bind-Date="_reservation.EndingDate" For="@(() => _reservation.EndingDate)" Label="Ending Date" Variant="Variant.Outlined" ShowToolbar="false" ReadOnly="_isFormReadonly" IsDateDisabledFunc="@((DateTime dt) =>(
+                        (int)dt.Year < _reservation.StartingDate?.Year ||
+                        ((int)dt.Year == _reservation.StartingDate?.Year && (int)dt.Month < _reservation.StartingDate?.Month) ||
+                        ((int)dt.Year == _reservation.StartingDate?.Year && (int)dt.Month == _reservation.StartingDate?.Month && (int)dt.Day <= _reservation.StartingDate?.Day)))" />
+                </MudItem>
+
+            </MudGrid>
+
+        </EditForm>
+
+        @* reservation table *@
+        <MudTable Items="_reservation.Dogs" Hover>
+
+            <RowTemplate>
+
+                <MudTd>
+                    <MudStack Row AlignItems="AlignItems.Center">
+
+                        <MudAvatar>
+                            <MudImage Src="@context.AvatarURL" />
+                        </MudAvatar>
+
+                        <MudText Typo="Typo.h6">@context.Name</MudText>
+
+                    </MudStack>
+                </MudTd>
+
+            </RowTemplate>
+
+            <PagerContent><MudTablePager /></PagerContent>
+
+        </MudTable>
+
+    </MudStack>
+</MudContainer>
+
+@code
+{
+    [Parameter] public int reservationID { get; set; }
+
+    // on initialize
+    private Shared.Reservation _reservation = new();
+    private EditContext? _formContext;
+    protected override async Task OnParametersSetAsync()
+    {
+        await HttpClient.Reservation.FetchAsync();
+        _reservation = await HttpClient.Reservation.GetAsync(reservationID);
+        _formContext = new EditContext(_reservation);
+        StateHasChanged();
+    }
+    protected override void OnInitialized()
+    {
+        _formContext = new EditContext(_reservation);
+    }
+
+    // edit
+    private string _editButtonDisplay = string.Empty;
+    private string _editModeButtonDisplay = "display: none";
+    private bool _isFormReadonly = true;
+    private void _EditMode()
+    {
+        _editButtonDisplay = "display:none";
+        _editModeButtonDisplay = string.Empty;
+        _isFormReadonly = false;
+    }
+
+    // cancel
+    private async Task _CancelAsync()
+    {
+        _editButtonDisplay = string.Empty;
+        _editModeButtonDisplay = "display:none";
+        _isFormReadonly = true;
+
+        // update
+        _reservation = await HttpClient.Reservation.GetAsync(reservationID);
+    }
+
+    // save
+    private async Task _SaveAsync()
+    {
+        if (!_formContext!.Validate())
+            return;
+
+        // edit mode false
+        _editButtonDisplay = string.Empty;
+        _editModeButtonDisplay = "display:none";
+
+        await HttpClient.Reservation.UpdateAsync(_reservation);
+
+        // refresh data
+        await HttpClient.Reservation.FetchAsync();
+        _reservation = await HttpClient.Reservation.GetAsync(reservationID);
+        Snackbar.Add("Edited succesfully", MudBlazor.Severity.Success);
+
+        return;
+    }
+
+    // open reservation
+    private void _Back()
+    {
+        NavigationManager.NavigateTo($"/admin/reservation-list");
+    }
+}
