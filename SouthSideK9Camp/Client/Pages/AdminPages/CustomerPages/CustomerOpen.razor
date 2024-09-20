@@ -1,0 +1,346 @@
+﻿@page "/admin/customer-list/{dogID:int}"
+
+@layout AdminLayout
+
+@inject SouthSideK9CampHttpClient HttpClient
+@inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+@using FluentValidation
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-16 mb-16">
+    <MudStack>
+
+        <MudPaper>
+            <MudToolBar>
+                <MudStack Row>
+
+                    <MudButton OnClick="@_Back" StartIcon="@Icons.Material.Filled.ArrowBack">Back</MudButton>
+                    <MudButton OnClick="@_Cancel" Style="@_editModeButtonsDisplay" StartIcon="@Icons.Material.Filled.Cancel" Variant="Variant.Filled">Cancel</MudButton>
+                    <MudButton OnClick="@_Save" Style="@_editModeButtonsDisplay" StartIcon="@Icons.Material.Filled.Save" Variant="Variant.Filled" Color="Color.Primary">Save</MudButton>
+                    <MudButton OnClick="@_Edit" Style="@_editButtonDisplay" StartIcon="@Icons.Material.Filled.Edit" Variant="Variant.Filled" Color="Color.Primary">Edit</MudButton>
+                    <MudButton OnClick="@_ConfirmDeleteMessage" StartIcon="@Icons.Material.Filled.Delete" Variant="Variant.Filled" Color="Color.Error">Delete</MudButton>
+
+                </MudStack>
+            </MudToolBar>
+        </MudPaper>
+
+        @* dog avatar *@
+        <MudStack AlignItems="AlignItems.Center">
+
+            <MudAvatar Size="Size.Large">
+                <MudImage ObjectFit="ObjectFit.Cover" Src="@_dog.AvatarURL"></MudImage>
+            </MudAvatar>
+
+            <MudButton OnClick="@(() => _OpenDialog(_dog))" StartIcon="@Icons.Material.Filled.Upload" Size="Size.Small" Color="Color.Primary" Variant="Variant.Filled">Upload Avatar</MudButton>
+
+        </MudStack>
+
+        <EditForm EditContext="_editContext" OnValidSubmit="@_Save">
+            <FluentValidationValidator />
+
+            @* dog details *@
+            <MudGrid Spacing="2">
+
+                <MudItem xs="12" sm="6">
+                    <MudTextField @bind-Value="_dog.Name" For="@(() => _dog.Name)" Label="Name" Variant="Variant.Outlined" ReadOnly="@_readOnly" />
+                </MudItem>
+
+                <MudItem xs="12" sm="6">
+                    <MudAutocomplete @bind-Value="_dog.Breed" For="@(() => _dog.Breed)" Variant="Variant.Outlined" ReadOnly="@_readOnly"
+                        Label="Breed" SearchFunc="@_dogBreedAutocomplete" CoerceText="false" />
+                </MudItem>
+
+                <MudItem xs="12" sm="6">
+                    <MudSelect @bind-Value="_dog.Sex" For="@(() => _dog.Sex)" Label="Sex" Variant="Variant.Outlined" ReadOnly="@_readOnly">
+                        <MudSelectItem Value="@("Male")" />
+                        <MudSelectItem Value="@("Female")" />
+                    </MudSelect>
+                </MudItem>
+
+                <MudItem xs="12" sm="6">
+                    <MudDatePicker @bind-Date="_dog.Birthday" For="@(() => _dog.Birthday)" Label="Birthday" Variant="Variant.Outlined" ShowToolbar="false" ReadOnly="@_readOnly"
+                        IsDateDisabledFunc="@((DateTime dt) =>(
+                        (int)dt.Year > DateTime.UtcNow.Year ||
+                        ((int)dt.Year == DateTime.UtcNow.Year && (int)dt.Month > DateTime.UtcNow.Month) ||
+                        ((int)dt.Year == DateTime.UtcNow.Year && (int)dt.Month == DateTime.UtcNow.Month && (int)dt.Day > DateTime.UtcNow.Day)))" />
+                </MudItem>
+
+                @* vaccine details *@
+                <MudItem xs="12" sm="12">
+                    <MudField Variant="Variant.Outlined" Label="Vaccines">
+
+                        <MudTextField @bind-Value="_dog.Clinic" For="@(() => _dog.Clinic)" Label="Clinic" HelperText="Clinic or Veterinarian who administered the vaccine" Variant="Variant.Outlined" ReadOnly="@_readOnly" />
+
+                        <MudGrid Class="px-6 mt-4">
+                            <MudCheckBox @bind-Value="_dog.Rabies" Label="Rabies" ReadOnly="@_readOnly" />
+                            <MudCheckBox @bind-Value="_dog.Distemper" Label="Distemper" ReadOnly="@_readOnly" />
+                            <MudCheckBox @bind-Value="_dog.HepatitisAdenovirus" Label="Hepatitis/Adenovirus" ReadOnly="@_readOnly" />
+                            <MudCheckBox @bind-Value="_dog.Parvovirus" Label="Parvovirus" ReadOnly="@_readOnly" />
+                            <MudCheckBox @bind-Value="_dog.Parainfluenza" Label="Parainfluenza" ReadOnly="@_readOnly" />
+                        </MudGrid>
+
+                    </MudField>
+                </MudItem>
+
+                @* contract details *@
+                <MudItem xs="12" sm="12">
+
+                    <MudSelect @bind-Value="_dog.Contract.TrainingType" Label="Training Type" For="@(() => _dog.Contract.TrainingType)" ReadOnly="@_readOnly"
+                        Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter" TransformOrigin="Origin.TopCenter" FullWidth>
+
+                        <MudSelectItem Value="@("Basic Obedience")" />
+                        <MudSelectItem Value="@("Advanced Obedience")" />
+                        <MudSelectItem Value="@("Behavioral Modification")" />
+                        <MudSelectItem Value="@("IGP Dogsport")" />
+                        <MudSelectItem Value="@("Personal Protection Dog")" />
+                        <MudSelectItem Value="@("Detection Dog")" />
+                        <MudSelectItem Value="@("Search and Rescue")" />
+
+                    </MudSelect>
+
+                </MudItem>
+
+                <MudItem xs="12" sm="12">
+                    <MudTextField @bind-Value="_dog.Contract.TrainingGoal" For="@(() => _dog.Contract.TrainingGoal)" Label="Training Goal" Variant="Variant.Outlined" MaxLines="5" AutoGrow FullWidth ReadOnly="@_readOnly"
+                        HelperText="What behaviors are most important to you for your dog to learn?" />
+                </MudItem>
+
+                <MudItem xs="12" sm="12">
+                    <MudTextField @bind-Value="_dog.Contract.Restrictions" For="@(() => _dog.Contract.Restrictions)" Label="Physical Resctrictions" Variant="Variant.Outlined" MaxLines="5" AutoGrow FullWidth ReadOnly="@_readOnly"
+                        HelperText="Does your dog have any health, exercise or physical restrictions?" />
+                </MudItem>
+
+                <MudItem xs="12" sm="12"> 
+                    <MudTextField @bind-Value="_dog.Contract.FeedingRoutine" For="@(() => _dog.Contract.FeedingRoutine)" Label="Feeding Routine" Variant="Variant.Outlined" MaxLines="5" AutoGrow FullWidth ReadOnly="@_readOnly"
+                        HelperText="Describe your dog’s daily feeding routine. What brand of food, how much and at what times?" />
+                </MudItem>
+
+                <MudItem xs="12" sm="12">
+                    <MudTextField @bind-Value="_dog.Contract.SleepingRoutine" For="@(() => _dog.Contract.SleepingRoutine)" Label="Sleeping Routing" Variant="Variant.Outlined" MaxLines="5" AutoGrow FullWidth ReadOnly="@_readOnly"
+                        HelperText="Describe your dog’s daily bedtime/sleeping routine. What time does (Spot) go to sleep and for how long. If puppy, please list naptimes during the day also." />
+                </MudItem>
+
+            </MudGrid>
+
+            <MudStack Class="mt-2">
+
+                @* protective behavriors *@
+                <MudField Variant="Variant.Outlined" Label="Does exhibit any resource guarding or protection over any of the following:">
+
+                    <MudGrid Class="px-6 mt-1">
+
+                        <MudCheckBox @bind-Value="_dog.Contract.ProtectiveOverToys" Label="Toys" ReadOnly="@_readOnly" />
+                        <MudCheckBox @bind-Value="_dog.Contract.ProtectiveOverFood" Label="Food" ReadOnly="@_readOnly" />
+                        <MudCheckBox @bind-Value="_dog.Contract.ProtectiveOverTreats" Label="Treats or Chews" ReadOnly="@_readOnly" />
+                        <MudCheckBox @bind-Value="_dog.Contract.ProtectiveOverSpot" Label="Favorite Spot" ReadOnly="@_readOnly" />
+                        <MudCheckBox @bind-Value="_dog.Contract.ProtectiveOverPerson" Label="Favorite Person" ReadOnly="@_readOnly" />
+
+                    </MudGrid>
+
+                    <MudTextField @bind-Value="_dog.Contract.ProtectiveOverOther" For="@(() => _dog.Contract.ProtectiveOverOther)" Label="Other" Variant="Variant.Outlined" ReadOnly="@_readOnly" FullWidth />
+
+                </MudField>
+
+                @* discomfort *@
+                <MudField Variant="Variant.Outlined" Label="Has shown any discomfort being touched on:">
+
+                    <MudGrid Class="px-6 mt-1">
+                        <MudCheckBox @bind-Value="_dog.Contract.DiscomfortOverPaws" Label="Tails" ReadOnly="@_readOnly" />
+                        <MudCheckBox @bind-Value="_dog.Contract.DiscomfortOverTails" Label="Tails" ReadOnly="@_readOnly"/>
+                        <MudCheckBox @bind-Value="_dog.Contract.DiscomfortOverEars" Label="Ears" ReadOnly="@_readOnly" />
+                        <MudCheckBox @bind-Value="_dog.Contract.DiscomfortOverMuzzle" Label="Muzzle" ReadOnly="@_readOnly" />
+                        <MudCheckBox @bind-Value="_dog.Contract.DiscomfortOverHead" Label="Head" ReadOnly="@_readOnly"/>
+                        <MudCheckBox @bind-Value="_dog.Contract.DiscomfortOverRump" Label="Rump" ReadOnly="@_readOnly" />
+                    </MudGrid>
+
+                    <MudTextField @bind-Value="_dog.Contract.DiscomfortOverOther" For="@(() => _dog.Contract.DiscomfortOverOther)" Label="Other" Variant="Variant.Outlined" FullWidth ReadOnly="@_readOnly" />
+
+                </MudField>
+
+                @* fear or aggresion *@
+                <MudField Variant="Variant.Outlined" Label="Has shown any fear or aggression towards:">
+
+                    <MudGrid Class="px-6 mt-1">
+                        <MudCheckBox @bind-Value="_dog.Contract.FearOrAggressionToHuman" Label="Human" ReadOnly="@_readOnly"/>
+                        <MudCheckBox @bind-Value="_dog.Contract.FearOrAggressionToDogs" Label="Other Dogs" ReadOnly="@_readOnly" />
+                    </MudGrid>
+
+                    <MudTextField @bind-Value="_dog.Contract.AnythingElseToShare" For="@(() => _dog.Contract.AnythingElseToShare)" Label="Anything else you want to share?" Variant="Variant.Outlined" ReadOnly="@_readOnly" FullWidth />
+
+                </MudField>
+
+            </MudStack>
+
+        </EditForm>
+
+    </MudStack>
+</MudContainer>
+
+@* confirmdelete messagebox *@
+<MudMessageBox @ref="_confirmDeleteMessageBox" Title="Warning">
+
+    <MessageContent>
+        Confirm delete?
+    </MessageContent>
+
+    <YesButton>
+        <MudButton Color="Color.Error" Variant="Variant.Filled">Delete</MudButton>
+    </YesButton>
+
+    <CancelButton>
+        <MudButton>Cancel</MudButton>
+    </CancelButton>
+
+</MudMessageBox>
+
+@code
+{
+    [Parameter] public int dogID { get; set; }
+
+    // on initialize
+    EditContext? _editContext;
+    Shared.Dog _dog = new()
+    {
+        Birthday = DateTime.UtcNow
+    };
+    protected override void OnInitialized()
+    {
+        _editContext = new EditContext(_dog);
+    }
+
+    // on parameterset
+    Shared.Client _client = new();
+    Shared.Client _editClient = new();
+    protected override async Task OnParametersSetAsync()
+    {
+        await _RefreshData();
+        if (_dog.ID == 0) _Back();
+        _editContext = new EditContext(_dog);
+    }
+
+    // back
+    private void _Back()
+    {
+        NavigationManager.NavigateTo($"/admin/customer-list");
+        return;
+    }
+
+    // cancel edit
+    private async void _Cancel()
+    {
+        // make form uneditable
+        _editModeButtonsDisplay = "display: none";
+        _editButtonDisplay = string.Empty;
+        _readOnly = true;
+
+        await _RefreshData();
+        return;
+    }
+
+    // make form uneditable
+    bool _readOnly = true;
+    private string _editModeButtonsDisplay = "display: none";
+    private string _editButtonDisplay = string.Empty;
+
+    private void _Edit()
+    {
+        _editModeButtonsDisplay = string.Empty;
+        _editButtonDisplay = "display: none";
+        _readOnly = false;
+        return;
+    }
+
+    // save
+    private async Task _Save()
+    {
+        if (!_editContext!.Validate()) return;
+
+        // make form uneditable
+        _editModeButtonsDisplay = "display: none";
+        _readOnly = true;
+        _editButtonDisplay = string.Empty;
+
+        await HttpClient.Dog.UpdateAsync(_dog);
+        Snackbar.Add("Saved succesful", MudBlazor.Severity.Success);
+
+        return;
+    }
+
+    // delete
+    private MudMessageBox? _confirmDeleteMessageBox { get; set; }
+    private async Task _ConfirmDeleteMessage()
+    {
+        bool? result = await _confirmDeleteMessageBox!.ShowAsync(new DialogOptions()
+        {
+            FullWidth = true,
+            MaxWidth = MaxWidth.Small
+        });
+        if (result == true)
+        {
+            await HttpClient.Dog.DeleteAsync(dogID);
+            Snackbar.Add("Delete succesful", MudBlazor.Severity.Error);
+            _Back();
+        }
+        return;
+    }
+
+    // refresh data
+    private async Task _RefreshData()
+    {
+        List<Shared.Reservation> reservations = await HttpClient.Reservation.GetAsync();
+        _dog = reservations.SelectMany(r => r.Dogs).FirstOrDefault(d => d.ID == dogID) ?? new();
+        StateHasChanged();
+
+        await HttpClient.Reservation.FetchAsync();
+        reservations = await HttpClient.Reservation.GetAsync();
+        _dog = reservations.SelectMany(r => r.Dogs).FirstOrDefault(d => d.ID == dogID) ?? new();
+
+        _editContext = new EditContext(_dog);
+        return;
+    }
+
+    // autocomplete dog breeds
+    private string[] _dogBreeds =
+    {
+        "Golden Retriever", "Labrador Retriever", "Pug", "Chihuahua", "French Bulldog", "Beagle", "German Shepherd", "Rottweiler", "Shih Tzu","Miniature Schnauzer",
+        "Lhasa Apso", "Yorkshire Terrier", "Bulldog", "Dobermann Pinscher", "Bull Terrier", "Weimaraner","Whippet", "Dogue de Bordeaux", "Bichon Frise", "Border Collie",
+        "Siberian Husky", "Shar-Pei", "Dalmatian", "Great Dane", "Cairn Terrier", "American Water Spaniel", "Brittany", "Chesapeake Bay Retriever", "Cocker Spaniel",
+        "English Springer Spaniel", "German Shorthaired Pointer", "Irish Setter", "Vizsla", "Curly-Coated Retriever", "Pomeranian", "Boston Terrier", "American Cocker Spaniel",
+        "Maltese", "Shetland Sheepdog", "American Hairless Terrier", "Gordon Setter", "Italian Greyhound", "Anatolian Shepherd Dog", "Cane Corso", "Belgian Malinois",
+        "Giant Schnauzer", "English Cocker Spaniel"
+    };
+
+    private async Task<IEnumerable<string>> _dogBreedAutocomplete(string value, CancellationToken token)
+    {
+        await Task.Delay(5, token);
+
+        if (string.IsNullOrEmpty(value))
+            return _dogBreeds;
+        return _dogBreeds.Where(x => x.Contains(value, StringComparison.InvariantCultureIgnoreCase));
+    }
+
+    // upload dog avatar
+    private async Task _OpenDialog(Shared.Dog dog)
+    {
+        var dialog = await DialogService.ShowAsync<CustomerPageComponents.UploadDogAvatarDialog>("Title",
+        new DialogParameters<CustomerPageComponents.UploadDogAvatarDialog>
+        {
+            { d => d.dog, dog },
+        },
+        new DialogOptions()
+        {
+            BackdropClick = true,
+            MaxWidth = MaxWidth.ExtraSmall,
+            FullWidth = true
+        });
+
+        // on dialog close
+        var result = await dialog.Result;
+        if (!result.Canceled)
+        {
+            await _RefreshData();
+        }
+    }
+}

@@ -1,0 +1,407 @@
+﻿@page "/admin/report/{dogID:int}";
+
+@layout AdminLayout
+
+@inject SouthSideK9CampHttpClient HttpClient
+@inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="my-16">
+
+    <MudText Class="mb-3" Typo="Typo.h3">Progress Report</MudText>
+
+    <MudGrid Spacing="3">
+
+        @* statbar *@
+        <MudItem xs="12">
+            <MudPaper Elevation="4" Class="pt-2">
+
+                <MudText Typo="Typo.h5" Align="Align.Center" Color="Color.Primary">Statistics</MudText>
+                <MudChart ChartType="ChartType.Line" ChartSeries="@Series" XAxisLabels="@XAxisLabels" Width="100%" Height="300px" ChartOptions="options"></MudChart>
+
+            </MudPaper>
+        </MudItem>
+
+        @* main content *@
+        <MudItem xs="12" sm="7">
+
+            @* toolbar *@
+            <MudPaper Elevation="4">
+                <MudToolBar>
+                    <MudStack Row Spacing="2" AlignItems="AlignItems.Center">
+
+                        <MudIconButton OnClick="_Back" Icon="@Icons.Material.Outlined.ArrowBack"/>
+                        <MudButton OnClick="@(() => _EditReport(new()))" StartIcon="@Icons.Material.Outlined.Add" Variant="Variant.Filled" Color="Color.Primary">New</MudButton>
+
+                    </MudStack>
+                </MudToolBar>
+            </MudPaper>
+
+            @* report card *@
+            <MudStack Class="my-4">
+                @foreach (Shared.ProgressReport report in _dog.ProgressReports)
+                {
+                    <MudCard>
+
+                        @* card header *@
+                        <MudCardHeader>
+
+                            <CardHeaderContent>
+
+                                <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+                                    <MudText Typo="Typo.h6">@report.Subject</MudText>
+                                    <MudText Typo="Typo.caption">@report.DateCreated.ToString("dd MMM yyyy dddd")</MudText>
+                                </MudStack>
+
+                                <MudText Typo="Typo.body1">@report.Message</MudText>
+
+                            </CardHeaderContent>
+
+                            <CardHeaderActions>
+                                <MudMenu Icon="@Icons.Material.Filled.MoreVert" AnchorOrigin="Origin.CenterLeft" TransformOrigin="Origin.CenterRight">
+                                    <MudMenuItem OnTouch="@(() => _EditReport(report))" OnClick="@(() => _EditReport(report))" Icon="@Icons.Material.Filled.Edit">Edit</MudMenuItem>
+                                    <MudMenuItem OnTouch="@(() => Delete(report.ID))" OnClick="@(() => Delete(report.ID))" Icon="@Icons.Material.Filled.DeleteForever">Delete</MudMenuItem>
+                                </MudMenu>
+                            </CardHeaderActions>
+
+                        </MudCardHeader>
+
+                        @* card image *@
+                        @if(report.ImageURL != string.Empty)
+                        {
+                            <MudCardMedia Image="@report.ImageURL" Height="400" />
+                        }
+                        
+                        @* card content *@
+                        <MudCardContent>
+
+                            @* ratings *@
+                            <MudGrid>
+
+                                <MudItem xs="12" sm="6">
+                                    <MudStack Spacing="0" AlignItems="AlignItems.Center">
+                                        <MudText Typo="Typo.caption">Hours Trained:</MudText>
+                                        <MudText Typo="Typo.body1">@report.SpanDuration?.ToString(@"h\:mm") hours</MudText>
+                                    </MudStack>
+                                </MudItem>
+
+                                <MudItem xs="12" sm="6">
+                                    <MudStack Spacing="0" AlignItems="AlignItems.Center">
+                                        <MudText Typo="Typo.caption">Training Date:</MudText>
+                                        <MudText Typo="Typo.body1">@report.DateTraining?.ToString("dd MMM")</MudText>
+                                    </MudStack>
+                                </MudItem>
+
+                                <MudItem xs="12" sm="4">
+                                    <MudStack Spacing="0" AlignItems="AlignItems.Center">
+                                        <MudText Typo="Typo.caption">Obedience Rating:</MudText>
+                                        <MudRating @bind-SelectedValue="report.ScoreObedience" ReadOnly MaxValue="5" />
+                                        <MudText Color="Color.Primary" Typo="Typo.subtitle2">@_RatingLabel(report.ScoreObedience)</MudText>
+                                    </MudStack>
+                                </MudItem>
+
+                                <MudItem xs="12" sm="4">
+                                    <MudStack Spacing="0" AlignItems="AlignItems.Center">
+                                        <MudText Typo="Typo.caption">Focus Rating:</MudText>
+                                        <MudRating @bind-SelectedValue="report.ScoreFocus" Class="ma-0" ReadOnly MaxValue="5" />
+                                        <MudText Color="Color.Primary" Typo="Typo.subtitle2" Class="ma-0">@_RatingLabel(report.ScoreFocus)</MudText>
+                                    </MudStack>
+                                </MudItem>
+
+                                <MudItem xs="12" sm="4">
+                                    <MudStack Spacing="0" AlignItems="AlignItems.Center">
+                                        <MudText Typo="Typo.caption">Protection Rating:</MudText>
+                                        <MudRating @bind-SelectedValue="report.ScoreProtection" ReadOnly MaxValue="5" />
+                                        <MudText Color="Color.Primary" Typo="Typo.subtitle2">@_RatingLabel(report.ScoreProtection)</MudText>
+                                    </MudStack>
+                                </MudItem>
+
+                            </MudGrid>
+
+                        </MudCardContent>
+
+                        <MudCardActions>
+                        </MudCardActions>
+
+                    </MudCard>
+                }
+            </MudStack>
+
+        </MudItem>
+
+        @* Side profile *@
+        <MudItem xs="12" sm="5">
+            <MudPaper Elevation="4" Class="pa-6">
+                <MudStack AlignItems="AlignItems.Center">
+
+                    @* dog *@
+                    <MudGrid Spacing="1" Justify="Justify.Center">
+
+                        <MudItem xs="12" sm="3">
+                            <MudAvatar Color="Color.Dark" Variant="Variant.Filled" Size="Size.Large">
+                                <MudImage ObjectFit="ObjectFit.Cover" Src="@_dog.AvatarURL" />
+                            </MudAvatar>
+                        </MudItem>
+
+                        <MudItem xs="12" sm="9">
+                            <MudText Typo="Typo.h4" Color="Color.Primary">@_dog.Name</MudText>
+                            <MudText Typo="Typo.body2">@_dog.Breed</MudText>
+                        </MudItem>
+
+                        <MudItem xs="12">
+                            <MudStack Spacing="3">
+
+                                <MudStack Row AlignItems="AlignItems.Center">
+                                    <MudIcon Icon="@Icons.Material.Filled.FitnessCenter" Size="Size.Small" />
+                                    <MudChip T="string" Variant="Variant.Text" Color="Color.Default">@_dog.Contract.TrainingType</MudChip>
+                                </MudStack>
+
+                                <MudStack Row AlignItems="AlignItems.Center">
+                                    <MudIcon Icon="@Icons.Material.Filled.Flag" Size="Size.Small" />
+                                    <MudText Typo="Typo.body1">@_dog.Contract.TrainingGoal</MudText>
+                                </MudStack>
+
+                                <MudStack Row AlignItems="AlignItems.Center">
+                                    <MudIcon Icon="@Icons.Material.Filled.DateRange" Size="Size.Small" />
+                                    <MudStack Spacing="0">
+                                        <MudText Typo="Typo.caption">@_dog.Reservation?.StartingDate?.ToString("dd MMMM yyyy")</MudText>
+                                        <MudText Typo="Typo.caption">@_dog.Reservation?.EndingDate?.ToString("dd MMMM yyyy")</MudText>
+                                    </MudStack>
+                                </MudStack>
+
+                            </MudStack>
+                        </MudItem>
+
+                    </MudGrid>
+
+                    <MudDivider Class="my-2" />
+
+                    @* Owner *@
+                    <MudStack Spacing="0" AlignItems="AlignItems.Start">
+
+                        <MudStack Row Spacing="1">
+                            <MudText Typo="Typo.h6">@_dog.Client?.FirstName</MudText>
+                            <MudText Typo="Typo.h6">@_dog.Client?.MiddleInitial</MudText>
+                            <MudText Typo="Typo.h6">@_dog.Client?.LastName</MudText>
+                        </MudStack>
+
+                        <MudText Typo="Typo.body1">@_dog.Client?.Email</MudText>
+
+                        <MudText Typo="Typo.body1">@_dog.Client?.Contact</MudText>
+
+                    </MudStack>
+
+                </MudStack>
+            </MudPaper>
+        </MudItem>
+
+    </MudGrid>
+</MudContainer>
+
+@* confirm delete messagenox *@
+<MudMessageBox @ref="confirmDeleteBox">
+
+    <TitleContent>
+        <MudText Typo="Typo.h6">Confirm Delete</MudText>
+    </TitleContent>
+
+    <MessageContent>
+        <MudText Typo="Typo.body1">Are you sure you want to delete this post? Deleting cannot be undone.</MudText>
+    </MessageContent>
+
+    <CancelButton>
+        <MudButton StartIcon="@Icons.Material.Filled.Close">Cancel</MudButton>
+    </CancelButton>
+
+    <YesButton>
+        <MudButton Color="MudBlazor.Color.Error" StartIcon="@Icons.Material.Filled.DeleteForever" Variant="Variant.Filled">Confirm</MudButton>
+    </YesButton>
+
+</MudMessageBox>
+
+@code
+{
+    [Parameter] public int dogID { get; set; }
+
+    private Shared.Dog _dog = new();
+
+    // On Initialized set
+    protected override async Task OnInitializedAsync()
+    {
+        // for charts
+        options.InterpolationOption = InterpolationOption.NaturalSpline;
+
+        await _RefreshData();
+    }
+
+    // On Parameter set
+    protected override async Task OnParametersSetAsync()
+    {
+        await _RefreshData();
+    }
+
+    // edit new report
+    private async Task _EditReport(Shared.ProgressReport report)
+    {
+        // Open dialog
+        var dialog = await DialogService.ShowAsync<ProgressComponents.EditProgressDialog>(null,
+        new DialogParameters<ProgressComponents.EditProgressDialog>
+        {
+            { p => p.dogID, dogID},
+            { p => p._report, report},
+            { p => p._reservation, _dog.Reservation}
+        },
+        new DialogOptions()
+        {
+            MaxWidth = MaxWidth.Small,
+            FullWidth = true,
+            BackdropClick = false
+        });
+
+        // On dialog close
+        var dialogResult = await dialog.Result;
+        if (!dialogResult!.Canceled)
+        {
+            await _RefreshData();
+        }
+    }
+
+    // Confirm delete message box
+    MudMessageBox? confirmDeleteBox { get; set; }
+    private async Task Delete(int progressReportID)
+    {
+        // Show Messagebox
+        bool? result = await confirmDeleteBox!.ShowAsync();
+
+        // Confirmed delete
+        if (result is not null)
+        {
+            await HttpClient.Report.DeleteAsync(progressReportID);
+            Snackbar.Add($"Deleted Report", Severity.Error);
+            await _RefreshData();
+        }
+    }
+
+    // back
+    private void _Back()
+    {
+        NavigationManager.NavigateTo("/admin/report-list");
+    }
+
+    // refresh data
+    private async Task _RefreshData()
+    {
+        _dog = await HttpClient.Dog.GetByIDAsync(dogID);
+        _dog.ProgressReports.Reverse();
+        StateHasChanged();
+
+        await HttpClient.Dog.FetchAsync();
+        _dog = await HttpClient.Dog.GetByIDAsync(dogID);
+        _dog.ProgressReports.Reverse();
+
+        Series = new List<ChartSeries>()
+        {
+            new ChartSeries() { Name = "Obedience", Data = _GetReportScores(_dog.Reservation ?? new(), _dog.ProgressReports, "obedience") },
+            new ChartSeries() { Name = "Focus", Data = _GetReportScores(_dog.Reservation ?? new(), _dog.ProgressReports, "focus") },
+            new ChartSeries() { Name = "Protection", Data = _GetReportScores(_dog.Reservation ?? new(), _dog.ProgressReports, "protection") },
+        };
+        XAxisLabels = _GetDates(new DateRange(_dog.Reservation?.StartingDate, _dog.Reservation?.EndingDate));
+
+        StateHasChanged();
+    }
+
+    // rating label
+    public string _RatingLabel(int rating) => rating switch
+    {
+        1 => "Needs Improvement",
+        2 => "Developing Skills",
+        3 => "Progressing Steadily",
+        4 => "Consistent Performer",
+        5 => "Excellent Results!",
+        _ => "No Rating"
+    };
+
+    ////////// BELOW ARE MUDCHART SHIT
+
+    private ChartOptions options = new ChartOptions();
+
+    private List<ChartSeries> Series = new List<ChartSeries>()
+    {
+        new ChartSeries() { Name = "Obedience", Data = new double[] { 1, 1, 1, 1 } },
+        new ChartSeries() { Name = "Focus", Data = new double[] { 1, 1, 1, 1 } },
+        new ChartSeries() { Name = "Protection", Data = new double[] { 1, 1, 1, 1 } },
+    };
+
+    // get int[] array of report-scores
+    private double[] _GetReportScores(Shared.Reservation reservation, List<Shared.ProgressReport> reports, string scoreType)
+    {
+        // create daterange
+        DateRange dateRange = new(reservation.StartingDate, reservation.EndingDate);
+
+        // create a dictionary to store report scores by date
+        Dictionary<DateTime, int> reportDateScoreDictionary = new Dictionary<DateTime, int>();
+
+        // populate the dictionary with report scores
+        foreach (Shared.ProgressReport report in reports)
+        {
+            if (dateRange.Start <= report.DateTraining && report.DateTraining <= dateRange.End)
+            {
+                if (scoreType == "protection")
+                {
+                    if (report.ScoreProtection is 0) report.ScoreProtection = 1;
+                    reportDateScoreDictionary[report.DateTraining.Value] = report.ScoreProtection;
+                }
+                if (scoreType == "obedience")
+                {
+                    if (report.ScoreObedience is 0) report.ScoreObedience = 1;
+                    reportDateScoreDictionary[report.DateTraining.Value] = report.ScoreProtection;
+                }
+                if (scoreType == "focus")
+                {
+                    if (report.ScoreFocus is 0) report.ScoreFocus = 1;
+                    reportDateScoreDictionary[report.DateTraining.Value] = report.ScoreProtection;
+                }
+            }
+        }
+
+        // create an score[] for each day in daterange
+        double[] reportScores = new double[(dateRange.End - dateRange.Start)?.Days ?? 0 + 1];
+
+        // Initialize the previous score
+        int previousScore = 0;
+
+        // Populate the array with report scores
+        for (int i = 0; i < reportScores.Length; i++)
+        {
+            DateTime date = dateRange.Start?.AddDays(i) ?? new();
+            if (reportDateScoreDictionary.ContainsKey(date))
+            {
+                previousScore = reportDateScoreDictionary[date];
+            }
+            reportScores[i] = previousScore;
+        }
+
+        return reportScores;
+    }
+
+    public string[] XAxisLabels = { string.Empty, string.Empty, string.Empty };
+
+    private string[] _GetDates(DateRange dateRange)
+    {
+        // calculate number of dates
+        int numDays = (dateRange.End - dateRange.Start)?.Days ?? 0 + 1;
+
+        // create date[]
+        string[] dates = new string[numDays];
+
+        // populate date[] with dates
+        for (int i = 0; i < numDays; i++)
+        {
+            DateTime date = dateRange.Start?.AddDays(i) ?? new();
+            dates[i] = date.ToString("dd");
+        }
+
+        return dates;
+    }
+}

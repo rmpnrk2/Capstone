@@ -48,7 +48,7 @@ namespace SouthSideK9Camp.Server.Controller
         [HttpGet("guid/{memberGUID}")] public async Task<IResult> GetAsync(string memberGUID)
         {
 
-            Shared.Client? client = await _dataContext.Clients.Where(c => c.Member != null).Where(c => c.Member.GUID.ToString() == memberGUID)
+            Shared.Client? client = await _dataContext.Clients.Where(c => c.Member != null && c.Member.GUID.ToString() == memberGUID)
                 .Include(c => c.Member).FirstOrDefaultAsync();
 
             if (client == null)
@@ -159,6 +159,7 @@ namespace SouthSideK9Camp.Server.Controller
                     // send email
                     string emailSubject = "SouthSide K9 Camp Membership Registration";
                     string emailBody = new ComponentRenderer<EmailTemplates.MembershipRegistrationRejectedTemplate>()
+                        .Set(c => c.clientName, client.FirstName + " " + client.LastName)
                         .Set(c => c.client_guid, client.Member.GUID.ToString())
                         .Set(c => c.host, _configuration["Host"])
                         .Render();
@@ -173,6 +174,10 @@ namespace SouthSideK9Camp.Server.Controller
         [HttpDelete("{memberID}")] public async Task<IResult> DeleteAsync(int memberID)
         {
             var rowsAffected = await _dataContext.Members.Where(member => member.ID == memberID).ExecuteDeleteAsync();
+
+            // if delete if member is null
+            await _dataContext.Clients.Where(c => c.Customer == null && c.Member == null).ExecuteDeleteAsync();
+
             return rowsAffected == 0 ? Results.NotFound() : Results.NoContent();
         }
 

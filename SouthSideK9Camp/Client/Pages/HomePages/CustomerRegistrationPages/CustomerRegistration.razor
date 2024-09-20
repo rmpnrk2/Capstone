@@ -1,67 +1,454 @@
-﻿@page "/customer-registration";
+﻿@page "/customer-registration/{reservationGUID}/{emailAddress}";
+@page "/customer-registration/{reservationGUID}/{emailAddress}/{clientGUID}";
 
-@inject NavigationManager NavigationManager
 @inject SouthSideK9CampHttpClient HttpClient
+@inject NavigationManager NavigationManager
 
 <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-16 mb-16">
+    <MudStack>
 
-    <MudText Typo="Typo.h4">SouthSide K9 Membership Registration</MudText>
+        <MudText Typo="Typo.h4">SouthSide K9 Customer Registration</MudText>
 
-    <EditForm EditContext="_FormContext" OnValidSubmit="@_SubmitAsync" Context="Context">
-        <FluentValidationValidator />
+        <EditForm EditContext="_formContext" OnValidSubmit="@_SubmitAsync">
+            <FluentValidationValidator />
 
-        <MudStack Spacing="2" AlignItems="AlignItems.Center">
+            @* client details *@
+            <MudGrid Spacing="2">
 
-            <MudTextField @bind-Value="_EmailAddress.EmailAddress" For="@(() => _EmailAddress.EmailAddress)" Label="Email address"
-                          Variant="Variant.Outlined" Error="@_emailFieldError" FullWidth />
+                <MudItem xs="12" sm="6">
+                    <MudTextField @bind-Value="_client.FirstName" For="@(() => _client.FirstName)" Label="First Name" Variant="Variant.Outlined" />
+                </MudItem>
 
-        </MudStack>
-    </EditForm>
+                <MudItem xs="12" sm="6">
+                    <MudTextField @bind-Value="_client.LastName" For="@(() => _client.LastName)" Label="Last Name" Variant="Variant.Outlined" />
+                </MudItem>
 
-    <MudText Color="Color.Error">@_emailFieldErrorMessage</MudText>
-    <MudButton OnClick="_SubmitAsync" Disabled="@_continueButtonDisabled" Variant="Variant.Filled" Color="Color.Primary">Continue</MudButton>
-    <MudProgressLinear Style="@_linearProgressBar" Color="Color.Primary" Indeterminate="true" />
+                <MudItem xs="12" sm="6">
+                    <MudTextField @bind-Value="_client.MiddleInitial" For="@(() => _client.MiddleInitial)" Label="Middle Initial" Variant="Variant.Outlined" />
+                </MudItem>
 
+                <MudItem xs="12" sm="6">
+                    <MudSelect @bind-Value="_client.Sex" For="@(() => _client.Sex)" Label="Sex" Variant="Variant.Outlined">
+                        <MudSelectItem Value="@("Male")" />
+                        <MudSelectItem Value="@("Female")" />
+                    </MudSelect>
+                </MudItem>
+
+                <MudItem xs="12" sm="6">
+                    <MudTextField @bind-Value="_client.Email" For="@(() => _client.Email)" ReadOnly Label="Email" Variant="Variant.Outlined" />
+                </MudItem>
+
+                <MudItem xs="12" sm="6">
+                    <MudNumericField @bind-Value="_client.Contact" For="@(() => _client.Contact)" Label="Contact" Variant="Variant.Outlined" HideSpinButtons />
+                </MudItem>
+
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="_client.Address" For="@(() => _client.Address)" Label="Address" Variant="Variant.Outlined" Lines="2" AutoGrow />
+                </MudItem>
+
+                <MudItem xs="12" sm="6">
+                    <MudDatePicker @bind-Date="_client.Birthday" For="@(() => _client.Birthday)" Label="Birthday" Variant="Variant.Outlined" ShowToolbar="false"
+                                   IsDateDisabledFunc="@((DateTime dt) =>(
+                    (int)dt.Year > DateTime.UtcNow.Year ||
+                    ((int)dt.Year == DateTime.UtcNow.Year && (int)dt.Month > DateTime.UtcNow.Month) ||
+                    ((int)dt.Year == DateTime.UtcNow.Year && (int)dt.Month == DateTime.UtcNow.Month && (int)dt.Day > DateTime.UtcNow.Day)))" />
+                </MudItem>
+
+            </MudGrid>
+
+            @* emergency details *@
+            <MudText Typo="Typo.h6" Class="mt-4">In case of emergency:</MudText>
+
+            <MudGrid Spacing="2">
+                @if(_client.Customer != null)
+                {
+                    <MudItem xs="12" sm="12">
+                        <MudTextField @bind-Value="_client.Customer.WhereWillYouBeStating" For="@(() => _client.Customer.WhereWillYouBeStating)" Label="Where will you be staying?" Variant="Variant.Outlined" />
+                    </MudItem>
+
+                    <MudItem xs="12" sm="6">
+                        <MudTextField @bind-Value="_client.Customer.EmergencyVet" For="@(() => _client.Customer.EmergencyVet)" Label="Emergency Veterinarrian Name" Variant="Variant.Outlined" />
+                    </MudItem>
+
+                    <MudItem xs="12" sm="6">
+                        <MudNumericField @bind-Value="_client.Customer.EmergencyVetNumber" For="@(() => _client.Customer.EmergencyVetNumber)" Label="Emergency Veterinarrian Contact" Variant="Variant.Outlined" HideSpinButtons />
+                    </MudItem>
+
+                    <MudItem xs="12" sm="6">
+                        <MudTextField @bind-Value="_client.Customer.EmergencyContactName" For="@(() => _client.Customer.EmergencyContactName)" Label="Emergency Contact Name" Variant="Variant.Outlined" />
+                    </MudItem>
+
+                    <MudItem xs="12" sm="6">
+                        <MudNumericField @bind-Value="_client.Customer.EmergencyContactNumber" For="@(() => _client.Customer.EmergencyContactNumber)" Label="Emergency Contact" Variant="Variant.Outlined" HideSpinButtons />
+                    </MudItem>
+
+                    <MudItem xs="12" sm="6">
+                        <MudTextField @bind-Value="_client.Customer.EmergencyContactEmail" For="@(() => _client.Customer.EmergencyContactEmail)" Label="Emergency Email Address" Variant="Variant.Outlined" />
+                    </MudItem>
+                }
+
+            </MudGrid>
+
+            <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+                <MudText Typo="Typo.h6" Class="mt-4">Board and Train:</MudText>
+                <MudButton OnClick="@_AddContractForm" Disabled="@_isAddDogButtonDisabled" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add">Add</MudButton>
+            </MudStack>
+
+            @* board and train *@
+            <MudTabs Rounded ApplyEffectsToContainer>
+
+                @foreach(Shared.Dog dog in _client.Dogs)
+                {
+                    <MudTabPanel  Text="@((dog.Name == string.Empty) ? "Dog" : dog.Name)">
+
+                        <MudStack Row Justify="Justify.FlexEnd">
+                            <MudButton OnClick="@(() => _RemoveContractForm(dog))" Variant="Variant.Outlined" Color="Color.Error" StartIcon="@Icons.Material.Filled.Remove">Remove @dog.Name</MudButton>
+                        </MudStack>
+
+                        @* dog details *@
+                        <MudGrid Spacing="2">
+
+                            <MudItem xs="12" sm="6">
+                                <MudTextField @bind-Value="dog.Name" For="@(() => dog.Name)" Label="Name" Variant="Variant.Outlined" />
+                            </MudItem>
+
+                            <MudItem xs="12" sm="6">
+                                <MudAutocomplete @bind-Value="dog.Breed" For="@(() => dog.Breed)" Variant="Variant.Outlined"
+                                    Label="Breed" SearchFunc="@_dogBreedAutocomplete" CoerceText="false" />
+                            </MudItem>
+
+                            <MudItem xs="12" sm="6">
+                                <MudSelect @bind-Value="dog.Sex" For="@(() => dog.Sex)" Label="Sex" Variant="Variant.Outlined">
+                                    <MudSelectItem Value="@("Male")" />
+                                    <MudSelectItem Value="@("Female")" />
+                                </MudSelect>
+                            </MudItem>
+
+                            <MudItem xs="12" sm="6">
+                                <MudDatePicker @bind-Date="dog.Birthday" For="@(() => dog.Birthday)" Label="Birthday" Variant="Variant.Outlined" ShowToolbar="false"
+                                    IsDateDisabledFunc="@((DateTime dt) =>(
+                                    (int)dt.Year > DateTime.UtcNow.Year ||
+                                    ((int)dt.Year == DateTime.UtcNow.Year && (int)dt.Month > DateTime.UtcNow.Month) ||
+                                    ((int)dt.Year == DateTime.UtcNow.Year && (int)dt.Month == DateTime.UtcNow.Month && (int)dt.Day > DateTime.UtcNow.Day)))" />
+                            </MudItem>
+
+                            @* vaccine details *@
+                            <MudItem xs="12" sm="12">
+                                <MudField Variant="Variant.Outlined" Label="Vaccines">
+
+                                    <MudTextField @bind-Value="dog.Clinic" For="@(() => dog.Clinic)" Label="Clinic" HelperText="Clinic or Veterinarian who administered the vaccine" Variant="Variant.Outlined" />
+
+                                    <MudGrid Class="px-6 mt-4">
+                                        <MudCheckBox @bind-Value="dog.Rabies" Label="Rabies" />
+                                        <MudCheckBox @bind-Value="dog.Distemper" Label="Distemper" />
+                                        <MudCheckBox @bind-Value="dog.HepatitisAdenovirus" Label="Hepatitis/Adenovirus" />
+                                        <MudCheckBox @bind-Value="dog.Parvovirus" Label="Parvovirus" />
+                                        <MudCheckBox @bind-Value="dog.Parainfluenza" Label="Parainfluenza" />
+                                    </MudGrid>
+
+                                </MudField>
+                            </MudItem>
+
+                        </MudGrid>
+
+
+
+                        @* contract details *@
+                        <MudGrid Spacing="2">
+
+                            <MudItem xs="12" sm="12">
+                                <MudSelect @bind-Value="dog.Contract.TrainingType" Label="Training Type" For="@(() => dog.Contract.TrainingType)" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter" TransformOrigin="Origin.TopCenter" FullWidth>
+                                    <MudSelectItem Value="@("Basic Obedience")" />
+                                    <MudSelectItem Value="@("Advanced Obedience")" />
+                                    <MudSelectItem Value="@("Behavioral Modification")" />
+                                    <MudSelectItem Value="@("IGP Dogsport")" />
+                                    <MudSelectItem Value="@("Personal Protection Dog")" />
+                                    <MudSelectItem Value="@("Detection Dog")" />
+                                    <MudSelectItem Value="@("Search and Rescue")" />
+                                </MudSelect>
+                            </MudItem>
+
+                            <MudItem xs="12" sm="12">
+                                <MudTextField @bind-Value="dog.Contract.TrainingGoal" For="@(() => dog.Contract.TrainingGoal)" Label="Training Goal" Variant="Variant.Outlined" MaxLines="5" AutoGrow FullWidth
+                                     HelperText="What behaviors are most important to you for your dog to learn?"/>
+                            </MudItem>
+
+                            <MudItem xs="12" sm="12">
+                                <MudTextField @bind-Value="dog.Contract.Restrictions" For="@(() => dog.Contract.Restrictions)" Label="Physical Resctrictions" Variant="Variant.Outlined" MaxLines="5" AutoGrow FullWidth
+                                     HelperText="Does your dog have any health, exercise or physical restrictions?" />
+                            </MudItem>
+
+                            <MudItem xs="12" sm="12">
+                                <MudTextField @bind-Value="dog.Contract.FeedingRoutine" For="@(() => dog.Contract.FeedingRoutine)" Label="Feeding Routine" Variant="Variant.Outlined" MaxLines="5" AutoGrow FullWidth
+                                    HelperText="Describe your dog’s daily feeding routine. What brand of food, how much and at what times?"/>
+                            </MudItem>
+
+                            <MudItem xs="12" sm="12">
+                                <MudTextField @bind-Value="dog.Contract.SleepingRoutine" For="@(() => dog.Contract.SleepingRoutine)" Label="Sleeping Routing" Variant="Variant.Outlined" MaxLines="5" AutoGrow FullWidth 
+                                    HelperText="Describe your dog’s daily bedtime/sleeping routine. What time does (Spot) go to sleep and for how long. If puppy, please list naptimes during the day also." />
+                            </MudItem>
+
+                        </MudGrid>
+
+                        <MudStack Class="mt-2">
+
+                            @* protective behavriors *@
+                            <MudField Variant="Variant.Outlined" Label="Does exhibit any resource guarding or protection over any of the following:">
+
+                                <MudGrid Class="px-6 mt-1">
+                                    <MudCheckBox @bind-Value="dog.Contract.ProtectiveOverToys" Label="Toys" />
+                                    <MudCheckBox @bind-Value="dog.Contract.ProtectiveOverFood" Label="Food" />
+                                    <MudCheckBox @bind-Value="dog.Contract.ProtectiveOverTreats" Label="Treats or Chews" />
+                                    <MudCheckBox @bind-Value="dog.Contract.ProtectiveOverSpot" Label="Favorite Spot" />
+                                    <MudCheckBox @bind-Value="dog.Contract.ProtectiveOverPerson" Label="Favorite Person" />
+                                </MudGrid>
+
+                                <MudTextField @bind-Value="dog.Contract.ProtectiveOverOther" For="@(() => dog.Contract.ProtectiveOverOther)" Label="Other" Variant="Variant.Outlined" FullWidth />
+
+                            </MudField>
+
+                            @* discomfort *@
+                            <MudField Variant="Variant.Outlined" Label="Has shown any discomfort being touched on:">
+
+                                <MudGrid Class="px-6 mt-1">
+                                    <MudCheckBox @bind-Value="dog.Contract.DiscomfortOverPaws" Label="Tails" />
+                                    <MudCheckBox @bind-Value="dog.Contract.DiscomfortOverTails" Label="Tails" />
+                                    <MudCheckBox @bind-Value="dog.Contract.DiscomfortOverEars" Label="Ears" />
+                                    <MudCheckBox @bind-Value="dog.Contract.DiscomfortOverMuzzle" Label="Muzzle" />
+                                    <MudCheckBox @bind-Value="dog.Contract.DiscomfortOverHead" Label="Head" />
+                                    <MudCheckBox @bind-Value="dog.Contract.DiscomfortOverRump" Label="Rump" />
+                                </MudGrid>
+
+                                <MudTextField @bind-Value="dog.Contract.DiscomfortOverOther" For="@(() => dog.Contract.DiscomfortOverOther)" Label="Other" Variant="Variant.Outlined" FullWidth />
+
+                            </MudField>
+
+                            @* fear or aggresion *@
+                            <MudField Variant="Variant.Outlined" Label="Has shown any fear or aggression towards:">
+
+                                <MudGrid Class="px-6 mt-1">
+                                    <MudCheckBox @bind-Value="dog.Contract.FearOrAggressionToHuman" Label="Human" />
+                                    <MudCheckBox @bind-Value="dog.Contract.FearOrAggressionToDogs" Label="Other Dogs" />
+                                </MudGrid>
+
+                                <MudTextField @bind-Value="dog.Contract.AnythingElseToShare" For="@(() => dog.Contract.AnythingElseToShare)" Label="Anything else you want to share?" Variant="Variant.Outlined" FullWidth />
+
+                            </MudField>
+
+                        </MudStack>
+
+                    </MudTabPanel>
+                }
+
+            </MudTabs>
+
+        </EditForm>
+
+        <MudButton OnClick="@_ServicesAndTermsOpen" Color="@_servicesAndTermsButtonColor" EndIcon="@_servicesAndTermsButtonEndIcon" Variant="Variant.Outlined">Services and Terms</MudButton>
+        <MudButton OnClick="@_liabilityWaiverAndPoliciesOpen" Color="@_liabilityWaiverAndPoliciesButtonColor" EndIcon="@_liabilityWaiverAndPoliciesButtonEndIcon" Variant="Variant.Outlined">Liability Waiver and Policies</MudButton>
+        <MudButton OnClick="@_SubmitAsync" Disabled="@_submitButtonDisabled" Variant="Variant.Filled" Color="Color.Primary">Submit</MudButton>
+        <MudProgressLinear Style="@_linearProgressBar" Color="Color.Primary" Indeterminate="true" />
+
+    </MudStack>
 </MudContainer>
+
+@* services & terms *@
+<MudMessageBox @ref="_servicesAndTermsMessageBox" Title="Services and Terms">
+
+    <MessageContent>
+
+        <MudText Typo="Typo.body2" Class="ml-6 my-2">Board and train, minimum 6 days and includes 1 hour transfer session at pickup.</MudText>
+
+        <MudText Typo="Typo.body1" Style="font-weight:bolder">Rate:</MudText>
+        <MudText Typo="Typo.body2" Class="ml-6 my-2">750 Php /day. Additional fee may be charged for special needs dogs or special circumstances (holidays, for instance) but will be disclosed prior to invoicing. Additional transfer sessions are at current session rate.</MudText>
+        <MudText Typo="Typo.body2" Class="ml-6 my-2">Your dog will receive a minimum of 60 minutes of dedicated training per day, passive training (the "living with the dog trainer effect" throughout the day, mental enrichment, playtime, socialization outings/field trips, age appropriate exercise and lots of cuddles.</MudText>
+        <MudText Typo="Typo.body2" Class="ml-6 my-2">Full package 5 weeks basic obedience program covers the following dog commands and training 1. Sit Command 2. Down Command 3. Stay Command 4. Recall Command 5. Loose Leash Walking 6. Going in and out of cage, crate and gate in an appropriate manner.</MudText>
+
+        <MudText Typo="Typo.body1" Style="font-weight:bolder">Payment Policy:</MudText>
+        <MudText Typo="Typo.body2" Class="ml-6 my-2">Payment due to secure days for board and train. 50% deposit given at booking and balance due at least 14 days prior to drop-off date. Full balance due at booking if drop off date is within 14 days. All cancellations are subject to a 4% processing fee.</MudText>
+
+    </MessageContent>
+
+    <YesButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled">I Accept</MudButton>
+    </YesButton>
+
+    <CancelButton>
+        <MudButton>Cancel</MudButton>
+    </CancelButton>
+
+</MudMessageBox>
+
+@* liability waiver & policies *@
+<MudMessageBox @ref="_liabilityWaiverAndPoliciesMessageBox" Title="Liability Waiver & Policies">
+
+    <MessageContent>
+
+        <MudText Typo="Typo.body2" Class="ml-6 my-2">Southside k9 camp will endeavor to create as safe an environment as possible for the training of my dog and will offer only sound, safe, and responsible training and training instructions. However, to the extent that Southside k9 camp is insured for any unintentional or negligent errors, omissions, or incorrect assertions, Southside k9 camp will be responsible for any such acts or omissions, but only to the extent of such insurance. I have been told by Southsidek9 camp and understand the inherent risks of owning a dog, including but not limited to the risk of dog bites to myself or others, and consequently I am and will remain responsible for the actions of my dog at all times, and I hereby agree to indemnify and hold harmless Southside k9 camp of any and all claims of injury, expense, costs, or damages caused by my dog. I understand that the recommendation of any other product or service is not a guarantee of my satisfaction with that product or service. If a dispute arises under this Agreement, the parties agree to first try to resolve the dispute with the help of a mutually agreed-upon mediator. Any costs and fees other than attorney fees associated with the mediation shall be shared equally by the parties. If it proves impossible to arrive at a mutually satisfactory solution through mediation, the parties agree to submit the dispute to a mutually agreed upon arbitrator. Judgment upon the award rendered by the arbitrator may be entered in any court having jurisdiction to do so. Costs of arbitration, including attorney fees, will be allocated by the arbitrator.</MudText>
+        <MudText Typo="Typo.body2" Class="ml-6 my-2">I authorize Southside k9 camp to take my dog into public spaces during his/her stay for the purpose of training my dog. This includes transporting the dog in a car to public spaces like a park, downtown or store.</MudText>
+        <MudText Typo="Typo.body2" Class="ml-6 my-2">I authorize emergency medical care to be provided for my dog(s) by the above-named veterinarian, or an appropriate alternate to be determined by Southside k9 camp in the event the my regular veterinarian is not available or that closer care is required. I will reimburse Southside k9 camp for any charges related to emergency care, including office visits, procedures, medications, surgeries, etc.</MudText>
+        <MudText Typo="Typo.body2" Class="ml-6 my-2">I authorize Southside k9 camp to administer or seek 1st aid and resuscitative care for my dog(s) as determined appropriate by Southside k9 camp and I agree to indemnify and hold harmless Southside k9 camp for all and any results thereof.</MudText>
+
+        <MudText Typo="Typo.body1" Style="font-weight:bolder">Abandonment clause:</MudText>
+        <MudText Typo="Typo.body2" Class="ml-6 my-2">Dogs abandoned more than 48 hours past pickup date without prior communication, may be turned over to local animal control and subject to local ordinances for abandoned dogs or be boarded at an external private facility. If turned over to boarding or kept on site, any additional costs must be paid to Southside k9 camp before dog will be released.</MudText>
+
+        <MudText Typo="Typo.body1" Style="font-weight:bolder">Cancellation Policy: </MudText>
+        <MudText Typo="Typo.body2" Class="ml-6 my-2">We only take one board and train client at a time and as such cancellations made outside of 21 days of start day will be refunded in full. Cancellations made within 21 days of start date will be refunded at 50% unless a replacement client is secured. I understand that I am responsible for payment in full regardless of whether I choose to complete the training program.</MudText>
+
+        <MudText Typo="Typo.body1" Style="font-weight:bolder">Photography Policy: </MudText>
+        <MudText Typo="Typo.body2" Class="ml-6 my-2">I understand photographs/videos of my dog will be taken for documentation and daily progress reports to owner. These may be used in social media or for educational purposes with other clients to show progress and examples of training. No personal information other than the dog's name will be listed on social media.</MudText>
+
+    </MessageContent>
+
+    <YesButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled">I Accept</MudButton>
+    </YesButton>
+
+    <CancelButton>
+        <MudButton>Cancel</MudButton>
+    </CancelButton>
+
+</MudMessageBox>
 
 @code
 {
-    // Form model
-    private EditContext? _FormContext;
+    [Parameter] public string? clientGUID { get; set; }
+    [Parameter] public string? emailAddress { get; set; }
+    [Parameter] public string? reservationGUID { get; set; }
 
-    private Shared.EmailValidation _EmailAddress = new();
+    private Shared.Reservation? _reservation = new();
 
+    // form model
+    private EditContext? _formContext;
+    private Shared.Client _client = new()
+    {
+        Customer = new(),
+        Dogs = new()
+    };
+
+    // on initialize
     protected override void OnInitialized()
     {
-        _FormContext = new EditContext(_EmailAddress);
+        _client.Dogs.Add(new Shared.Dog() { Contract = new() });
+        _formContext = new EditContext(_client);
     }
 
-    bool _emailFieldError = false;
-    bool _continueButtonDisabled = false;
-    string _emailFieldErrorMessage = string.Empty;
-    string _linearProgressBar = "display: none";
+    // on parameter
+    protected override async Task OnParametersSetAsync()
+    {
+        if(clientGUID != null)
+        {
+            _client = await HttpClient.Customer.GetByGuid(clientGUID) ?? new();
+            _client.Customer = new();
+            _client.Dogs = new();
+            _client.Dogs.Add(new Shared.Dog() { Contract = new() });
+        }
+        if(emailAddress != null)
+        {
+            _client.Email = emailAddress;
+        }
 
+        _formContext = new EditContext(_client);
+
+        // get reservatin
+        if (reservationGUID != null)
+            _reservation = await HttpClient.Reservation.GetByGuid(reservationGUID);
+    }
+
+    // submit form
+    string _linearProgressBar = "display: none";
     private async Task _SubmitAsync()
     {
-        if (_FormContext!.Validate())
+        if (_formContext!.Validate())
         {
-            _continueButtonDisabled = true;
+            _submitButtonDisabled = true;
             _linearProgressBar = string.Empty;
-            bool emailAvailability = await HttpClient.Client.CheckMemberEmailAvailabilityAsync(_EmailAddress.EmailAddress);
 
-            if (emailAvailability)
-            {
-                string email = _EmailAddress.EmailAddress;
-                NavigationManager.NavigateTo($"/membership-registration/{email}");
-            }
-            else
-            {
-                _emailFieldErrorMessage = "Email already registered";
-                _emailFieldError = true;
-                _linearProgressBar = "display: none";
-                _continueButtonDisabled = false;
-            }
+            if (reservationGUID == null) return;
+            await HttpClient.Customer.Register(reservationGUID, _client);
+            NavigationManager.NavigateTo("/customer-registration-submitted");
         }
-        return;
     }
+
+    // add dog contract form
+    bool _isAddDogButtonDisabled = false;
+    private void _AddContractForm()
+    {
+        _client.Dogs.Add(new Shared.Dog() { Contract = new() });
+
+        if((_reservation?.Slots - _reservation?.Dogs.Count) == _client.Dogs.Count)
+            _isAddDogButtonDisabled = true;
+    }
+    // remove dog contract form
+    private void _RemoveContractForm(Shared.Dog dog)
+    {
+        _isAddDogButtonDisabled = false;
+        _client.Dogs.Remove(dog);
+    }
+
+    // autocomplete dog breeds
+    private string[] _dogBreeds =
+    {
+        "Golden Retriever", "Labrador Retriever", "Pug", "Chihuahua", "French Bulldog", "Beagle", "German Shepherd", "Rottweiler", "Shih Tzu","Miniature Schnauzer",
+        "Lhasa Apso", "Yorkshire Terrier", "Bulldog", "Dobermann Pinscher", "Bull Terrier", "Weimaraner","Whippet", "Dogue de Bordeaux", "Bichon Frise", "Border Collie",
+        "Siberian Husky", "Shar-Pei", "Dalmatian", "Great Dane", "Cairn Terrier", "American Water Spaniel", "Brittany", "Chesapeake Bay Retriever", "Cocker Spaniel",
+        "English Springer Spaniel", "German Shorthaired Pointer", "Irish Setter", "Vizsla", "Curly-Coated Retriever", "Pomeranian", "Boston Terrier", "American Cocker Spaniel",
+        "Maltese", "Shetland Sheepdog", "American Hairless Terrier", "Gordon Setter", "Italian Greyhound", "Anatolian Shepherd Dog", "Cane Corso", "Belgian Malinois",
+        "Giant Schnauzer", "English Cocker Spaniel"
+    };
+    private async Task<IEnumerable<string>> _dogBreedAutocomplete(string value, CancellationToken token)
+    {
+        await Task.Delay(5, token);
+
+        if (string.IsNullOrEmpty(value))
+            return _dogBreeds;
+        return _dogBreeds.Where(x => x.Contains(value, StringComparison.InvariantCultureIgnoreCase));
+    }
+
+    // services & terms messagebox
+    private MudMessageBox? _servicesAndTermsMessageBox { get; set; }
+
+    private bool _submitButtonDisabled = true;
+
+    private bool _servicesAndTermsButtonAccepted = false;
+    private Color _servicesAndTermsButtonColor = Color.Dark;
+    private string _servicesAndTermsButtonEndIcon = string.Empty;
+
+    private async Task _ServicesAndTermsOpen()
+    {
+        bool? result = await _servicesAndTermsMessageBox!.ShowAsync();
+        if (result is not null)
+        {
+            _servicesAndTermsButtonAccepted = true;
+            _servicesAndTermsButtonColor = Color.Success;
+            _servicesAndTermsButtonEndIcon = Icons.Material.Filled.Check;
+
+            if (_servicesAndTermsButtonAccepted && _liabilityWaiverAndPoliciesButtonAccepted)
+                _submitButtonDisabled = false;
+        }
+        StateHasChanged();
+    }
+
+    // liability waiver & policies messagebox
+    private MudMessageBox? _liabilityWaiverAndPoliciesMessageBox { get; set; }
+
+    private bool _liabilityWaiverAndPoliciesButtonAccepted = false;
+    private Color _liabilityWaiverAndPoliciesButtonColor = Color.Dark;
+    private string _liabilityWaiverAndPoliciesButtonEndIcon = string.Empty;
+
+    private async Task _liabilityWaiverAndPoliciesOpen()
+    {
+        bool? result = await _liabilityWaiverAndPoliciesMessageBox!.ShowAsync();
+        if (result is not null)
+        {
+            _liabilityWaiverAndPoliciesButtonAccepted = true;
+            _liabilityWaiverAndPoliciesButtonColor = Color.Success;
+            _liabilityWaiverAndPoliciesButtonEndIcon = Icons.Material.Filled.Check;
+
+            if (_servicesAndTermsButtonAccepted && _liabilityWaiverAndPoliciesButtonAccepted)
+                _submitButtonDisabled = false;
+        }
+        StateHasChanged();
+    }
+
 }

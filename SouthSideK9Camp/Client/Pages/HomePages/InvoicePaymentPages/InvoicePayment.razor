@@ -1,0 +1,207 @@
+﻿@page "/invoice-payment/{invoiceGuid}";
+
+@inject SouthSideK9CampHttpClient HttpClient
+@inject NavigationManager NavigationManager
+
+@using FluentValidation
+@using System.Net.Http.Headers
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-16 mb-16">
+    <MudStack>
+
+    <MudText Typo="Typo.h4">SouthSide K9 Membership Payment</MudText>
+
+        <MudStack Spacing="1" Class="mt-3">
+
+            @* header *@
+            <MudPaper Class="pa-3">
+
+                @* title *@
+                <MudText Color="Color.Primary" Typo="Typo.h6">Statement of Account #@_invoice.ID</MudText>
+
+                @* info *@
+                <MudGrid Justify="Justify.SpaceBetween">
+                    <MudItem xs="12" sm="6">
+                        <MudStack Spacing="1">
+                            <MudStack Row AlignItems="AlignItems.Center">
+                                <MudText Style="width: 8rem" Typo="Typo.body2">Company Name:</MudText>
+                                <MudText Typo="Typo.body1">@_invoice.CompanyName</MudText>
+                            </MudStack>
+                            <MudStack Row AlignItems="AlignItems.Center">
+                                <MudText Style="width: 8rem" Typo="Typo.body2">Company Address:</MudText>
+                                <MudText Typo="Typo.body1">@_invoice.CompanyAddress</MudText>
+                            </MudStack>
+                            <MudStack Row AlignItems="AlignItems.Center">
+                                <MudText Style="width: 8rem" Typo="Typo.body2">Company ZIP Code:</MudText>
+                                <MudText Typo="Typo.body1">@_invoice.CompanyZIPCode</MudText>
+                            </MudStack>
+                            <MudStack Row AlignItems="AlignItems.Center">
+                                <MudText Style="width: 8rem" Typo="Typo.body2">Company Phone:</MudText>
+                                <MudText Typo="Typo.body1">@_invoice.CompanyPhone</MudText>
+                            </MudStack>
+                        </MudStack>
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudStack Spacing="1">
+                            <MudStack Row AlignItems="AlignItems.Center">
+                                <MudText Style="width: 8rem" Typo="Typo.body2">Date:</MudText>
+                                <MudText Typo="Typo.body1">@_invoice.DateCreated.ToString("dddd, dd MMMM yyyy")</MudText>
+                            </MudStack>
+                            <MudStack Row AlignItems="AlignItems.Center">
+                                <MudText Style="width: 8rem" Typo="Typo.body2">Date Due:</MudText>
+                                <MudText Typo="Typo.body1">@_invoice.DateDue?.ToString("dddd, dd MMMM yyyy")</MudText>
+                            </MudStack>
+                            <MudStack Row AlignItems="AlignItems.Center">
+                                <MudText Style="width: 8rem" Typo="Typo.body2">Account Name:</MudText>
+                                <MudText Typo="Typo.body1">@_invoice.AccountName</MudText>
+                            </MudStack>
+                            <MudStack Row AlignItems="AlignItems.Center">
+                                <MudText Style="width: 8rem" Typo="Typo.body2">Account Address:</MudText>
+                                <MudText Typo="Typo.body1">@_invoice.AccountAddress</MudText>
+                            </MudStack>
+                            <MudStack Row AlignItems="AlignItems.Center">
+                                <MudText Style="width: 8rem" Typo="Typo.body2">Account Balance:</MudText>
+                                <MudText Typo="Typo.body1" Color="Color.Tertiary">@_invoice.Balance.ToString("F2") PHP</MudText>
+                            </MudStack>
+                        </MudStack>
+                    </MudItem>
+                </MudGrid>
+
+            </MudPaper>
+
+            @* items *@
+            <MudTable Items="@_invoice.Items" Dense Hover>
+
+                <HeaderContent>
+                    <MudTh>Date</MudTh>
+                    <MudTh>Name</MudTh>
+                    <MudTh>Description</MudTh>
+                    <MudTh>Quantity</MudTh>
+                    <MudTh>Price</MudTh>
+                    <MudTh>Total</MudTh>
+                </HeaderContent>
+
+                <RowTemplate>
+                    <MudTd DataLabel="Date">@context.Date?.ToString("dd MMMM yyyy")</MudTd>
+                    <MudTd DataLabel="Name">@context.Name</MudTd>
+                    <MudTd DataLabel="Description">@context.Description</MudTd>
+                    <MudTd DataLabel="Quantity">@(context.Quantity + " " + context.Unit)</MudTd>
+                    <MudTd DataLabel="Price">@context.Price.ToString("F2") PHP</MudTd>
+                    <MudTd DataLabel="Total">@((context.Total).ToString("F2")) PHP</MudTd>
+                </RowTemplate>
+
+            </MudTable>
+        </MudStack>
+
+     @* editform for membership payment *@
+    <EditForm EditContext="@_formContext" OnValidSubmit="@_SubmitAsync" Context="context">
+        <FluentValidationValidator />
+
+        @* image display *@
+        <MudStack AlignItems="AlignItems.Center">
+            <MudImage Src="@_imageString" Height="500" />
+            @if (_FormModel.file is not null)
+            {
+                <MudText><MudIcon Icon="@Icons.Material.Filled.AttachFile"/>@_FormModel.file.Name</MudText>
+                <MudText><code>@_FormModel.file.Size bytes</code></MudText>
+            }
+        </MudStack>
+
+        @* upload button *@
+        <MudFileUpload T="IBrowserFile" FilesChanged="UploadFiles" Accept=".png, .jpg" For="@(() => _FormModel.file)" MaxFileSize="10485760">
+            <ActivatorContent>
+                <MudButton HtmlTag="label" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.CloudUpload">
+                    Upload proof of payment
+                </MudButton>
+            </ActivatorContent>
+        </MudFileUpload>
+
+    </EditForm>
+
+    <MudButton OnClick="@_SubmitAsync" Disabled="@_submitButtonDisabled" Variant="Variant.Filled" Color="Color.Primary">Submit</MudButton>
+    <MudProgressLinear Style="@_linearProgressBarDisplay" Color="Color.Primary" Indeterminate="true" />
+
+    </MudStack>
+</MudContainer>
+
+@code
+{
+    [Parameter] public string invoiceGUID { get; set; } = string.Empty;
+
+    // on parameter set
+    private Shared.Invoice _invoice = new();
+    protected override async Task OnParametersSetAsync()
+    {
+        _invoice = await HttpClient.Invoice.GetByGuid(invoiceGUID);
+
+        if (_invoice.ID == 0)
+            NavigationManager.NavigateTo("/not-found");
+
+        // if member has already sent payment
+        if(_invoice.ProofOfPaymentURL != string.Empty)
+            NavigationManager.NavigateTo($"/invoice-payment-submitted/{invoiceGUID}");
+    }
+
+    // form context with validation
+    private class FormModel
+    {
+        public IBrowserFile? file { get; set; }
+    }
+    private FormModel _FormModel = new();
+    private class FormModelValidator : AbstractValidator<FormModel>
+    {
+        private FormModelValidator()
+        {
+            RuleFor(e => e.file).NotEmpty().WithMessage("This field is required");
+        }
+    }
+
+    // on initialize
+    private EditContext? _formContext;
+    protected override void OnInitialized()
+    {
+        _formContext = new EditContext(_FormModel);
+    }
+
+    // image upload logic
+    private string _imageString = string.Empty;
+    private async Task UploadFiles(IBrowserFile file)
+    {
+        var resizedImage = await file.RequestImageFileAsync("image/png", 300, 300); // resize image
+        var buffer = new byte[resizedImage.Size]; // image to byte
+        await resizedImage.OpenReadStream().ReadAsync(buffer); // byte to stream
+
+        _imageString = $"data:image/png;base64,{Convert.ToBase64String(buffer)}"; // stream to string
+
+        _FormModel.file = file;
+
+        _submitButtonDisabled = false;
+    }
+
+    // submit
+    string _linearProgressBarDisplay = "display: none";
+    bool _submitButtonDisabled = true;
+    private async Task _SubmitAsync()
+    {
+        if (_formContext is not null && !_formContext.Validate()) return;
+
+        _submitButtonDisabled = true;
+        _linearProgressBarDisplay = string.Empty;
+
+        // image to stream
+        MemoryStream stream = new MemoryStream();
+        await _FormModel.file!.OpenReadStream(10485760).CopyToAsync(stream);
+
+        // add stream to content
+        ByteArrayContent imageContent = new ByteArrayContent(stream.ToArray());
+        imageContent.Headers.ContentType = new MediaTypeHeaderValue(_FormModel.file.ContentType);
+
+        // add content to multipartcontent
+        MultipartFormDataContent multipartContent = new MultipartFormDataContent();
+        multipartContent.Add(imageContent, "imageContent", _FormModel.file.Name);
+
+        await HttpClient.Invoice.PaymentAsync(_invoice.ID, multipartContent);
+
+        NavigationManager.NavigateTo($"/invoice-payment-submitted/{invoiceGUID}");
+    }
+}

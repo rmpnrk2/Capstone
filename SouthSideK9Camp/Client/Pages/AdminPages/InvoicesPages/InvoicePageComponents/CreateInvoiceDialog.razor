@@ -1,0 +1,112 @@
+﻿@inject SouthSideK9CampHttpClient HttpClient
+@inject ISnackbar Snackbar
+
+<MudDialog>
+
+    @* dialog content *@
+    <DialogContent>
+        <EditForm EditContext="@_formContext" OnValidSubmit="@_SubmitAsync" Context="Context">
+            <FluentValidationValidator />
+
+            <MudGrid Spacing="2">
+
+                <MudItem xs="12">
+                    <MudStack Row AlignItems="AlignItems.Center">
+                        <MudTextField @bind-Value="_invoice.Title" For="@(() => _invoice.Title)" Label="Title" Variant="Variant.Outlined" FullWidth />
+                        <MudCheckBox @bind-Value="_isDefaultCheckbox">Make Default</MudCheckBox>
+                    </MudStack>
+                </MudItem>
+
+                <MudItem xs="12" sm="6">
+                    <MudStack Spacing="1">
+
+                        <MudTextField @bind-Value="_invoice.CompanyName" For="@(() => _invoice.CompanyName)" Label="Company Name" Variant="Variant.Outlined" />
+                        <MudTextField @bind-Value="_invoice.CompanyAddress" For="@(() => _invoice.CompanyAddress)" Label="Company Address" Variant="Variant.Outlined" />
+                        <MudNumericField @bind-Value="_invoice.CompanyZIPCode" For="@(() => _invoice.CompanyZIPCode)" Label="Company ZIP Code" Variant="Variant.Outlined" HideSpinButtons />
+                        <MudNumericField @bind-Value="_invoice.CompanyPhone" For="@(() => _invoice.CompanyPhone)" Label="Company Contact" Variant="Variant.Outlined" HideSpinButtons />
+
+                    </MudStack>
+                </MudItem>
+
+                <MudItem xs="12" sm="6">
+                    <MudStack Spacing="1">
+
+                        <MudDatePicker @bind-Date="_invoice.DateDue" For="@(() => _invoice.DateDue)" Label="Due Date" Variant="Variant.Outlined" ShowToolbar="false"
+                            IsDateDisabledFunc="@((DateTime dt) =>(
+                            (int)dt.Year < DateTime.UtcNow.Year ||
+                            ((int)dt.Year == DateTime.UtcNow.Year && (int)dt.Month < DateTime.UtcNow.Month) ||
+                            ((int)dt.Year == DateTime.UtcNow.Year && (int)dt.Month == DateTime.UtcNow.Month && (int)dt.Day < DateTime.UtcNow.Day)))" />
+
+                        <MudTextField @bind-Value="_invoice.AccountName" For="@(() => _invoice.AccountName)" Label="Account Name" Variant="Variant.Outlined" />
+                        <MudTextField @bind-Value="_invoice.AccountAddress" For="@(() => _invoice.AccountAddress)" Label="Account Address" Variant="Variant.Outlined" />
+
+                    </MudStack>
+                </MudItem>
+
+            </MudGrid>
+
+        </EditForm>
+    </DialogContent>
+
+    @* dialog button *@
+    <DialogActions>
+        <MudButton OnClick="@_Cancel">Cancel</MudButton>
+        <MudButton OnClick="@_SubmitAsync" Variant="Variant.Filled" Color="Color.Primary" EndIcon="@Icons.Material.Outlined.Add">New</MudButton>
+    </DialogActions>
+
+</MudDialog>
+
+@code
+{
+
+    [CascadingParameter] private MudDialogInstance MudDialog { get; set; } = new();
+
+    [Parameter] public Shared.Dog dog { get; set; } = new();
+
+    // form model
+    private EditContext? _formContext;
+    private Shared.Invoice _invoice = new();
+
+    protected override void OnInitialized()
+    {
+        _formContext = new EditContext(_invoice);
+    }
+
+    protected override async void OnParametersSet()
+    { 
+        // default values
+        _invoice = await HttpClient.Invoice.GetDefaultAsync();
+
+        _invoice.AccountName = dog.Client?.FirstName + " " + dog.Client?.LastName;
+        _invoice.AccountAddress = dog.Client?.Address ?? string.Empty;
+        _invoice.DogID = dog.ID;
+
+        _formContext = new EditContext(_invoice);
+        StateHasChanged();
+    }
+
+    // submit form
+    private bool _isDefaultCheckbox;
+
+    private async Task _SubmitAsync()
+    {
+        if (!_formContext!.Validate()) return;
+
+
+        if(_isDefaultCheckbox)
+        {
+            await HttpClient.Invoice.CreateDefaultAsync(_invoice);
+            MudDialog!.Close();
+            return;
+        }
+
+        await HttpClient.Invoice.CreateAsync(dog.ID, _invoice);
+        Snackbar.Add("Added new invoice", Severity.Success);
+
+        MudDialog!.Close();
+        return;
+    }
+
+    // close dialog
+    private void _Cancel() => MudDialog!.Cancel();
+}

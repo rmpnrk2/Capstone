@@ -1,5 +1,66 @@
-﻿<h3>CustomerRegistrationEmailCheck</h3>
+﻿@page "/customer-registration-emailcheck/{reservationGUID}";
 
-@code {
+@inject NavigationManager NavigationManager
+@inject SouthSideK9CampHttpClient HttpClient
 
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-16 mb-16">
+
+    <MudText Typo="Typo.h4">SouthSide K9 Board and Train Registration</MudText>
+
+    <EditForm EditContext="_FormContext" OnValidSubmit="@_SubmitAsync" Context="Context">
+        <FluentValidationValidator />
+
+        <MudStack Spacing="2" AlignItems="AlignItems.Center">
+
+            <MudTextField @bind-Value="_EmailAddress.EmailAddress" For="@(() => _EmailAddress.EmailAddress)" Label="Email address"
+                          Variant="Variant.Outlined" Error="@_emailFieldError" FullWidth />
+
+        </MudStack>
+    </EditForm>
+
+    <MudText Color="Color.Error">@_emailFieldErrorMessage</MudText>
+    <MudButton OnClick="_SubmitAsync" Disabled="@_continueButtonDisabled" Variant="Variant.Filled" Color="Color.Primary">Continue</MudButton>
+    <MudProgressLinear Style="@_linearProgressBar" Color="Color.Primary" Indeterminate="true" />
+
+</MudContainer>
+
+@code
+{
+    [Parameter] public string? reservationGUID { get; set; }
+
+    // form model
+    private EditContext? _FormContext;
+    private Shared.EmailValidation _EmailAddress = new();
+
+    protected override void OnInitialized()
+    {
+        _FormContext = new EditContext(_EmailAddress);
+    }
+
+    // submit form
+    bool _emailFieldError = false;
+    bool _continueButtonDisabled = false;
+
+    string _emailFieldErrorMessage = string.Empty;
+    string _linearProgressBar = "display: none";
+
+    private async Task _SubmitAsync()
+    {
+        if (_FormContext!.Validate())
+        {
+            _continueButtonDisabled = true;
+            _linearProgressBar = string.Empty;
+            string clientGUID = await HttpClient.Customer.CheckEmailAsync(_EmailAddress.EmailAddress);
+
+            if (clientGUID == string.Empty)
+            {
+                NavigationManager.NavigateTo($"/customer-registration/{reservationGUID}/{_EmailAddress.EmailAddress}");
+            }
+            else
+            {
+                NavigationManager.NavigateTo($"/customer-registration/{reservationGUID}/{_EmailAddress.EmailAddress}/{clientGUID}");
+            }
+        }
+        return;
+    }
 }

@@ -28,7 +28,8 @@
 
             <RowTemplate>
 
-                <MudTd>
+                @* data *@
+                <MudTd DataLabel="Reservation">
                     <MudStack Row AlignItems="AlignItems.Center" Spacing="5">
 
                         <MudText Typo="Typo.h6">@context.Name</MudText>
@@ -47,14 +48,15 @@
                     </MudStack>
                 </MudTd>
 
-                <MudTd>
+                @* slots *@
+                <MudTd DataLabel="Slots">
                     <MudStack Row>
 
                         <MudAvatarGroup Max="@context.Slots" Spacing="2" MaxColor="Color.Primary">
                             @foreach(Shared.Dog dog in context.Dogs)
                             {
                                 <MudAvatar>
-                                    <MudImage Src="@dog.AvatarURL" />
+                                    <MudImage ObjectFit="ObjectFit.Cover" Src="@dog.AvatarURL" />
                                 </MudAvatar>
                             }
                             @for(int i = @context.Dogs.Count; i < context.Slots; i++)
@@ -69,7 +71,23 @@
                     </MudStack>
                 </MudTd>
 
-                @* buttons *@
+                @* actions *@
+                <MudTd>
+                    <MudStack Spacing="0">
+
+                        @if (_NotPaidCount(context.Dogs) != 0)
+                        {
+                            <MudChip T="string" Variant="Variant.Text" Color="Color.Error" Size="Size.Small">@_NotPaidCount(context.Dogs) Not Paid</MudChip>
+                        }
+                        @if (_PendingCount(context.Dogs) != 0)
+                        {
+                            <MudChip T="string" Variant="Variant.Text" Color="Color.Warning" Size="Size.Small">@_PendingCount(context.Dogs) Pending</MudChip>
+                        }
+
+                    </MudStack>
+                </MudTd>
+
+                @* actions *@
                 <MudTd>
                     <MudStack Row Justify="Justify.FlexEnd">
                         <MudButton OnClick="@(() => _OpenReservation(context.ID))" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Info">Open</MudButton>
@@ -124,6 +142,26 @@
     private void _OpenReservation(int reservationID)
     {
         NavigationManager.NavigateTo($"/admin/reservation/{reservationID}");
+    }
+
+    // status count
+    int _PendingCount(List<Shared.Dog> dogs)
+    {
+        int _pendingCount = 0;
+
+        foreach (Shared.Dog dog in dogs)
+            if (dog.ReservationPaymentURL != string.Empty && !dog.ReservationPaymentConfirmed) _pendingCount++;
+
+        return _pendingCount;
+    }
+    int _NotPaidCount(List<Shared.Dog> dogs)
+    {
+        int _notPaidCount = 0;
+
+        foreach (Shared.Dog dog in dogs)
+            if (dog.ReservationPaymentURL == string.Empty) _notPaidCount++;
+
+        return _notPaidCount;
     }
 
     // refresh data

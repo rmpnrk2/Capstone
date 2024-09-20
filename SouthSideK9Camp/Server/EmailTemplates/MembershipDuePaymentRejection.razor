@@ -33,11 +33,19 @@
 <body>
 	<div class="container">
 		<h1>SouthSide K9 Camp Membership Due</h1>
+		<br />
+		<p>Dear, @clientName</p>
+		<br />
 		<p>
-			Your previous payment for the monthly due at @dueDate.ToString("dd MMMM yyyy") was unsuccessful.
-			To avoid any disruption, kindly resubmit your payment details using the link provided below:
+			Your previous payment for the membership monthly due at @dueDate.ToString("dd MMMM yyyy") was unsuccessful or invalid.
+			To avoid any disruption of our service, we kindly request you to resubmit your payment details using the link provided below:
 		</p>
-		<a href="@link" target="_blank">Continue Registration</a>
+		<br />
+		<h6>Payment Details:</h6>
+		<p>Membership Fee: 3000 php</p>
+		<p>Due: @dueDate.ToString("dd MMMM yyyy")</p>
+		<br />
+		<a href="@link" target="_blank">Continue Payment</a>
 		<br />
 		<br />
 		<p>Best regards,</p>
@@ -48,6 +56,7 @@
 
 @code
 {
+	[Parameter] public string clientName { get; set; } = string.Empty;
 	[Parameter] public string membershipDueGUID { get; set; } = string.Empty;
 	[Parameter] public string host { get; set; } = string.Empty;
 	[Parameter] public DateTime dueDate { get; set; }

@@ -17,7 +17,7 @@ public class ReservationValidator : AbstractValidator<Reservation>
 {
     public ReservationValidator()
     {
-        RuleFor(r => r.Name).NotEmpty().WithMessage("This field is required").MaximumLength(20).WithMessage("This field should not exceed 10 characters");
+        RuleFor(r => r.Name).NotEmpty().WithMessage("This field is required").MaximumLength(50).WithMessage("This field should not exceed 50 characters");
         RuleFor(r => r.StartingDate).NotEmpty().WithMessage("This field is required");
         RuleFor(r => r.EndingDate).NotEmpty().WithMessage("This field is required");
         RuleFor(r => r.Slots).NotEmpty().WithMessage("This field is required");

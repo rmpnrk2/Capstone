@@ -35,6 +35,20 @@ public class ReservationHttpClient
         return reservations.FirstOrDefault(r => r.ID == reservationID) ?? new();
     }
 
+    // get by guid
+    public async Task<Shared.Reservation?> GetByGuid(string reservationGUID)
+    {
+        try
+        {
+            Shared.Reservation? reservation = await _httpClient.GetFromJsonAsync<Shared.Reservation>($"reservations/guid/{reservationGUID}") ?? null;
+            return reservation;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
     // add
     public async Task AddAsync(Shared.Reservation reservation) =>
         await _httpClient.PostAsJsonAsync($"reservations", reservation);

@@ -32,13 +32,21 @@
 
 <body>
 	<div class="container">
-		<h1>SouthSide K9 Camp Member</h1>
+		<h1>SouthSide K9 Camp Member Dues</h1>
+		<br />
+		<p>Dear, @clientName</p>
+		<br />
 		<p>
-			This is a reminder from Southside K9 Camp that your membership dues.
+			This is a reminder from Southside K9 Camp of your membership monthly dues of 300 php.
 			Kindly note that your payment is due on @dueDate.ToString("dd MMMM yyyy").
-			Please ensure that your membership fee is submitted using the link provided below.
+			Please ensure that your membership due payment is submitted using the link provided below.
 		</p>
-		<a href="@link" target="_blank">Continue Registration</a>
+		<br />
+		<h6>Payment Details:</h6>
+		<p>Membership Fee: 300 php</p>
+		<p>Due: @dueDate.ToString("dd MMMM yyyy")</p>
+		<br />
+		<a href="@link" target="_blank">Continue Payment</a>
 		<br />
 		<br />
 		<p>Best regards,</p>
@@ -48,6 +56,7 @@
 
 @code
 {
+	[Parameter] public string clientName { get; set; } = string.Empty;
 	[Parameter] public string membershipDueGUID { get; set; } = string.Empty;
 	[Parameter] public string host { get; set; } = string.Empty;
 	[Parameter] public DateTime dueDate { get; set; }

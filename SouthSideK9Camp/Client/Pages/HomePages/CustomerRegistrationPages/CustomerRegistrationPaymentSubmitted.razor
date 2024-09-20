@@ -1,5 +1,72 @@
-﻿<h3>CustomerRegistrationPaymentSubmitted</h3>
+﻿@page "/customer-registration-payment-submitted/{dogGUID}";
 
-@code {
+@inject SouthSideK9CampHttpClient HttpClient
+@inject NavigationManager NavigationManager
 
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-16 mb-16">
+    <MudStack>
+
+        <MudText Typo="Typo.h4">SouthSide K9 Reservation Payment Success</MudText>
+
+        <MudStack AlignItems="AlignItems.Center">
+            <MudImage Src="@_imageString" Height="500" />
+        </MudStack>
+
+        <MudText Typo="Typo.body1">Your payment submission has been received. You may now safely close this website and wait for the approval of your payment.</MudText>
+        <MudText Typo="Typo.body1">We will notify you once the payment has been successfully processed. If you have any questions in the meantime, please don't hesitate to contact us.</MudText>
+        <MudText Typo="Typo.body1">If you wish to make changes to your payment submission, please click the link below:</MudText>
+        <MudButton OnClick="_SubmitAsync" Disabled="@_resubmitButtonDisabled" Variant="Variant.Outlined">Resubmit Payment</MudButton>
+        <MudProgressLinear Style="@_linearProgressBar" Color="Color.Primary" Indeterminate="true" />
+
+    </MudStack>
+</MudContainer>
+
+@code
+{
+    [Parameter] public string dogGUID { get; set; } = string.Empty;
+    private string _imageString = string.Empty;
+
+    // on parameter set
+    private Shared.Dog? _dog;
+    protected override async Task OnParametersSetAsync()
+    {
+        _dog = await HttpClient.Dog.GetByGuid(dogGUID);
+
+        if (_dog == null)
+        {
+            NavigationManager.NavigateTo("/not-found");
+            return;
+        }
+
+        if (_dog.ReservationPaymentURL == string.Empty)
+        {
+            NavigationManager.NavigateTo($"/customer-registration-payment/{dogGUID}");
+            return;
+        }
+
+        if (_dog.ReservationPaymentConfirmed)
+        {
+            NavigationManager.NavigateTo("/customer-registration-payment-confirmed/{dogGUID}");
+
+            return;
+        }
+
+        _imageString = _dog.ReservationPaymentURL;
+    }
+
+    // resubmit
+    bool _resubmitButtonDisabled = false;
+    string _linearProgressBar = "display: none";
+    private async Task _SubmitAsync()
+    {
+        _resubmitButtonDisabled = true;
+        _linearProgressBar = string.Empty;
+
+        if (_dog == null) return;
+
+        await HttpClient.Customer.ReservationPaymentResubmit(_dog.ID);
+
+        NavigationManager.NavigateTo($"/customer-registration-payment/{dogGUID}");
+    }
 }
+

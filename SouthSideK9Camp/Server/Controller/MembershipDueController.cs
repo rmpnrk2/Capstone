@@ -129,6 +129,7 @@ namespace SouthSideK9Camp.Server.Controller
             // send payment rejection email
             string emailSubject = "SouthSide K9 Camp Membership Due";
             string emailBody = new ComponentRenderer<EmailTemplates.MembershipDuePaymentRejection>()
+                .Set(c => c.clientName, membershipDue.Member?.Client?.FirstName + " " + membershipDue.Member?.Client?.LastName)
                 .Set(c => c.membershipDueGUID, membershipDue.GUID.ToString())
                 .Set(c => c.host, _configuration["Host"])
                 .Set(c => c.dueDate, membershipDue.DateTimeDue)
@@ -156,11 +157,12 @@ namespace SouthSideK9Camp.Server.Controller
                 {
                     string emailSubject = "SouthSide K9 Camp Membership Due";
                     string emailBody = new ComponentRenderer<EmailTemplates.MembershipDuePaymentReminder>()
+                        .Set(c => c.clientName, due.Member?.Client?.FirstName ?? string.Empty + " " + due.Member?.Client?.LastName ?? string.Empty)
                         .Set(c => c.membershipDueGUID, due.GUID.ToString())
                         .Set(c => c.host, _configuration["Host"])
                         .Set(c => c.dueDate, due.DateTimeDue)
                         .Render();
-                    await _smtp.SendEmailAsync(due.Member.Client.Email, emailSubject, emailBody);
+                    await _smtp.SendEmailAsync(due.Member?.Client?.Email ?? string.Empty, emailSubject, emailBody);
                     
                     count += 1;
                 }

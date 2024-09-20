@@ -1,5 +1,22 @@
-﻿<h3>CustomerRegistrationPaymentConfirmed</h3>
+﻿@page "/customer-registration-payment-confirmed/{dogGUID}";
 
-@code {
+@inject NavigationManager NavigationManager
 
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-16 mb-16">
+
+    <MudText Typo="Typo.h4">SouthSide K9 Reservation Paynent</MudText>
+    <MudText Typo="Typo.body1">Your payment has been   succesfully and have been approved. You may now safely close this website.</MudText>
+
+    <MudButton OnClick="@_Return" Color="Color.Primary">Return to Homepage</MudButton>
+
+</MudContainer>
+
+@code
+{
+    [Parameter] public string? dogGUID { get; set; }
+
+    private void _Return()
+    {
+        NavigationManager.NavigateTo("");
+    }
 }

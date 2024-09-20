@@ -2,7 +2,9 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using SouthSideK9Camp.Server.Data;
+using SouthSideK9Camp.Server.Services;
 using SouthSideK9Camp.Shared;
 
 namespace SouthSideK9Camp.Server.Controller
@@ -10,10 +12,16 @@ namespace SouthSideK9Camp.Server.Controller
     [Route("customer")][ApiController] public class CustomerController : ControllerBase
     {
         private readonly DataContext _dataContext;
+        private readonly IConfiguration _configuration;
+        private readonly IEmailService _smtp;
+        private readonly IWebHostEnvironment _hostEnvironment;
 
-        public CustomerController(DataContext dataContext)
+        public CustomerController(DataContext dataContext, IConfiguration configuration, IEmailService emailService, IWebHostEnvironment hostEnvironment)
         {
             _dataContext = dataContext;
+            _configuration = configuration;
+            _smtp = emailService;
+            _hostEnvironment = hostEnvironment;
         }
 
         // get all
@@ -24,34 +32,38 @@ namespace SouthSideK9Camp.Server.Controller
             return Results.Ok(customers);
         }
 
-        // get single
-        [HttpGet("{customerID}")] public async Task<IResult> GetAsync(int customerID)
+        // get by id
+        [HttpGet("{customerID}", Name = "GetCustomer")] public async Task<IResult> GetAsync(int customerID)
         {
             Customer? customer = await _dataContext.Customers.Where(customer => customer.ID == customerID).FirstOrDefaultAsync();
 
             if(customer == null)
                 return Results.NotFound();
 
-            return Results.Ok(customer);
+            var json = JsonConvert.SerializeObject(customer, new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
+            return Results.Ok(JsonConvert.DeserializeObject<Shared.Customer>(json));
         }
 
         // get by guid
-        [HttpGet("guid/{customerGUID}")] public async Task<IResult> GetByGUIDAsync(string customerGUID)
+        [HttpGet("guid/{clientGUID}")] public async Task<IResult> GetByGUIDAsync(string clientGUID)
         {
 
-            Shared.Client? client = await _dataContext.Clients.Where(c => c.Customer != null && c.Customer.GUID.ToString() == customerGUID)
-                .Include(c => c.Customer).FirstOrDefaultAsync();
+            Shared.Client? client = await _dataContext.Clients
+                .Include(c => c.Customer)
+                .Include(c => c.Dogs)
+                .FirstOrDefaultAsync(c => c.GUID.ToString() == clientGUID);
 
             if (client == null)
                 return Results.NotFound();
 
-            return Results.Ok(client);
+            var json = JsonConvert.SerializeObject(client, new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
+            return Results.Ok(JsonConvert.DeserializeObject<Shared.Client>(json));
         }
 
         // check for email availability
-        [HttpGet("email-availability/{email}")] public async Task<IResult> GetEmailAvailabilityAsync(string email)
+        [HttpGet("check-email/{email}")] public async Task<IResult> GetEmailAvailabilityAsync(string email)
         {
-            Shared.Client? client = await _dataContext.Clients.Where(m => m.Customer != null).FirstOrDefaultAsync(c => c.Email == email);
+            Shared.Client? client = await _dataContext.Clients.FirstOrDefaultAsync(c => c.Email == email);
 
             if(client != null)
                 return Results.Ok(client);
@@ -60,42 +72,150 @@ namespace SouthSideK9Camp.Server.Controller
         }
 
         // register
-        //[HttpPost("register")] public async Task<IResult> MembershipRegistrationAsync(Shared.Client client)
-        //{
-        //    _dataContext.Clients.Add(client);
-        //    await _dataContext.SaveChangesAsync();
-
-        //    // send email
-        //    string emailSubject = "SouthSide K9 Camp Membership Registration";
-        //    string emailBody = new ComponentRenderer<EmailTemplates.MembershipRegistrationTemplate>()
-        //        .Set(c => c.client_guid, client.Member.GUID.ToString())
-        //        .Set(c => c.host, _configuration["Host"])
-        //        .Render();
-        //    await _smtp.SendEmailAsync(client.Email, emailSubject, emailBody);
-
-        //    return Results.CreatedAtRoute("GetClient", new {clientID = client.ID}, client);
-        //}
-
-        // update
-        [HttpPut("{customerID}")] public async Task<IResult> PutAsync(int customerID, Customer updatedCustomer)
+        [HttpPost("register/{reservationGUID}")] public async Task<IResult> MembershipRegistrationAsync(string reservationGUID, Shared.Client client)
         {
-            int rowsAffected = await _dataContext.Customers.Where(customer => customer.ID == customerID).ExecuteUpdateAsync(updates => updates
-                .SetProperty(customer => customer.WhereWillYouBeStating, updatedCustomer.WhereWillYouBeStating)
-                .SetProperty(customer => customer.EmergencyVet, updatedCustomer.EmergencyVet)
-                .SetProperty(customer => customer.EmergencyVetNumber, updatedCustomer.EmergencyVetNumber)
-                .SetProperty(customer => customer.EmergencyContactName, updatedCustomer.EmergencyContactName)
-                .SetProperty(customer => customer.EmergencyContactNumber, updatedCustomer.EmergencyContactNumber)
-                .SetProperty(customer => customer.EmergencyContactEmail, updatedCustomer.EmergencyContactEmail)
+            Shared.Reservation? reservation = await _dataContext.Reservations.FirstOrDefaultAsync(r => r.GUID.ToString() == reservationGUID);
+
+            // do not register dog if exceeded reservation limit
+            if(reservation == null || (reservation.Slots - reservation.Dogs.Count) < client.Dogs.Count)
+                return Results.NotFound();
+
+
+            // reserve dogs
+            foreach(Shared.Dog dog in client.Dogs)
+            {
+                dog.ReservationID = reservation.ID;
+
+                // send email for each registered dog
+                string emailSubject = "SouthSide K9 Camp Board & Train Registration";
+                string emailBody = new ComponentRenderer<EmailTemplates.CustomerRegistratinReservationPayment>()
+                    .Set(c => c.clientName, client.FirstName + " " + client.LastName)
+                    .Set(c => c.dogName, dog.Name)
+                    .Set(c => c.startingDate, reservation.StartingDate!.Value)
+                    .Set(c => c.endingDate, reservation.EndingDate!.Value)
+                    .Set(c => c.host, _configuration["Host"])
+                    .Set(c => c.dogGUID, dog.GUID.ToString())
+                    .Render();
+                await _smtp.SendEmailAsync(client.Email, emailSubject, emailBody);
+            }
+
+            // if client already exists
+            Shared.Client? existingClient = await _dataContext.Clients.FindAsync(client.ID);
+            if(existingClient == null)
+            {
+                _dataContext.Clients.Add(client);
+            }
+            else
+            {
+                existingClient.Customer = client.Customer;
+                existingClient.Dogs = client.Dogs;
+            }
+
+            await _dataContext.SaveChangesAsync();
+
+            var json = JsonConvert.SerializeObject(client, new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
+            Shared.Client? deserializedClient = JsonConvert.DeserializeObject<Shared.Client>(json);
+
+            return Results.CreatedAtRoute("GetCustomer", new {customerID = client.ID}, deserializedClient);
+        }
+
+        // reservation payment
+        [HttpPost("reservation-payment/{dogID}")] public async Task<IResult> RegistrationPayment(int dogID, IFormFile imageContent)
+        {
+            // create unique GUID for image file
+            string imageFileName = $"{Guid.NewGuid()}{Extension()}";
+            string Extension()
+            {
+                if (imageContent.ContentType == "image/jpeg") return ".jpeg";
+                if (imageContent.ContentType == "image/png") return ".png";
+                return string.Empty;
+            }
+
+            // save image to wwwroot/Images/ReservationPayment
+            string path = Path.Combine(_hostEnvironment.WebRootPath, "Images/ReservationPayment", imageFileName);
+            using (FileStream stream = new FileStream(path, FileMode.Create))
+            {
+                await imageContent.CopyToAsync(stream);
+            }
+
+            // set dog reservation to paid
+            await _dataContext.Dogs.Where(dog => dog.ID == dogID).ExecuteUpdateAsync(updates => updates
+                .SetProperty(d => d.ReservationPaymentURL, _configuration["Host"] + "/Images/ReservationPayment/" + imageFileName));
+
+            return Results.Ok();
+        }
+
+        // registration payment resubmit
+        [HttpPost("reservation-payment-resubmit/{dogID}")] public async Task<IResult> RegistrationPaymentResubmit(int dogID)
+        {
+            // remove payment submission
+            int rowsUpdated = await _dataContext.Dogs.Where(d => d.ID == dogID).ExecuteUpdateAsync(updates => updates
+                .SetProperty(member => member.ReservationPaymentURL, string.Empty)
             );
 
-            return rowsAffected == 0 ? Results.NotFound() : Results.NoContent();
+            return (rowsUpdated == 0) ? Results.NotFound() : Results.NoContent();
+        }
+
+        // update
+        [HttpPut("{customerID}")] public async Task<IResult> PutAsync(int customerID, Shared.Customer customerUpdate)
+        {
+            int rowsAffected = await _dataContext.Customers.Where(c => c.ID == customerID).ExecuteUpdateAsync(updates => updates
+                .SetProperty(c => c.EmergencyVet, customerUpdate.EmergencyVet)
+                .SetProperty(c => c.EmergencyVetNumber, customerUpdate.EmergencyVetNumber)
+                .SetProperty(c => c.EmergencyContactName, customerUpdate.EmergencyContactName)
+                .SetProperty(c => c.EmergencyContactNumber, customerUpdate.EmergencyContactNumber)
+                .SetProperty(c => c.EmergencyContactEmail, customerUpdate.EmergencyContactEmail));
+
+            return (rowsAffected == 0) ? Results.NotFound() : Results.NoContent();
+        }
+
+        // approve reservation payment
+        [HttpPut("payment-approve/{dogID}")] public async Task<IResult> ApproveAsync(int dogID)
+        {
+            int rowsAffected = await _dataContext.Dogs.Where(d => d.ID == dogID).ExecuteUpdateAsync(updates => updates
+                .SetProperty(d => d.ReservationPaymentConfirmed, true));
+
+            return (rowsAffected == 0) ? Results.NotFound() : Results.NoContent();
+        }
+
+        // reject reservation payment
+        [HttpPut("payment-reject/{dogID}")] public async Task<IResult> RejectAsync(int dogID)
+        {
+            var dog = await _dataContext.Dogs.Include(d => d.Client).FirstOrDefaultAsync(c => c.ID == dogID);
+
+            if (dog == null || dog.Client == null)
+                return Results.NotFound();
+
+            // remove payment
+            dog.ReservationPaymentURL = string.Empty;
+            await _dataContext.SaveChangesAsync();
+
+            // send payment rejection email
+            string emailSubject = "SouthSide K9 Camp Board & Train Registration";
+            string emailBody = new ComponentRenderer<EmailTemplates.CustomerRegistrationReservationRejection>()
+                .Set(c => c.dogGUID, dog.GUID.ToString())
+                .Set(c => c.host, _configuration["Host"])
+                .Render();
+            await _smtp.SendEmailAsync(dog.Client.Email, emailSubject, emailBody);
+
+            return Results.NoContent();
         }
 
         // delete
         [HttpDelete("{customerID}")] public async Task<IResult> DeleteAsync(int customerID)
         {
-            var rowsAffected = await _dataContext.Customers.Where(customer => customer.ID == customerID).ExecuteDeleteAsync();
-            return rowsAffected == 0 ? Results.NotFound() : Results.NoContent();
+            Shared.Customer? customer = await _dataContext.Customers.FirstOrDefaultAsync(c => c.ID == customerID);
+
+            if(customer == null) return Results.NotFound();
+
+            // also delete all the dogs
+            await _dataContext.Dogs.Where(d => d.ClientID == customer.ClientID).ExecuteDeleteAsync();
+            await _dataContext.Customers.Where(customer => customer.ID == customerID).ExecuteDeleteAsync();
+
+            // if delete if member is null
+            await _dataContext.Clients.Where(c => c.Customer == null && c.Member == null).ExecuteDeleteAsync();
+
+            return Results.NoContent();
         }
     }
 }

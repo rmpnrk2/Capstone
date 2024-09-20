@@ -18,9 +18,10 @@
                         (int)dt.Year < DateTime.UtcNow.Year ||
                         ((int)dt.Year == DateTime.UtcNow.Year && (int)dt.Month < DateTime.UtcNow.Month) ||
                         ((int)dt.Year == DateTime.UtcNow.Year && (int)dt.Month == DateTime.UtcNow.Month && (int)dt.Day < DateTime.UtcNow.Day) ||
-                        (int)dt.Year > _reservation.StartingDate?.Year ||
+                        ((int)dt.Year > _reservation.StartingDate?.Year ||
                         ((int)dt.Year == _reservation.StartingDate?.Year && (int)dt.Month > _reservation.StartingDate?.Month) ||
-                        ((int)dt.Year == _reservation.StartingDate?.Year && (int)dt.Month == _reservation.StartingDate?.Month && (int)dt.Day >= _reservation.EndingDate?.Day)))" />
+                        ((int)dt.Year == _reservation.StartingDate?.Year && (int)dt.Month == _reservation.StartingDate?.Month && (int)dt.Day >= _reservation.EndingDate?.Day)) && 
+                        _reservation.EndingDate == null))" />
 
                     <MudDatePicker @bind-Date="_reservation.EndingDate" Label="Ending Date" Variant="Variant.Outlined" ShowToolbar="false" IsDateDisabledFunc="@((DateTime dt) =>(
                         (int)dt.Year < _reservation.StartingDate?.Year ||

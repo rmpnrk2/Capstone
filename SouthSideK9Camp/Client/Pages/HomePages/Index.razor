@@ -2,18 +2,185 @@
 
 @inject NavigationManager NavigationManager
 
+<MudContainer MaxWidth="MaxWidth.Medium" Class="my-16">
+    <MudStack AlignItems="AlignItems.Center">
 
-<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-16 mb-16">
+        @* logo *@
+        <MudImage Src="Images/logo.jpg" Height="250" Class="pb-6" />
 
-    <MudButton Variant="Variant.Filled" Color="Color.Primary">Board and Train</MudButton>
-    <MudButton OnClick="@RegisterMembership" Variant="Variant.Filled" Color="Color.Primary">Register Membership</MudButton>
-    
+        @* logo text *@
+        <MudCarousel Class="mud-width-full" Style="height:50px" TData="object" ShowArrows="false" ShowBullets="false" EnableSwipeGesture="false">
+
+            <MudCarouselItem Transition="Transition.Fade">
+                <MudText Style="font-style: italic; font-family: 'Times New Roman', Times, serif" Align="Align.Center" Typo="Typo.h4">"We train and produce the best skilled dogs"</MudText>
+            </MudCarouselItem>
+
+            <MudCarouselItem Transition="Transition.Fade">
+                <MudText Style="font-style: italic; font-family: 'Times New Roman', Times, serif" Align="Align.Center" Typo="Typo.h4">"We strive to ehance and perfect their potentials"</MudText>
+            </MudCarouselItem>
+
+            <MudCarouselItem Transition="Transition.Fade">
+                <MudText Style="font-style: italic; font-family: 'Times New Roman', Times, serif" Align="Align.Center" Typo="Typo.h4">"We are promoting IGP dog sport in the Philippines"</MudText>
+            </MudCarouselItem>
+
+        </MudCarousel>
+
+        @* training types *@
+        <MudGrid Class="my-16">
+
+            @* obedience *@
+            <MudItem xs="12" sm="6">
+                <MudStack>
+                    <MudImage Src="Images/pic4marked.png" Class="rounded-lg" Height="250" Width="400" Fluid ObjectFit="ObjectFit.Cover" />
+                </MudStack>
+            </MudItem>
+
+            <MudItem xs="12" sm="6">
+                <MudStack AlignItems="AlignItems.Center">
+
+                    <MudIcon Icon="@Icons.Material.Filled.School" Size="Size.Large" />
+                    <MudText Style="font-family: 'Times New Roman', Times, serif" Typo="Typo.h6">Basic Obedience</MudText>
+
+                    <MudText Typo="Typo.body1">
+                        Basic obedience training is the process of teaching a dog to respond to basic verbal commands. Some basic commands include: Sit, Down, Come, Stay, Leave it, and Wait.
+                    </MudText>
+
+                </MudStack>
+            </MudItem>
+
+            @* protection *@
+            <MudItem xs="12" sm="6">
+                <MudStack AlignItems="AlignItems.Center">
+
+                    <MudIcon Icon="@Icons.Material.Filled.Shield" Size="Size.Large" />
+                    <MudText Style="font-family: 'Times New Roman', Times, serif" Typo="Typo.h6">Basic Protection</MudText>
+
+                    <MudText Typo="Typo.body1">
+                        Teaches dogs to protect their owners or property from intruders. It involves teaching dogs to recognize potential threats and respond accordingly.
+                    </MudText>
+
+                </MudStack>
+            </MudItem>
+
+            <MudItem xs="12" sm="6">
+                <MudStack>
+                    <MudImage Class="rounded-lg" Src="Images/pic2marked.png" Height="250" Width="400" Fluid ObjectFit="ObjectFit.Cover" />
+                </MudStack>
+            </MudItem>
+
+            @* detection *@
+            <MudItem xs="12" sm="6">
+                <MudStack>
+                    <MudImage Class="rounded-lg" Src="Images/pic5marked.png" Height="250" Width="400" Fluid ObjectFit="ObjectFit.Cover" />
+                </MudStack>
+            </MudItem>
+
+            <MudItem xs="12" sm="6" >
+                <MudStack AlignItems="AlignItems.Center">
+
+                    <MudIcon Icon="@Icons.Material.Filled.Radar" Size="Size.Large" />
+                    <MudText Style="font-family: 'Times New Roman', Times, serif" Typo="Typo.h6">Tracking & Detection</MudText>
+
+                    <MudText Typo="Typo.body1">
+                        Tracking is a dog training technique that involves using the scent of an object to locate it.
+                    </MudText>
+
+                </MudStack>
+            </MudItem>
+
+        </MudGrid>
+
+        <MudDivider Class="my-8" />
+
+
+        @* join us *@
+        <MudStack AlignItems="AlignItems.Center" Spacing="8">
+
+            <MudText Typo="Typo.h2">Join Us</MudText>
+
+            <MudStack Spacing="0" AlignItems="AlignItems.Center">
+                <MudText Typo="Typo.body1">
+                    Your dog will stay with us and receive expert care and training tailored to their specific needs, whether it's IGP preparation or basic obedience.
+                    Give your dog the skills they need to succeed—enroll in our Board and Train program today!
+                </MudText>
+                <MudButton OnClick="@RegisterCustomer" FullWidth Variant="Variant.Outlined" Color="Color.Dark">Board and Train</MudButton>
+            </MudStack>
+
+            <MudStack Spacing="0" AlignItems="AlignItems.Center">
+                <MudText Typo="Typo.body1">
+                    As a member, you'll join a group of passionate dog owners and trainers who are committed to achieving excellence in obedience, protection, and tracking work.
+                    Join us and help your dog reach its full potential, while becoming part of a supportive community that shares your dedication to canine success.
+                    Sign up today to begin the journey!
+                </MudText>
+                <MudButton OnClick="@RegisterMembership" FullWidth Variant="Variant.Outlined" Color="Color.Dark">Membership</MudButton>
+            </MudStack>
+
+        </MudStack>
+
+        <MudDivider Class="my-8" />
+
+        @* contact *@
+        <MudStack AlignItems="AlignItems.Center">
+
+            <MudText Typo="Typo.h2">Contact Us</MudText>
+
+            <MudText Typo="Typo.body1"><MudIcon Class="mr-3" Icon="@Icons.Material.Filled.Phone" />0917 162 2878</MudText>
+            <MudText Typo="Typo.body1"><MudIcon Class="mr-3" Icon="@Icons.Material.Filled.Directions" />Uldog, Cansojong, Talisay City, Cebu City, Philippines</MudText>
+            <MudText Typo="Typo.body1"><MudIcon Class="mr-3" Icon="@Icons.Material.Filled.Email" />southsidek9camp@yahoo.com</MudText>
+
+            <MudGrid Justify="Justify.Center">
+
+                <MudItem>
+                    <MudStack AlignItems="AlignItems.Center" Spacing="0">
+                        <MudAvatar Size="Size.Large">
+                            <MudImage Src="Images/avatar.jpg" />
+                        </MudAvatar>
+                        <MudText Typo="Typo.h6">Jandro</MudText>
+                        <MudText Typo="Typo.body1">Vom Haus Johndrea</MudText>
+                        <MudDivider Class="pa-0 ma-0" />
+                        <MudText Typo="Typo.subtitle2">Owner</MudText>
+                        <MudLink Href="https://www.facebook.com/jandro.carin" Target="_blank">
+                            <MudIconButton Icon="@Icons.Custom.Brands.Facebook" Color="Color.Info" Size="Size.Large" />
+                        </MudLink>
+                    </MudStack>
+                </MudItem>
+
+                <MudItem>
+                    <MudStack AlignItems="AlignItems.Center" Spacing="0">
+                        <MudAvatar Size="Size.Large">
+                            <MudImage Src="Images/avatar2.jpg" />
+                        </MudAvatar>
+                        <MudText Typo="Typo.h6">Ted</MudText>
+                        <MudText Typo="Typo.body1">Blasito Sejismundo Jr.</MudText>
+                        <MudDivider Class="pa-0 ma-0" />
+                        <MudText Typo="Typo.subtitle2">Trainer</MudText>
+                        <MudLink Href="https://www.facebook.com/profile.php?id=100075594392094" Target="_blank">
+                            <MudIconButton Icon="@Icons.Custom.Brands.Facebook" Color="Color.Info" Size="Size.Large" />
+                        </MudLink>
+                    </MudStack>
+                </MudItem>
+
+            </MudGrid>
+
+        </MudStack>
+
+    </MudStack>
 </MudContainer>
+
+
+
+   
+    
 
 @code
 {
     private void RegisterMembership()
     {
         NavigationManager.NavigateTo("/membership-registration");
+    }
+
+    private void RegisterCustomer()
+    {
+        NavigationManager.NavigateTo("/customer-registration-reservations");
     }
 }

@@ -1,0 +1,177 @@
+﻿@inject SouthSideK9CampHttpClient HttpClient
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <DialogContent>
+
+        <MudContainer MaxWidth="MaxWidth.Medium" Class="my-3">
+
+            <MudText Typo="Typo.h3">Item List</MudText>
+
+            <MudTable Elevation="3" Items="@_items" Dense Hover>
+
+                <HeaderContent>
+
+                    <MudTh>Name</MudTh>
+                    <MudTh>Description</MudTh>
+                    <MudTh>Unit</MudTh>
+                    <MudTh>Price</MudTh>
+                    <MudTh></MudTh>
+
+                </HeaderContent>
+
+                <RowTemplate>
+
+                    <MudTd DataLabel="Name">@context.Name</MudTd>
+                    <MudTd DataLabel="Description">@context.Description</MudTd>
+                    <MudTd DataLabel="Unit">@(context.Quantity + " " + context.Unit)</MudTd>
+                    <MudTd DataLabel="Price">@context.Price.ToString("F2") PHP</MudTd>
+
+                    <MudTd>
+                        <MudStack Row Spacing="2" Justify="Justify.FlexEnd">
+                            <MudButton OnClick="@(() => _EditItemMessageBox(context))" Icon="@Icons.Material.Filled.Check" Color="Color.Primary" Size="Size.Small" Variant="Variant.Outlined">Select</MudButton>
+                        </MudStack>
+                    </MudTd>
+
+                </RowTemplate>
+
+                <PagerContent>
+                    <MudTablePager />
+                </PagerContent>
+
+            </MudTable>
+
+        </MudContainer>
+
+        @* edit item messagebox *@
+        <MudMessageBox @ref="_editItemMessageBox" Title="Item">
+
+            <MessageContent>
+
+                <EditForm EditContext="@_formContext">
+                    <FluentValidationValidator />
+
+                    <MudGrid Spacing="1">
+
+                        <MudItem xs="12" sm="4">
+                            <MudTextField @bind-Value="_item.Name" For="@(() => _item.Name)" Label="Name" Variant="Variant.Outlined" ReadOnly />
+                        </MudItem>
+
+                        <MudItem xs="12" sm="4">
+                            <MudSelect @bind-Value="_item.Unit" For="@(() => _item.Unit)" Label="Unit" Variant="Variant.Outlined" ReadOnly>
+                                <MudSelectItem Value="@("g")">Gram</MudSelectItem>
+                                <MudSelectItem Value="@("mg")">Milligram</MudSelectItem>
+                                <MudSelectItem Value="@("kg")">Kilogram</MudSelectItem>
+                                <MudSelectItem Value="@("oz")">Ounce</MudSelectItem>
+                                <MudSelectItem Value="@("lb")">Pound</MudSelectItem>
+                                <MudSelectItem Value="@("l")">Litre</MudSelectItem>
+                                <MudSelectItem Value="@("ml")">Millilitre</MudSelectItem>
+                                <MudSelectItem Value="@("gal")">Gallon</MudSelectItem>
+                                <MudSelectItem Value="@("fl oz")">Fluid Ounce</MudSelectItem>
+                            </MudSelect>
+                        </MudItem>
+
+
+                        <MudItem xs="12" sm="4">
+                            <MudNumericField @bind-Value="_item.Price" For="@(() => _item.Price)" Label="Price" Variant="Variant.Outlined" ReadOnly HideSpinButtons />
+                        </MudItem>
+
+                        <MudItem xs="12">
+                            <MudTextField @bind-Value="_item.Description" For="@(() => _item.Description)" Label="Description" Variant="Variant.Outlined" ReadOnly />
+                        </MudItem>
+
+                        <MudItem xs="12" sm="6">
+                            <MudDatePicker @bind-Date="_item.Date" For="@(() => _item.Date)" Label="Date" Variant="Variant.Outlined" ShowToolbar="false" />
+                        </MudItem>
+
+                        <MudItem xs="12" sm="6">
+                            <MudNumericField @bind-Value="_item.Quantity" For="@(() => _item.Quantity)" Label="Quantity" Variant="Variant.Outlined" />
+                        </MudItem>
+
+                    </MudGrid>
+                </EditForm>
+
+                <MudStack Row Class="mt-2">
+                    <MudButton OnClick="@(() => _CreateItem(_item))" StartIcon="@Icons.Material.Filled.Add" Color="Color.Primary" Variant="Variant.Filled">Add</MudButton>
+                </MudStack>
+
+            </MessageContent>
+
+            <YesButton>
+            </YesButton>
+
+            <CancelButton>
+            </CancelButton>
+
+        </MudMessageBox>
+
+    </DialogContent>
+
+    @* dialog button *@
+    <DialogActions>
+        <MudButton OnClick="@_Cancel">Close</MudButton>
+    </DialogActions>
+
+</MudDialog>
+
+@code
+{
+    [CascadingParameter] private MudDialogInstance MudDialog { get; set; } = new();
+
+    [Parameter] public int invoiceID { get; set; }
+
+    public List<Shared.Item> _items = new();
+
+    // Form model
+    private EditContext? _formContext;
+    private Shared.Item _item = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _formContext = new(_item);
+        await _RefreshDataAsync();
+    }
+
+    // edit item messagebox
+    private MudMessageBox? _editItemMessageBox { get; set; }
+    private async Task _EditItemMessageBox(Shared.Item i)
+    {
+        _item = i;
+        _item.Quantity = 1;
+        _formContext = new(_item);
+
+        await _editItemMessageBox!.ShowAsync(new DialogOptions()
+        {
+            BackdropClick = false,
+            FullWidth = true,
+            MaxWidth = MaxWidth.Small,
+            CloseButton = true,
+        });
+    }
+
+    // create item
+    private async void _CreateItem(Shared.Item item)
+    {
+        if (_formContext!.Validate())
+            await HttpClient.Item.CreateAsync(invoiceID ,item);
+
+        _editItemMessageBox!.Close();
+        MudDialog.Close();
+        await _RefreshDataAsync();
+    }
+
+    // refresh
+    private async Task _RefreshDataAsync()
+    {
+        _items = await HttpClient.Item.GetModelAsync();
+        StateHasChanged();
+
+        await HttpClient.Item.FetchModelAsync();
+        _items = await HttpClient.Item.GetModelAsync();
+        StateHasChanged();
+    }
+
+    // close dialog
+    private void _Cancel() =>
+        MudDialog.Cancel();
+}

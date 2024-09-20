@@ -1,0 +1,502 @@
+﻿@page "/admin/invoice/{dogID:int}"
+
+@layout AdminLayout
+
+@inject SouthSideK9CampHttpClient HttpClient
+@inject NavigationManager NavigationManager
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-16 mb-16">
+    <MudStack>
+
+        <MudText Typo="Typo.h3">Invoice</MudText>
+
+        @* toolbar *@
+        <MudPaper Elevation="2">
+            <MudToolBar WrapContent>
+
+                <MudIconButton OnClick="_Back" Icon="@Icons.Material.Outlined.ArrowBack" />
+                <MudButton Class="mr-2" OnClick="@_OpenCreateInvoiceDialog" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Outlined.Add">Invoice</MudButton>
+                <MudButton OnClick="@_OpenItemListDialog" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.ViewList">Items</MudButton>
+
+            </MudToolBar>
+        </MudPaper>
+
+        @* invoice *@
+        @foreach (Shared.Invoice invoice in _dog.Invoices)
+        {
+            <MudStack Spacing="1" Class="mt-3">
+
+                @* header *@
+                <MudPaper Class="pa-3">
+
+                    @* toolbar *@
+                    <MudGrid Spacing="2" Justify="Justify.FlexEnd">
+
+                        @* status *@
+                        @if (invoice.PaymentConfirmed && invoice.ProofOfPaymentURL != string.Empty)
+                        {
+                            <MudItem>
+                                <MudAlert Severity="MudBlazor.Severity.Success" Dense>Approved</MudAlert>
+                            </MudItem>
+                        }
+                        @if (!invoice.PaymentConfirmed && invoice.ProofOfPaymentURL != string.Empty)
+                        {
+                            <MudItem>
+                                <MudAlert Severity="MudBlazor.Severity.Warning" Dense>Pending</MudAlert>
+                            </MudItem>
+                        }
+                        @if (!invoice.PaymentConfirmed && invoice.IsEmailed)
+                        {
+                            <MudItem>
+                                <MudAlert Severity="MudBlazor.Severity.Error" Dense>Not Paid</MudAlert>
+                            </MudItem>
+                        }
+                        @if (invoice.ProofOfPaymentURL != string.Empty)
+                        {
+                            <MudItem>
+                                <MudButton OnClick="@(() => _ShowReceipt(invoice))" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Receipt">Receipt</MudButton>
+                            </MudItem>
+                        }
+                        @if (invoice.IsEmailed)
+                        {
+                            <MudItem Style="@_sentIconDisplay">
+                                <MudButton OnClick="@(() => _EmailInvoice(invoice.ID))" StartIcon="@Icons.Material.Filled.Check" Variant="Variant.Filled" Color="Color.Primary" Disabled="invoice.PaymentConfirmed">Sent</MudButton>
+                            </MudItem>
+                        }
+                        @if (!invoice.IsEmailed)
+                        {
+                            <MudItem>
+                                <MudButton OnClick="@(() => _EmailInvoice(invoice.ID))" StartIcon="@Icons.Material.Filled.Email" Variant="Variant.Filled" Color="Color.Primary">Send</MudButton>
+                            </MudItem>
+                            <MudItem Style="@_emailProgressDisplay">
+                                <MudProgressCircular Color="Color.Primary" Indeterminate />
+                            </MudItem>
+                        }
+                        
+                        <MudItem>
+                            <MudIconButton OnClick="@(() => _ConfirmDeleteInvoiceMessage(invoice.ID))" Icon="@Icons.Material.Outlined.Delete" Variant="Variant.Filled" Color="Color.Error" />
+                        </MudItem>
+
+                    </MudGrid>
+                
+                    @* title *@
+                    <MudText Color="Color.Primary" Typo="Typo.h6">Statement of Account #@invoice.ID</MudText>
+
+                    @* info *@
+                    <MudGrid Justify="Justify.SpaceBetween">
+                        <MudItem xs="12" sm="6">
+                            <MudStack Spacing="1">
+                                <MudStack Row AlignItems="AlignItems.Center">
+                                    <MudText Style="width: 8rem" Typo="Typo.body2">Company Name:</MudText>
+                                    <MudText Typo="Typo.body1">@invoice.CompanyName</MudText>
+                                </MudStack>
+                                <MudStack Row AlignItems="AlignItems.Center">
+                                    <MudText Style="width: 8rem" Typo="Typo.body2">Company Address:</MudText>
+                                    <MudText Typo="Typo.body1">@invoice.CompanyAddress</MudText>
+                                </MudStack>
+                                <MudStack Row AlignItems="AlignItems.Center">
+                                    <MudText Style="width: 8rem" Typo="Typo.body2">Company ZIP Code:</MudText>
+                                    <MudText Typo="Typo.body1">@invoice.CompanyZIPCode</MudText>
+                                </MudStack>
+                                <MudStack Row AlignItems="AlignItems.Center">
+                                    <MudText Style="width: 8rem" Typo="Typo.body2">Company Phone:</MudText>
+                                    <MudText Typo="Typo.body1">@invoice.CompanyPhone</MudText>
+                                </MudStack>
+                            </MudStack>
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudStack Spacing="1">
+                                <MudStack Row AlignItems="AlignItems.Center">
+                                    <MudText Style="width: 8rem" Typo="Typo.body2">Date:</MudText>
+                                    <MudText Typo="Typo.body1">@invoice.DateSent?.ToString("dddd, dd MMMM yyyy")</MudText>
+                                </MudStack>
+                                <MudStack Row AlignItems="AlignItems.Center">
+                                    <MudText Style="width: 8rem" Typo="Typo.body2">Date Due:</MudText>
+                                    <MudText Typo="Typo.body1">@invoice.DateDue?.ToString("dddd, dd MMMM yyyy")</MudText>
+                                </MudStack>
+                                <MudStack Row AlignItems="AlignItems.Center">
+                                    <MudText Style="width: 8rem" Typo="Typo.body2">Account Name:</MudText>
+                                    <MudText Typo="Typo.body1">@invoice.AccountName</MudText>
+                                </MudStack>
+                                <MudStack Row AlignItems="AlignItems.Center">
+                                    <MudText Style="width: 8rem" Typo="Typo.body2">Account Address:</MudText>
+                                    <MudText Typo="Typo.body1">@invoice.AccountAddress</MudText>
+                                </MudStack>
+                                <MudStack Row AlignItems="AlignItems.Center">
+                                    <MudText Style="width: 8rem" Typo="Typo.body2">Account Balance:</MudText>
+                                    <MudText Typo="Typo.body1" Color="Color.Tertiary">@invoice.Balance.ToString("F2") PHP</MudText>
+                                </MudStack>
+                            </MudStack>
+                        </MudItem>
+                    </MudGrid>
+
+                </MudPaper>
+
+                @* items *@
+                <MudTable Items="invoice.Items" Dense Hover>
+
+                    <ToolBarContent>
+                        <MudStack Row Justify="Justify.FlexStart">
+
+                            <MudButton OnClick="@(() => _AddInvoiceItem(invoice.ID))" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" Size="Size.Small">Item</MudButton>
+
+                        </MudStack>
+                    </ToolBarContent>
+
+                    <HeaderContent>
+
+                        <MudTh>Date</MudTh>
+                        <MudTh>Name</MudTh>
+                        <MudTh>Description</MudTh>
+                        <MudTh>Quantity</MudTh>
+                        <MudTh>Price</MudTh>
+                        <MudTh>Total</MudTh>
+                        <MudTh></MudTh>
+
+                    </HeaderContent>
+
+                    <RowTemplate>
+
+                        <MudTd DataLabel="Date">@context.Date?.ToString("dd MMMM yyyy")</MudTd>
+                        <MudTd DataLabel="Name">@context.Name</MudTd>
+                        <MudTd DataLabel="Description">@context.Description</MudTd>
+                        <MudTd DataLabel="Quantity">@(context.Quantity + " " + context.Unit)</MudTd>
+                        <MudTd DataLabel="Price">@context.Price.ToString("F2") PHP</MudTd>
+                        <MudTd DataLabel="Total">@((context.Total).ToString("F2")) PHP</MudTd>
+
+                        <MudTd>
+                            <MudStack Row Spacing="2" Justify="Justify.FlexEnd">
+                                <MudIconButton OnClick="@(() => _EditItemMessageBox(context))" Icon="@Icons.Material.Filled.Edit" Color="Color.Primary" Size="Size.Small" Variant="Variant.Outlined" />
+                                <MudIconButton OnClick="@(() => _ConfirmDeleteItemMessage(context.ID))" Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" Variant="Variant.Outlined" />
+                            </MudStack>
+                        </MudTd>
+
+                    </RowTemplate>
+
+                    <PagerContent>
+                        <MudTablePager />
+                    </PagerContent>
+
+                </MudTable>
+            </MudStack>
+
+        }
+
+    </MudStack>
+</MudContainer>
+
+@* confirmdelete messagebox *@
+<MudMessageBox @ref="_confirmDeleteMessageBox" Title="Warning">
+
+    <MessageContent>
+        Confirm delete?
+    </MessageContent>
+
+    <YesButton>
+        <MudButton Color="Color.Error" Variant="Variant.Filled">Delete</MudButton>
+    </YesButton>
+
+    <CancelButton>
+        <MudButton>Cancel</MudButton>
+    </CancelButton>
+
+</MudMessageBox>
+
+@* edit item messagebox *@
+<MudMessageBox @ref="_editItemMessageBox" Title="Item">
+
+    <MessageContent>
+
+        <EditForm EditContext="@_formContext">
+            <FluentValidationValidator />
+
+            <MudGrid Spacing="1">
+
+                <MudItem xs="12" sm="3">
+                    <MudTextField @bind-Value="_item.Name" For="@(() => _item.Name)" Label="Name" Variant="Variant.Outlined" />
+                </MudItem>
+
+                <MudItem xs="12" sm="6">
+                    <MudTextField @bind-Value="_item.Description" For="@(() => _item.Description)" Label="Description" Variant="Variant.Outlined" />
+                </MudItem>
+
+                <MudItem xs="12" sm="3">
+                    <MudDatePicker @bind-Date="_item.Date" For="@(() => _item.Date)" Label="Date" Variant="Variant.Outlined" ShowToolbar="false" />
+                </MudItem>
+
+                <MudItem xs="12" sm="4">
+                    <MudNumericField @bind-Value="_item.Quantity" For="@(() => _item.Quantity)" Label="Quantity" Variant="Variant.Outlined" />
+                </MudItem>
+
+                <MudItem xs="12" sm="4">
+                    <MudSelect @bind-Value="_item.Unit" For="@(() => _item.Unit)" Label="Unit" Variant="Variant.Outlined">
+                        <MudSelectItem Value="@("g")">Gram</MudSelectItem>
+                        <MudSelectItem Value="@("mg")">Milligram</MudSelectItem>
+                        <MudSelectItem Value="@("kg")">Kilogram</MudSelectItem>
+                        <MudSelectItem Value="@("oz")">Ounce</MudSelectItem>
+                        <MudSelectItem Value="@("lb")">Pound</MudSelectItem>
+                        <MudSelectItem Value="@("l")">Litre</MudSelectItem>
+                        <MudSelectItem Value="@("ml")">Millilitre</MudSelectItem>
+                        <MudSelectItem Value="@("gal")">Gallon</MudSelectItem>
+                        <MudSelectItem Value="@("fl oz")">Fluid Ounce</MudSelectItem>
+                    </MudSelect>
+                </MudItem>
+
+                <MudItem xs="12" sm="4">
+                    <MudNumericField @bind-Value="_item.Price" For="@(() => _item.Price)" Label="Price" Variant="Variant.Outlined" HideSpinButtons />
+                </MudItem>
+
+            </MudGrid>
+        </EditForm>
+
+    </MessageContent>
+
+    <YesButton>
+            <MudButton StartIcon="@Icons.Material.Filled.Save" Color="Color.Primary" Variant="Variant.Filled">Save</MudButton>
+    </YesButton>
+
+    <CancelButton>
+        <MudButton StartIcon="@Icons.Material.Filled.Cancel">Cancel</MudButton>
+    </CancelButton>
+
+</MudMessageBox>
+
+@* view receipt messagebox *@
+<MudMessageBox @ref="_receiptMessageBox">
+
+    <MessageContent>
+        <MudStack AlignItems="AlignItems.Center">
+            <MudImage Src="@_viewInvoice.ProofOfPaymentURL" Fluid />
+        </MudStack>
+    </MessageContent>
+
+    <YesButton>
+        @if (_viewInvoice.PaymentConfirmed)
+        {
+            <MudButton Disabled EndIcon="@Icons.Material.Filled.Check" Variant="Variant.Outlined">Approved</MudButton>
+        }
+        else
+        {
+            <MudButton OnClick="@(() => _Reject(_viewInvoice.ID))" Color="Color.Error" Variant="Variant.Filled">Reject</MudButton>
+            <MudButton OnClick="@(() => _Approve(_viewInvoice.ID))" Color="Color.Primary" Variant="Variant.Filled">Approve</MudButton>
+        }
+    </YesButton>
+
+</MudMessageBox>
+
+@code
+{
+    [Parameter] public int dogID { get; set; }
+
+
+    private Shared.Dog _dog = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _formContext = new(_item);
+        await _RefreshDataAsync();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await HttpClient.Dog.FetchAsync();
+        _dog = await HttpClient.Dog.GetByIDAsync(dogID);
+    }
+
+    // delete invoice
+    private async Task _DeleteInvoice(int invoiceID)
+    {
+        await HttpClient.Invoice.DeleteAsync(invoiceID);
+    }
+
+    // back
+    private void _Back()
+    {
+        NavigationManager.NavigateTo($"/admin/invoice-list");
+    }
+
+    // create invoice
+    private async Task _OpenCreateInvoiceDialog()
+    {
+        var dialog = await DialogService.ShowAsync<InvoicePageComponents.CreateInvoiceDialog>("New Invoice",
+        new DialogParameters<InvoicePageComponents.CreateInvoiceDialog>
+        {
+           { d => d.dog, _dog },
+        },
+        new DialogOptions()
+        {
+            BackdropClick = false,
+            MaxWidth = MaxWidth.Small,
+            FullWidth = true
+        });
+
+        // on dialog close
+        var result = await dialog.Result;
+        if (!result!.Canceled)
+        {
+            await _RefreshDataAsync();
+        }
+    }
+
+    // item list dialog
+    private async Task _OpenItemListDialog()
+    {
+        var dialog = await DialogService.ShowAsync<InvoicePageComponents.ItemListDialog>(string.Empty,
+        new DialogParameters<InvoicePageComponents.ItemListDialog> { },
+        new DialogOptions()
+        {
+            BackdropClick = true,
+            MaxWidth = MaxWidth.Medium,
+            FullWidth = true,
+            NoHeader = true
+        });
+
+        // on dialog close
+        var result = await dialog.Result;
+        if (!result!.Canceled)
+        {
+            await _RefreshDataAsync();
+        }
+    }
+
+    // add item to invoice
+    private async Task _AddInvoiceItem(int invoiceID)
+    {
+        var dialog = await DialogService.ShowAsync<InvoicePageComponents.AddItemDialog>(string.Empty,
+        new DialogParameters<InvoicePageComponents.AddItemDialog>
+        {
+            { p => p.invoiceID, invoiceID },
+        },
+        new DialogOptions()
+        {
+            BackdropClick = true,
+            MaxWidth = MaxWidth.Medium,
+            FullWidth = true,
+            NoHeader = true
+        });
+
+        // on dialog close
+        var result = await dialog.Result;
+        if (!result!.Canceled)
+        {
+            await _RefreshDataAsync();
+        }
+    }
+
+    // item formcontext
+    private EditContext? _formContext;
+    private Shared.Item _item = new();
+
+    // edit item messagebox
+    private MudMessageBox? _editItemMessageBox { get; set; }
+    private async Task _EditItemMessageBox(Shared.Item i)
+    {
+        _item = i;
+        _item.Quantity = 1;
+        _formContext = new(_item);
+
+        bool? result = await _editItemMessageBox!.ShowAsync(new DialogOptions()
+        {
+            BackdropClick = false,
+            FullWidth = true,
+            MaxWidth = MaxWidth.Small,
+            CloseButton = true,
+        });
+        if(result == true)
+        {
+            await HttpClient.Item.UpdateAsync(_item);
+            Snackbar.Add("Item edited succesfuly", Severity.Success);
+        }
+        await _RefreshDataAsync();
+    }
+
+    // delete item
+    private MudMessageBox? _confirmDeleteMessageBox { get; set; }
+
+    private async Task _ConfirmDeleteItemMessage(int itemID)
+    {
+        bool? result = await _confirmDeleteMessageBox!.ShowAsync(new DialogOptions()
+        {
+            FullWidth = true,
+            MaxWidth = MaxWidth.ExtraSmall
+        });
+        if (result == true)
+        {
+            await HttpClient.Item.DeleteAsync(itemID);
+            await _RefreshDataAsync();
+            Snackbar.Add("Item deleted", MudBlazor.Severity.Error);
+        }
+    }
+
+    // delete invoice
+    private MudMessageBox? _confirmMessageBox { get; set; }
+
+    private async Task _ConfirmDeleteInvoiceMessage(int invoiceID)
+    {
+        bool? result = await _confirmDeleteMessageBox!.ShowAsync(new DialogOptions()
+        {
+            FullWidth = true,
+            MaxWidth = MaxWidth.ExtraSmall
+        });
+        if (result is not null)
+        {
+            await HttpClient.Invoice.DeleteAsync(invoiceID);
+            await _RefreshDataAsync();
+            Snackbar.Add("Deleted Statement of Account #" + invoiceID , MudBlazor.Severity.Error);
+        }
+    }
+
+    // email invoice
+    private string _emailProgressDisplay = "display: none";
+    private async Task _EmailInvoice(int invoiceID)
+    {
+        _emailProgressDisplay = string.Empty;
+        await HttpClient.Invoice.EmailAsync(invoiceID);
+        _emailProgressDisplay = "display: none";
+        await _RefreshDataAsync();
+        Snackbar.Add("Invoice emailed to client", Severity.Success);
+    }
+
+    // open receipt
+    private MudMessageBox? _receiptMessageBox { get; set; }
+    private Shared.Invoice _viewInvoice = new();
+    private string _sentIconDisplay = string.Empty;
+    private async Task _ShowReceipt(Shared.Invoice invoice)
+    {
+        _viewInvoice = invoice;
+
+        bool? result = await _receiptMessageBox!.ShowAsync(new DialogOptions()
+        {
+            FullScreen = true,
+            CloseButton = true
+        });
+    }
+    private async Task _Approve(int invoiceID)
+    {
+        _sentIconDisplay = "display: none";
+        await HttpClient.Invoice.ApprovePaymentAsync(invoiceID);
+        await _RefreshDataAsync();
+        Snackbar.Add("Approved succesfully", Severity.Success);
+    }
+    private async Task _Reject(int invoiceID)
+    {
+        await HttpClient.Invoice.RejectPaymentAsync(invoiceID);
+        await _RefreshDataAsync();
+        Snackbar.Add("Rejected", Severity.Error);
+    }
+
+    // refresh
+    private async Task _RefreshDataAsync()
+    {
+        List<Shared.Dog> dogs = await HttpClient.Dog.GetAsync();
+        _dog = dogs.FirstOrDefault(d => d.ID == dogID) ?? new();
+        StateHasChanged();
+
+        await HttpClient.Dog.FetchAsync();
+        dogs = await HttpClient.Dog.GetAsync();
+        _dog = dogs.FirstOrDefault(d => d.ID == dogID) ?? new();
+        StateHasChanged();
+    }
+}

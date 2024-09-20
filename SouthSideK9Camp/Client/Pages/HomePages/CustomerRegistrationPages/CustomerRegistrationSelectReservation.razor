@@ -1,0 +1,103 @@
+﻿@page "/customer-registration-reservations";
+
+@inject NavigationManager NavigationManager
+@inject SouthSideK9CampHttpClient HttpClient
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-16 mb-16">
+    <MudStack>
+
+        <MudText Typo="Typo.h4">Select Reservation</MudText>
+
+        <MudText Typo="Typo.body1">
+            Please select your reservation schedule as spots are limited and fill up quickly.
+            Securing your spot ensures your dog receives the professional training and care they deserve.
+            We look forward to working with your dog!
+        </MudText>
+
+        @* reservation table *@
+        <MudTable Items="_reservations" Hover="true">
+            <RowTemplate>
+
+                <MudTd>
+                    <MudStack Row AlignItems="AlignItems.Center" Spacing="5">
+
+                        <MudText Typo="Typo.h6">@context.Name</MudText>
+
+                        <MudStack Row AlignItems="AlignItems.Center">
+
+                            <MudIcon Icon="@Icons.Material.Filled.DateRange" Size="Size.Small" />
+
+                            <MudStack Spacing="0">
+                                <MudText Typo="Typo.caption">@context.StartingDate?.ToString("dd MMMM yyyy")</MudText>
+                                <MudText Typo="Typo.caption">@context.EndingDate?.ToString("dd MMMM yyyy")</MudText>
+                            </MudStack>
+
+                        </MudStack>
+
+                    </MudStack>
+                </MudTd>
+
+                <MudTd>
+                    <MudStack Row AlignItems="AlignItems.Center">
+
+                        <MudText Typo="Typo.body2">Slots Available: @(context.Slots - context.Dogs.Count())</MudText>
+
+                        <MudAvatarGroup Max="@context.Slots" Spacing="2" MaxColor="Color.Primary">
+                            @foreach (Shared.Dog dog in context.Dogs)
+                            {
+                                <MudAvatar>
+                                    <MudImage ObjectFit="ObjectFit.Cover" Src="@dog.AvatarURL" />
+                                </MudAvatar>
+                            }
+                            @for (int i = @context.Dogs.Count; i < context.Slots; i++)
+                            {
+                                <MudAvatar Color="Color.Primary">
+                                    <MudIcon Icon="@Icons.Material.Filled.Pets" />
+                                </MudAvatar>
+                            }
+                        </MudAvatarGroup>
+
+
+                    </MudStack>
+                </MudTd>
+
+                @* buttons *@
+                <MudTd>
+                    <MudStack Row Justify="Justify.FlexEnd">
+                        @* if reservation is full *@
+                        @if(context.Slots == context.Dogs.Count)
+                        {
+                            <MudButton Disabled Variant="Variant.Filled">Full</MudButton>
+                        }
+                        else
+                        {
+                            <MudButton OnClick="@(() => _SelectReservation(context.GUID.ToString()))" Variant="Variant.Filled" Color="Color.Primary">Select</MudButton>
+                        }
+                    </MudStack>
+                </MudTd>
+
+            </RowTemplate>
+        </MudTable>
+
+    </MudStack>
+</MudContainer>
+
+@code
+{
+    List<Shared.Reservation> _reservations = new();
+
+    // on initialize
+    protected override async Task OnInitializedAsync()
+    {
+        await HttpClient.Reservation.FetchAsync();
+        _reservations = await HttpClient.Reservation.GetAsync();
+    }
+
+
+    // open reservation
+    private void _SelectReservation(string reservationGUID)
+    {
+        NavigationManager.NavigateTo($"/customer-registration-emailcheck/{reservationGUID}");
+    }
+
+}

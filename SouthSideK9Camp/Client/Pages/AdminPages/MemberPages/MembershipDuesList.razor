@@ -10,8 +10,12 @@
         <MudToolBar>
 
             <MudIconButton OnClick="_PreviousMonth" Icon="@Icons.Material.Filled.NavigateBefore"></MudIconButton>
-            <MudDatePicker Variant="Variant.Outlined" Label="Month" @bind-Date="_yearMonth" OpenTo="OpenTo.Month" DateFormat="MMMM yyyy" FixDay="1" IsDateDisabledFunc="@((DateTime dt)=>((int)dt.Year > DateTime.UtcNow.Year || (int)dt.Month > DateTime.UtcNow.AddMonths(1).Month))" Margin="Margin.Dense" ShowToolbar="false" />
-            <MudIconButton OnClick="_NextMonth" Disabled="@_isNextMonthDisabled" Icon="@Icons.Material.Filled.NavigateNext"></MudIconButton>
+            <MudDatePicker Variant="Variant.Outlined" Label="Month" @bind-Date="_yearMonth" PickerMonthChanged="@_RefreshDataAsync" OpenTo="OpenTo.Month" DateFormat="MMMM yyyy" FixDay="1" Margin="Margin.Dense" ShowToolbar="false"
+                IsDateDisabledFunc="@((DateTime dt)=>
+                    (int)dt.Year > DateTime.UtcNow.Year ||
+                    ((int)dt.Year == DateTime.UtcNow.Year && (int)dt.Month > DateTime.UtcNow.AddMonths(1).Month)
+                )" />
+            <MudIconButton OnClick="_NextMonth" Disabled="@_isNextMonthDisabled" Icon="@Icons.Material.Filled.NavigateNext" />
 
             <MudSpacer />
 
@@ -130,7 +134,7 @@
         await _RefreshDataAsync();
     }
 
-    // datepicker
+    // date filter
     private DateTime? _yearMonth = DateTime.UtcNow;
     private bool _isNextMonthDisabled = false;
     private async Task _NextMonth()

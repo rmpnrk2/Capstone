@@ -6,6 +6,8 @@
 @inject NavigationManager NavigationManager
 @inject ISnackbar Snackbar
 
+@using FluentValidation
+
 <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-16 mb-16">
     <MudStack>
 
@@ -14,7 +16,7 @@
                 <MudStack Row>
 
                     <MudButton OnClick="@_Back" StartIcon="@Icons.Material.Filled.ArrowBack">Back</MudButton>
-                    <MudButton OnClick="@_Cancel" Style="@_editModeButtonsDisplay" StartIcon="@Icons.Material.Filled.Save" Variant="Variant.Filled">Cancel</MudButton>
+                    <MudButton OnClick="@_Cancel" Style="@_editModeButtonsDisplay" StartIcon="@Icons.Material.Filled.Cancel" Variant="Variant.Filled">Cancel</MudButton>
                     <MudButton OnClick="@_Save" Style="@_editModeButtonsDisplay" StartIcon="@Icons.Material.Filled.Save" Variant="Variant.Filled" Color="Color.Primary">Save</MudButton>
                     <MudButton OnClick="@_Edit" Style="@_editButtonDisplay" StartIcon="@Icons.Material.Filled.Edit" Variant="Variant.Filled" Color="Color.Primary">Edit</MudButton>
                     <MudButton OnClick="@_ConfirmDeleteMessage" StartIcon="@Icons.Material.Filled.Delete" Variant="Variant.Filled" Color="Color.Error">Delete</MudButton>
@@ -25,28 +27,28 @@
 
         @if (_client.Member != null)
         {
-            @if (_client.Member.RegistrationConfirmed)
-            {
-                <MudStack StretchItems="StretchItems.Start" Row>
-                    <MudAlert Severity="Severity.Success">Approved</MudAlert>
+            <MudStack Row StretchItems="StretchItems.Start">
+                @if (_client.Member.RegistrationConfirmed)
+                {
+                    <MudAlert Severity="MudBlazor.Severity.Success">Approved</MudAlert>
                     <MudButton OnClick="@_ShowReceipt" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Receipt">Receipt</MudButton>
-                </MudStack>
-            }
-            else if (_client.Member.RegistrationPaymentURL != string.Empty)
-            {
-                <MudStack StretchItems="StretchItems.Start" Row>
-                    <MudAlert StretchItems="StretchItems.Start" Severity="Severity.Warning">Pending</MudAlert>
+                }
+                else if (_client.Member.RegistrationPaymentURL != string.Empty)
+                {
+                    <MudAlert Severity="MudBlazor.Severity.Warning">Pending</MudAlert>
                     <MudButton OnClick="@_ShowReceipt" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Receipt">Receipt</MudButton>
-                </MudStack>
-            }
-            else if (_client.Member.RegistrationPaymentURL == string.Empty)
-            {
-                <MudAlert Severity="Severity.Error">Not Paid</MudAlert>
-            }
+                }
+                else if (_client.Member.RegistrationPaymentURL == string.Empty)
+                {
+                    <MudAlert Severity="MudBlazor.Severity.Error">Not Paid</MudAlert>
+                }
+            </MudStack>
         }
 
         <EditForm EditContext="_editContext" OnValidSubmit="@_Save">
             <FluentValidationValidator />
+
+            <ValidationSummary />
 
             <MudGrid Spacing="2">
                 <MudItem xs="12" sm="6">
@@ -166,11 +168,15 @@
     }
 
     // on parameterset
-    Shared.Client _client = new();
+    Shared.Client _client = new()
+    {
+        Birthday = DateTime.UtcNow
+    };
     Shared.Client _editClient = new();
     protected override void OnParametersSet()
     {
         _client = _clients.FirstOrDefault(c => c.ID == clientID) ?? new();
+        _editContext = new EditContext(_client);
     }
 
     // back
@@ -203,10 +209,12 @@
     {
         if(_editContext!.Validate())
         {
+            _readOnly = true;
             _editModeButtonsDisplay = "display: none";
             _editButtonDisplay = string.Empty;
+
             await HttpClient.Member.UpdateAsync(_client);
-            Snackbar.Add("Saved succesful", Severity.Success);
+            Snackbar.Add("Saved succesful", MudBlazor.Severity.Success);
         }
     }
 
@@ -214,11 +222,15 @@
     private MudMessageBox? _confirmDeleteMessageBox { get; set; }
     private async Task _ConfirmDeleteMessage()
     {
-        bool? result = await _confirmDeleteMessageBox!.ShowAsync();
+        bool? result = await _confirmDeleteMessageBox!.ShowAsync(new DialogOptions()
+        {
+            FullWidth = true,
+            MaxWidth = MaxWidth.Small
+        });
         if (result is not null)
         {
             await HttpClient.Member.DeleteAsync(clientID);
-            Snackbar.Add("Delete succesful", Severity.Error);
+            Snackbar.Add("Delete succesful", MudBlazor.Severity.Error);
             NavigationManager.NavigateTo($"/admin/member-list");
         }
     }
@@ -240,13 +252,13 @@
     {
         await HttpClient.Member.ApprovePaymentAsync(_client.ID);
         await _RefreshData();
-        Snackbar.Add("Approved succesfully", Severity.Success);
+        Snackbar.Add("Approved succesfully", MudBlazor.Severity.Success);
     }
     private async Task _Reject()
     {
         await HttpClient.Member.RejectPaymentAsync(_client.ID);
         await _RefreshData();
-        Snackbar.Add("Reject", Severity.Error);
+        Snackbar.Add("Reject", MudBlazor.Severity.Error);
     }
 
     // wheredidyouhearaboutus autocomplete

@@ -6,15 +6,15 @@ namespace SouthSideK9Camp.Shared;
 
 public class Dog : BaseModel
 {
-    [StringLength(50)] public string Name { get; set; } = string.Empty;
-    [StringLength(50)] public string Breed { get; set; } = string.Empty;
-    [StringLength(10)] public string Sex { get; set; } = string.Empty;
-    public DateTime? Birthday { get; set; } = DateTime.UtcNow;
+    public string Name { get; set; } = string.Empty;
+    public string Breed { get; set; } = string.Empty;
+    public string Sex { get; set; } = string.Empty;
+    public DateTime? Birthday { get; set; }
     public string AvatarURL { get; set; } = string.Empty;
   
     // Vaccine attributes
     public string VaccineCardURL { get; set; } = string.Empty;
-    [StringLength(100)] public string Clinic { get; set; } = string.Empty;
+    public string Clinic { get; set; } = string.Empty;
     public bool Rabies { get; set; }
     public bool Distemper { get; set; }
     public bool HepatitisAdenovirus { get; set; }
@@ -27,7 +27,7 @@ public class Dog : BaseModel
 
     // Relationships
     public Contract Contract { get; set; } = new();
-    public ProgressReport ProgressReport { get; set; } = new();
+    public  List<ProgressReport> ProgressReports { get; set; } = new();
     public List<Invoice> Invoices { get; set; } = new();
 
     public int ClientID { get; set; }
@@ -44,5 +44,10 @@ public class DogValidator : AbstractValidator<Dog>
         RuleFor(d => d.Breed).NotEmpty().WithMessage("This field is required").MaximumLength(50).WithMessage("This field should not exceed 50 characters");
         RuleFor(d => d.Sex).NotEmpty().WithMessage("This field is required");
         RuleFor(d => d.Birthday).NotEmpty().WithMessage("This field is required");
+
+        RuleFor(d => d.Clinic).NotEmpty().WithMessage("This field is required").MaximumLength(100).WithMessage("This field should not exceed 100 characters");
+
+        RuleFor(d => d.Contract).SetValidator(new ContractValidator());
+        RuleForEach(d => d.Invoices).SetValidator(new InvoiceValidator());
     }
 }

@@ -1,8 +1,10 @@
 ﻿using BlazorTemplater;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using SouthSideK9Camp.Server.Data;
 using SouthSideK9Camp.Server.Services;
+using SouthSideK9Camp.Shared;
 
 namespace SouthSideK9Camp.Server.Controller
 {
@@ -29,7 +31,7 @@ namespace SouthSideK9Camp.Server.Controller
                 .Include(client => client.Dogs)
                     .ThenInclude(dog => dog.Contract)
                 .Include(client => client.Dogs)
-                    .ThenInclude(dog => dog.ProgressReport)
+                    .ThenInclude(dog => dog.ProgressReports)
                 .Include(client => client.Dogs)
                     .ThenInclude(dog => dog.Invoices)
                         .ThenInclude(invoices => invoices.Items)
@@ -39,7 +41,8 @@ namespace SouthSideK9Camp.Server.Controller
                     .ThenInclude(dog => dog.Contract)
                 .AsNoTracking().ToListAsync();
 
-            return Results.Ok(clients);
+            var json = JsonConvert.SerializeObject(clients, new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
+            return Results.Ok(JsonConvert.DeserializeObject<List<Shared.Client>>(json));
         }
 
         // get by id
@@ -52,7 +55,7 @@ namespace SouthSideK9Camp.Server.Controller
                 .Include(client => client.Dogs)
                     .ThenInclude(dog => dog.Contract)
                 .Include(client => client.Dogs)
-                    .ThenInclude(dog => dog.ProgressReport)
+                    .ThenInclude(dog => dog.ProgressReports)
                 .Include(client => client.Dogs)
                     .ThenInclude(dog => dog.Invoices)
                         .ThenInclude(invoices => invoices.Items)
@@ -60,10 +63,8 @@ namespace SouthSideK9Camp.Server.Controller
                     .ThenInclude(dog => dog.Reservation)
                 .FirstOrDefaultAsync();
 
-            if(client == null)
-                return Results.NotFound();
-
-            return Results.Ok(client);
+            var json = JsonConvert.SerializeObject(client, new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
+            return Results.Ok(JsonConvert.DeserializeObject<Shared.Client>(json));
         }
 
         // check email availability for member
@@ -82,18 +83,31 @@ namespace SouthSideK9Camp.Server.Controller
         // membership registration
         [HttpPost("member-registration")] public async Task<IResult> MembershipRegistrationAsync(Shared.Client client)
         {
-            _dataContext.Clients.Add(client);
+            // if client already exists
+            Shared.Client? existingClient = await _dataContext.Clients.FindAsync(client.ID);
+            if(existingClient == null)
+            {
+                _dataContext.Clients.Add(client);
+            }
+            else
+            {
+                existingClient.Member = client.Member;
+            }
+
             await _dataContext.SaveChangesAsync();
 
             // send email
             string emailSubject = "SouthSide K9 Camp Membership Registration";
             string emailBody = new ComponentRenderer<EmailTemplates.MembershipRegistrationTemplate>()
-                .Set(c => c.client_guid, client.Member.GUID.ToString())
+                .Set(c => c.clientName, client.FirstName + " " + client.LastName)
+                .Set(c => c.client_guid, client.Member?.GUID.ToString())
                 .Set(c => c.host, _configuration["Host"])
                 .Render();
             await _smtp.SendEmailAsync(client.Email, emailSubject, emailBody);
 
-            return Results.CreatedAtRoute("GetClient", new {clientID = client.ID}, client);
+            var json = JsonConvert.SerializeObject(client, new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
+            Shared.Client? deserializedClient = JsonConvert.DeserializeObject<Shared.Client>(json);
+            return Results.CreatedAtRoute("GetClient", new {clientID = client.ID}, deserializedClient);
         }
 
         // update

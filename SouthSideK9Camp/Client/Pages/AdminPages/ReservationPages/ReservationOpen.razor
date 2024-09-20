@@ -40,14 +40,16 @@
                 </MudItem>
 
                 <MudItem xs="12" sm="6">
-                    <MudDatePicker @bind-Date="_reservation.StartingDate" For="@(() => _reservation.StartingDate)" Label="Starting Date" Variant="Variant.Outlined" ShowToolbar="false" ReadOnly="_isFormReadonly" IsDateDisabledFunc="@((DateTime dt) =>(
+                    <MudDatePicker @bind-Date="_reservation.StartingDate" For="@(() => _reservation.StartingDate)" Label="Starting Date" Variant="Variant.Outlined" ShowToolbar="false" ReadOnly="_isFormReadonly" DateFormat="dd MMMM yyyy"
+                        IsDateDisabledFunc="@((DateTime dt) =>(
                         (int)dt.Year > _reservation.StartingDate?.Year ||
                         ((int)dt.Year == _reservation.StartingDate?.Year && (int)dt.Month > _reservation.StartingDate?.Month) ||
                         ((int)dt.Year == _reservation.StartingDate?.Year && (int)dt.Month == _reservation.StartingDate?.Month && (int)dt.Day >= _reservation.EndingDate?.Day)))" />
                 </MudItem>
 
                 <MudItem xs="12" sm="6">
-                    <MudDatePicker @bind-Date="_reservation.EndingDate" For="@(() => _reservation.EndingDate)" Label="Ending Date" Variant="Variant.Outlined" ShowToolbar="false" ReadOnly="_isFormReadonly" IsDateDisabledFunc="@((DateTime dt) =>(
+                    <MudDatePicker @bind-Date="_reservation.EndingDate" For="@(() => _reservation.EndingDate)" Label="Ending Date" Variant="Variant.Outlined" ShowToolbar="false" ReadOnly="_isFormReadonly" DateFormat="dd MMMM yyyy"
+                        IsDateDisabledFunc="@((DateTime dt) =>(
                         (int)dt.Year < _reservation.StartingDate?.Year ||
                         ((int)dt.Year == _reservation.StartingDate?.Year && (int)dt.Month < _reservation.StartingDate?.Month) ||
                         ((int)dt.Year == _reservation.StartingDate?.Year && (int)dt.Month == _reservation.StartingDate?.Month && (int)dt.Day <= _reservation.StartingDate?.Day)))" />
@@ -58,18 +60,64 @@
         </EditForm>
 
         @* reservation table *@
-        <MudTable Items="_reservation.Dogs" Hover>
+        <MudTable Items="_reservation.Dogs" Hover >
 
             <RowTemplate>
 
-                <MudTd>
+                @* data *@
+                <MudTd DataLabel="Name">
                     <MudStack Row AlignItems="AlignItems.Center">
 
                         <MudAvatar>
-                            <MudImage Src="@context.AvatarURL" />
+                            <MudImage ObjectFit="ObjectFit.Cover" Src="@context.AvatarURL" />
                         </MudAvatar>
 
-                        <MudText Typo="Typo.h6">@context.Name</MudText>
+                        <MudStack Spacing="0">
+                            <MudText Typo="Typo.h6">@context.Name</MudText>
+                            <MudText Typo="Typo.caption">@context.Breed</MudText>
+                        </MudStack>
+
+                    </MudStack>
+                </MudTd>
+
+                @* data *@
+                <MudTd DataLabel="Owner">
+                    <MudStack Spacing="0">
+
+                        <MudStack Spacing="0">
+                            <MudText Typo="Typo.body2">@(context?.Client?.FirstName + " " + context?.Client?.LastName)</MudText>
+                            <MudText Typo="Typo.body2">@context?.Client?.Email</MudText>
+                        </MudStack>
+
+                    </MudStack>
+                </MudTd>
+                
+                @* status *@
+                <MudTd DataLabel="Status">
+
+                    @if (context.ReservationPaymentConfirmed)
+                    {
+                        <MudChip T="string" Variant="Variant.Text" Color="Color.Success">Approved</MudChip>
+                    }
+                    else if (context.ReservationPaymentURL != string.Empty)
+                    {
+                        <MudChip T="string" Variant="Variant.Text" Color="Color.Warning">Pending</MudChip>
+                    }
+                    else if (context.ReservationPaymentURL == string.Empty)
+                    {
+                        <MudChip T="string" Variant="Variant.Text" Color="Color.Error">Not Paid</MudChip>
+                    }
+
+                </MudTd>
+                
+                @* actions *@
+                <MudTd>
+                    <MudStack Row Justify="Justify.FlexEnd">
+
+                        @if (context.ReservationPaymentURL != string.Empty)
+                        {
+                            <MudButton OnClick="@(() => _ShowReceipt(context))" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Receipt">Receipt</MudButton>
+                        }
 
                     </MudStack>
                 </MudTd>
@@ -82,6 +130,31 @@
 
     </MudStack>
 </MudContainer>
+
+@* view receipt messagebox *@
+<MudMessageBox @ref="_receiptMessageBox">
+
+    <MessageContent>
+            <MudStack AlignItems="AlignItems.Center">
+                <MudImage Src="@_dogOpen.ReservationPaymentURL" Fluid />
+            </MudStack>
+    </MessageContent>
+
+    <YesButton>
+        @if (_dogOpen.ReservationPaymentConfirmed)
+        {
+
+            <MudButton Disabled EndIcon="@Icons.Material.Filled.Check" Variant="Variant.Outlined">Approved</MudButton>
+        }
+        else
+        {
+            <MudButton OnClick="@(() => _Reject(_dogOpen.ID))" Color="Color.Error" Variant="Variant.Filled">Reject</MudButton>
+            <MudButton OnClick="@(() => _Approve(_dogOpen.ID))" Color="Color.Primary" Variant="Variant.Filled">Approve</MudButton>
+        }
+    </YesButton>
+
+</MudMessageBox>
+
 
 @code
 {
@@ -133,6 +206,7 @@
         // edit mode false
         _editButtonDisplay = string.Empty;
         _editModeButtonDisplay = "display:none";
+        _isFormReadonly = true;
 
         await HttpClient.Reservation.UpdateAsync(_reservation);
 
@@ -144,7 +218,49 @@
         return;
     }
 
-    // open reservation
+    // open receipt
+    private MudMessageBox? _receiptMessageBox { get; set; }
+    private Shared.Dog _dogOpen = new();
+
+    private async Task _ShowReceipt(Shared.Dog dog)
+    {
+        _dogOpen.ReservationPaymentURL = dog.ReservationPaymentURL;
+        _dogOpen.ReservationPaymentConfirmed = dog.ReservationPaymentConfirmed;
+        _dogOpen.ID = dog.ID;
+
+        bool? result = await _receiptMessageBox!.ShowAsync(new DialogOptions()
+        {
+            FullScreen = true,
+            CloseButton = true
+        });
+        if (result != null) { }
+    }
+
+    private async Task _Approve(int dogID)
+    {
+        await HttpClient.Customer.ApprovePaymentAsync(dogID);
+        await _RefreshDataAsync();
+        Snackbar.Add("Approved succesfully", MudBlazor.Severity.Success);
+    }
+
+    private async Task _Reject(int dogID)
+    {
+        await HttpClient.Customer.RejectPaymentAsync(dogID);
+        await _RefreshDataAsync();
+        Snackbar.Add("Rejected", MudBlazor.Severity.Error);
+    }
+
+    // refresh data
+    private async Task _RefreshDataAsync()
+    {
+        _reservation = await HttpClient.Reservation.GetAsync(reservationID);
+        StateHasChanged();
+
+        await HttpClient.Reservation.FetchAsync();
+        _reservation = await HttpClient.Reservation.GetAsync(reservationID);
+    }
+
+    // back
     private void _Back()
     {
         NavigationManager.NavigateTo($"/admin/reservation-list");

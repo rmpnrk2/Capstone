@@ -1,0 +1,203 @@
+﻿@inject SouthSideK9CampHttpClient HttpClient
+@inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
+
+@using System.ComponentModel.DataAnnotations
+@using System.Net.Http.Headers
+@using System.Security.Cryptography
+@using System.Text
+@using FluentValidation
+@using Newtonsoft.Json;
+
+
+<MudDialog>
+
+    @* Dialog content *@
+    <TitleContent>
+        <MudText Typo="Typo.h6">Invoice</MudText>
+    </TitleContent>
+
+
+
+    @* Dialog content *@
+    <DialogContent>
+        <EditForm EditContext="@_reportForm" Context="context">
+
+            <FluentValidationValidator />
+
+            <MudGrid Spacing="1">
+
+                @* image display *@
+                <MudItem xs="12">
+                    <MudImage Src="@_imageString" Height="100" Class="my-auto" />
+                </MudItem>
+
+                @* upload button *@
+                <MudItem xs="12">
+                    <MudFileUpload T="IBrowserFile" FilesChanged="@_UploadFiles" Accept=".png, .jpg" For="@(() => _imageModel.file)" MaxFileSize="10485760">
+                        <ActivatorContent>
+                            <MudButton HtmlTag="label" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.AddAPhoto">
+                                Upload Image
+                            </MudButton>
+                        </ActivatorContent>
+                    </MudFileUpload>
+                </MudItem>
+
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="_report.Subject" For="() => _report.Subject" Label="Training" Variant="Variant.Outlined" />
+                </MudItem>
+
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="_report.Message" For="() => _report.Message" Label="Remarks" Variant="Variant.Outlined" Lines="2" MaxLines="5" AutoGrow />
+                </MudItem>
+
+                <MudItem xs="12" sm="6">
+                    <MudTimePicker @bind-Time="_report.SpanDuration" For="() => _report.SpanDuration" Label="Training Duration" Variant="Variant.Outlined" AmPm TimeFormat="h:mm" MinuteSelectionStep="5" ShowToolbar="false" />
+                </MudItem>
+
+                <MudItem xs="12" sm="6">
+                    <MudDatePicker @bind-Date="_report.DateTraining" For="() => _report.DateTraining" Label="Training Date" Variant="Variant.Outlined" ShowToolbar="false" IsDateDisabledFunc="@((DateTime dt)=>(
+                        ((int)dt.Year < _reservation.StartingDate?.Year ||
+                        (int)dt.Year > _reservation.EndingDate?.Year ||
+                        ((int)dt.Year == _reservation.StartingDate?.Year && (int)dt.Month < _reservation.StartingDate?.Month) ||
+                        ((int)dt.Year == _reservation.EndingDate?.Year && (int)dt.Month > _reservation.EndingDate?.Month) ||
+                        ((int)dt.Year == _reservation.StartingDate?.Year && (int)dt.Month == _reservation.StartingDate?.Month && (int)dt.Day < _reservation.StartingDate?.Day)) ||
+                        ((int)dt.Year == _reservation.EndingDate?.Year && (int)dt.Month == _reservation.EndingDate?.Month && (int)dt.Day > _reservation.EndingDate?.Day)))" />
+                </MudItem>
+
+                <MudItem xs="12" sm="4">
+                    <MudStack Spacing="0" AlignItems="AlignItems.Center">
+                        <MudText Typo="Typo.caption">Obedience Rating: </MudText>
+                        <MudRating @bind-SelectedValue="_report.ScoreObedience" MaxValue="5" />
+                    </MudStack>
+                </MudItem>
+
+                <MudItem xs="12" sm="4">
+                    <MudStack Spacing="0" AlignItems="AlignItems.Center">
+                        <MudText Typo="Typo.caption">Focus Rating: </MudText>
+                        <MudRating @bind-SelectedValue="_report.ScoreFocus" MaxValue="5" />
+                    </MudStack>
+                </MudItem>
+
+                <MudItem xs="12" sm="4">
+                    <MudStack Spacing="0" AlignItems="AlignItems.Center">
+                        <MudText Typo="Typo.caption">Protection Rating: </MudText>
+                        <MudRating @bind-SelectedValue="_report.ScoreProtection" MaxValue="5" />
+                    </MudStack>
+                </MudItem>
+
+            </MudGrid>
+       
+        </EditForm>
+    </DialogContent>
+
+    @* Dialog action buttons *@
+    <DialogActions>
+
+        <MudButton OnClick="_Cancel">Cancel</MudButton>
+        @if (_report.ID == 0)
+        {
+            <MudButton OnClick="_SubmitAsync" StartIcon="@Icons.Material.Filled.AddCircle" Color="Color.Primary" Variant="Variant.Filled">Post</MudButton>
+        }
+        @if (_report.ID != 0)
+        {
+            <MudButton OnClick="_SubmitAsync" StartIcon="@Icons.Material.Filled.Save" Color="Color.Primary" Variant="Variant.Filled">Save</MudButton>
+        }
+
+    </DialogActions>
+
+</MudDialog>
+
+@code
+{
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = new();
+
+    [Parameter] public int dogID { get; set; }
+    [Parameter] public Shared.ProgressReport _report { get; set; } = new();
+    [Parameter] public Shared.Reservation _reservation { get; set; } = new();
+
+    // image model with validation
+    private class ImageModel
+    {
+        public IBrowserFile? file { get; set; }
+    }
+    private class FormModelValidator : AbstractValidator<ImageModel>
+    {
+        private FormModelValidator()
+        {
+            RuleFor(e => e.file).NotEmpty().WithMessage("This field is required");
+        }
+    }
+
+    private ImageModel _imageModel = new();
+
+    // on initialize
+    private EditContext? _imageForm;
+    private EditContext?  _reportForm;
+
+    protected override void OnInitialized()
+    {
+        _imageForm = new EditContext(_imageModel);
+    }
+
+    protected override void OnParametersSet()
+    {
+        _reportForm = new EditContext(_report);
+    }
+
+    // image upload logic
+    private string _imageString = string.Empty;
+    private async Task _UploadFiles(IBrowserFile file)
+    {
+        var resizedImage = await file.RequestImageFileAsync("image/png", 200, 200); // resize image
+        var buffer = new byte[resizedImage.Size]; // image to byte
+        await resizedImage.OpenReadStream().ReadAsync(buffer); // byte to stream
+
+        _imageString = $"data:image/png;base64,{Convert.ToBase64String(buffer)}"; // stream to string
+
+        _imageModel.file = file;
+    }
+
+    // submit
+    private async Task _SubmitAsync()
+    {
+        if (!_reportForm!.Validate()) return;
+
+        // create multipartcontent
+        MultipartFormDataContent multipartContent = new MultipartFormDataContent();
+
+        // create report as json content
+        string json = JsonConvert.SerializeObject(_report, new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
+        multipartContent.Add(new StringContent(json), "reportContent");
+
+        if (_imageModel.file != null)
+        {
+            // uploaded image to stream
+            MemoryStream stream = new MemoryStream();
+            await _imageModel.file.OpenReadStream(10485760).CopyToAsync(stream);
+
+            // create image content
+            ByteArrayContent byteContent = new ByteArrayContent(stream.ToArray());
+            byteContent.Headers.ContentType = new MediaTypeHeaderValue(_imageModel.file.ContentType);
+            multipartContent.Add(byteContent, "imageContent", _imageModel.file.Name);
+        }
+
+        if(_report.ID == 0)
+        {
+            await HttpClient.Report.PostAsync(dogID, multipartContent);
+            Snackbar.Add("New progress added", MudBlazor.Severity.Success);
+            MudDialog.Close();
+            return;
+        }
+        if (_report.ID != 0)
+        {
+            await HttpClient.Report.UpdateAsync(dogID, multipartContent);
+            Snackbar.Add("Progress changes saved", MudBlazor.Severity.Success);
+            MudDialog.Close();
+            return;
+        }
+    }
+
+    // cancel
+    private void _Cancel() => MudDialog.Cancel();
+}

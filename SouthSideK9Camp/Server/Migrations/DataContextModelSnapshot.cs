@@ -89,8 +89,7 @@ namespace SouthSideK9Camp.Server.Migrations
 
                     b.Property<string>("AnythingElseToShare")
                         .IsRequired()
-                        .HasMaxLength(300)
-                        .HasColumnType("nvarchar(300)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("DateCreated")
                         .HasColumnType("datetime2");
@@ -106,8 +105,7 @@ namespace SouthSideK9Camp.Server.Migrations
 
                     b.Property<string>("DiscomfortOverOther")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("DiscomfortOverPaws")
                         .HasColumnType("bit");
@@ -129,8 +127,7 @@ namespace SouthSideK9Camp.Server.Migrations
 
                     b.Property<string>("FeedingRoutine")
                         .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid>("GUID")
                         .HasColumnType("uniqueidentifier");
@@ -143,8 +140,7 @@ namespace SouthSideK9Camp.Server.Migrations
 
                     b.Property<string>("ProtectiveOverOther")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("ProtectiveOverPerson")
                         .HasColumnType("bit");
@@ -164,23 +160,19 @@ namespace SouthSideK9Camp.Server.Migrations
 
                     b.Property<string>("Restrictions")
                         .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("SleepingRoutine")
                         .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("TrainingGoal")
                         .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("TrainingType")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("ID");
 
@@ -206,36 +198,30 @@ namespace SouthSideK9Camp.Server.Migrations
 
                     b.Property<string>("EmergencyContactEmail")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("EmergencyContactName")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("EmergencyContactNumber")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("EmergencyVet")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("EmergencyVetNumber")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid>("GUID")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("WhereWillYouBeStating")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("ID");
 
@@ -262,16 +248,14 @@ namespace SouthSideK9Camp.Server.Migrations
 
                     b.Property<string>("Breed")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("ClientID")
                         .HasColumnType("int");
 
                     b.Property<string>("Clinic")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("DateCreated")
                         .HasColumnType("datetime2");
@@ -287,8 +271,7 @@ namespace SouthSideK9Camp.Server.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("Parainfluenza")
                         .HasColumnType("bit");
@@ -311,8 +294,7 @@ namespace SouthSideK9Camp.Server.Migrations
 
                     b.Property<string>("Sex")
                         .IsRequired()
-                        .HasMaxLength(10)
-                        .HasColumnType("nvarchar(10)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("VaccineCardURL")
                         .IsRequired()
@@ -337,44 +319,38 @@ namespace SouthSideK9Camp.Server.Migrations
 
                     b.Property<string>("AccountAddress")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("AccountName")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<double>("Balance")
                         .HasColumnType("float");
 
                     b.Property<string>("CompanyAddress")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("CompanyName")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("CompanyPhone")
                         .IsRequired()
-                        .HasMaxLength(13)
-                        .HasColumnType("nvarchar(13)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("CompanyZIPCode")
                         .IsRequired()
-                        .HasMaxLength(10)
-                        .HasColumnType("nvarchar(10)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("DateCreated")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime>("DateDue")
+                    b.Property<DateTime?>("DateDue")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime>("DateSent")
+                    b.Property<DateTime?>("DateSent")
                         .HasColumnType("datetime2");
 
                     b.Property<int>("DogID")
@@ -393,9 +369,12 @@ namespace SouthSideK9Camp.Server.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("Title")
-                        .HasMaxLength(50)
-                        .HasColumnType("int");
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("isDefault")
+                        .HasColumnType("bit");
 
                     b.HasKey("ID");
 
@@ -412,30 +391,25 @@ namespace SouthSideK9Camp.Server.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ID"));
 
-                    b.Property<int>("Ammount")
-                        .HasColumnType("int");
-
                     b.Property<string>("Credit")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("Date")
+                        .HasColumnType("datetime2");
 
                     b.Property<DateTime>("DateCreated")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<Guid>("GUID")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<int>("InvoiceID")
+                    b.Property<int?>("InvoiceID")
                         .HasColumnType("int");
-
-                    b.Property<string>("MeasurementCount")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("MeasurementUnit")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -444,8 +418,18 @@ namespace SouthSideK9Camp.Server.Migrations
                     b.Property<double>("Price")
                         .HasColumnType("float");
 
+                    b.Property<double>("Quantity")
+                        .HasColumnType("float");
+
                     b.Property<double>("Total")
                         .HasColumnType("float");
+
+                    b.Property<string>("Unit")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("isModel")
+                        .HasColumnType("bit");
 
                     b.HasKey("ID");
 
@@ -590,7 +574,7 @@ namespace SouthSideK9Camp.Server.Migrations
                     b.Property<DateTime>("DateCreated")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime>("DateTraining")
+                    b.Property<DateTime?>("DateTraining")
                         .HasColumnType("datetime2");
 
                     b.Property<int>("DogID")
@@ -605,8 +589,7 @@ namespace SouthSideK9Camp.Server.Migrations
 
                     b.Property<string>("Message")
                         .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("ScoreFocus")
                         .HasColumnType("int");
@@ -617,18 +600,16 @@ namespace SouthSideK9Camp.Server.Migrations
                     b.Property<int>("ScoreProtection")
                         .HasColumnType("int");
 
-                    b.Property<TimeSpan>("SpanDuration")
+                    b.Property<TimeSpan?>("SpanDuration")
                         .HasColumnType("time");
 
                     b.Property<string>("Subject")
                         .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("ID");
 
-                    b.HasIndex("DogID")
-                        .IsUnique();
+                    b.HasIndex("DogID");
 
                     b.ToTable("ProgressReports");
                 });
@@ -768,9 +749,7 @@ namespace SouthSideK9Camp.Server.Migrations
                 {
                     b.HasOne("SouthSideK9Camp.Shared.Invoice", "Invoice")
                         .WithMany("Items")
-                        .HasForeignKey("InvoiceID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("InvoiceID");
 
                     b.Navigation("Invoice");
                 });
@@ -800,8 +779,8 @@ namespace SouthSideK9Camp.Server.Migrations
             modelBuilder.Entity("SouthSideK9Camp.Shared.ProgressReport", b =>
                 {
                     b.HasOne("SouthSideK9Camp.Shared.Dog", "Dog")
-                        .WithOne("ProgressReport")
-                        .HasForeignKey("SouthSideK9Camp.Shared.ProgressReport", "DogID")
+                        .WithMany("ProgressReports")
+                        .HasForeignKey("DogID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -824,8 +803,7 @@ namespace SouthSideK9Camp.Server.Migrations
 
                     b.Navigation("Invoices");
 
-                    b.Navigation("ProgressReport")
-                        .IsRequired();
+                    b.Navigation("ProgressReports");
                 });
 
             modelBuilder.Entity("SouthSideK9Camp.Shared.Invoice", b =>

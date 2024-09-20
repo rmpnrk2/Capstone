@@ -1,0 +1,111 @@
+﻿@using FluentValidation
+@using System.Net.Http.Headers
+
+@inject SouthSideK9CampHttpClient HttpClient
+
+<MudDialog>
+
+    @* dialog content *@
+    <DialogContent>
+
+        @* editform for membership payment *@
+        <EditForm EditContext="@_FormContext" OnValidSubmit="@_SubmitAsync" Context="context">
+            <FluentValidationValidator />
+
+            <MudStack AlignItems="AlignItems.Center">
+
+                @* image display *@
+                <MudAvatar>
+                    <MudImage ObjectFit="ObjectFit.Cover" Src="@_imageString"></MudImage>
+                </MudAvatar>
+
+                @* upload button *@
+                <MudFileUpload T="IBrowserFile" FilesChanged="UploadFiles" Accept=".png, .jpg" For="@(() => _FormModel.file)" MaxFileSize="10485760">
+                    <ActivatorContent>
+                        <MudButton HtmlTag="label" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Upload">
+                            Upload Avatar
+                        </MudButton>
+                    </ActivatorContent>
+                </MudFileUpload>
+
+            </MudStack>
+
+        </EditForm>
+
+    </DialogContent>
+
+    @* dialog button *@
+    <DialogActions>
+        <MudButton OnClick="@_Cancel">Cancel</MudButton>
+        <MudButton OnClick="@_SubmitAsync" Variant="Variant.Filled" Color="Color.Primary">Submit</MudButton>
+    </DialogActions>
+
+</MudDialog>
+
+@code
+{
+
+    [CascadingParameter] private MudDialogInstance MudDialog { get; set; } = new();
+
+    [Parameter] public Shared.Dog dog { get; set; } = new();
+
+    // form context with validation
+    private class FormModel
+    {
+        public IBrowserFile? file { get; set; }
+    }
+    private FormModel _FormModel = new();
+    private class FormModelValidator : AbstractValidator<FormModel>
+    {
+        private FormModelValidator()
+        {
+            RuleFor(e => e.file).NotEmpty().WithMessage("This field is required");
+        }
+    }
+
+    // on initialize
+    private EditContext? _FormContext;
+    protected override void OnInitialized()
+    {
+        _FormContext = new EditContext(_FormModel);
+    }
+
+    // image upload logic
+    private string _imageString = string.Empty;
+    private async Task UploadFiles(IBrowserFile file)
+    {
+        var resizedImage = await file.RequestImageFileAsync("image/png", 300, 300); // resize image
+        var buffer = new byte[resizedImage.Size]; // image to byte
+        await resizedImage.OpenReadStream().ReadAsync(buffer); // byte to stream
+
+        _imageString = $"data:image/png;base64,{Convert.ToBase64String(buffer)}"; // stream to string
+
+        _FormModel.file = file;
+    }
+
+    // submit
+    private async Task _SubmitAsync()
+    {
+        if (_FormContext.Validate())
+        {
+            // image to stream
+            MemoryStream stream = new MemoryStream();
+            await _FormModel.file!.OpenReadStream(10485760).CopyToAsync(stream);
+
+            // add stream to content
+            ByteArrayContent imageContent = new ByteArrayContent(stream.ToArray());
+            imageContent.Headers.ContentType = new MediaTypeHeaderValue(_FormModel.file.ContentType);
+
+            // add content to multipartcontent
+            MultipartFormDataContent multipartContent = new MultipartFormDataContent();
+            multipartContent.Add(imageContent, "imageContent", _FormModel.file.Name);
+
+            await HttpClient.Dog.UploadAvatar(dog.ID, multipartContent);
+            MudDialog.Close();
+        }
+        return;
+    }
+
+    // close dialog
+    private void _Cancel() => MudDialog.Cancel();
+}

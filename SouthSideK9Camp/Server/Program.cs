@@ -8,16 +8,26 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 
-// Database service
+// database service
 var connectionString = builder.Configuration.GetConnectionString("Localhost");
 builder.Services.AddSqlServer<DataContext>(connectionString);
 builder.Services.AddDbContext<DataContext>(options => options.UseSqlServer(connectionString));
 
-// Email Service
+// email Service
 builder.Services.AddTransient<IEmailService, EmailService>();
 builder.Services.Configure<AuthMessageSenderOptions>(builder.Configuration.GetSection("AuthMessageSenderOptions"));
 
 var app = builder.Build();
+
+/*
+// apply migrations
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var context = services.GetRequiredService<DataContext>();
+    context.Database.Migrate();
+}
+*/
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

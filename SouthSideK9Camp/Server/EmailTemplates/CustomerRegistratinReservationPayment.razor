@@ -1,0 +1,72 @@
+﻿<head>
+	<style>
+		body {
+			font-family: Arial, sans-serif;
+			margin: 0;
+			padding: 20px;
+		}
+
+		.container {
+			max-width: 500px;
+			margin: 0 auto;
+			text-align: center;
+		}
+
+		h1 {
+			font-size: 24px;
+			margin-bottom: 10px;
+		}
+
+		a {
+			background-color: #4CAF50;
+			border: none;
+			color: white;
+			padding: 10px 20px;
+			text-align: center;
+			text-decoration: none;
+			display: inline-block;
+			font-size: 16px;
+		}
+	</style>
+</head>
+
+<body>
+	<div class="container">
+		<h1>SouthSide K9 Camp Board & Train</h1>
+		<br />
+		<p>Dear, @clientName</p>
+		<br />
+		<p>To complete your board and train registration a reservervation fee must be paid to secure your schedule.</p>
+		<p>Please proceed through the payment using the link below:</p>
+		<br />
+		<h6>Payment Details:</h6>
+		<p>Dog's Name': @dogName</p>
+		<p>Schedule: @startingDate.ToString("dd MMMM yyyy") to @endingDate.ToString("dd MMMM yyyy")</p>
+		<p>Reservation Fee:</p>
+		<p>Deadline: @startingDate.ToString("dd MMMM yyyy")</p>
+		<br />
+		<a href="@link" target="_blank">Continue Registration</a>
+		<br />
+		<br />
+		<p>Best regards,</p>
+		<p>SouthSide K9 Camp</p>
+	</div>
+</body>
+
+@code
+{
+	[Parameter] public string clientName { get; set; } = string.Empty;
+	[Parameter] public string dogName { get; set; } = string.Empty;
+	[Parameter] public DateTime endingDate { get; set; }
+	[Parameter] public DateTime startingDate { get; set; }
+
+	[Parameter] public string host { get; set; } = string.Empty;
+	[Parameter] public string dogGUID { get; set; } = string.Empty;
+
+	private string? link;
+	protected override void OnInitialized()
+	{
+		link = $"{host}/customer-registration-payment/{dogGUID}";
+		base.OnInitialized();
+	}
+}

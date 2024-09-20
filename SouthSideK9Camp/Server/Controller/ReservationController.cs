@@ -19,11 +19,19 @@ namespace SouthSideK9Camp.Server.Controller
         [HttpGet()] public async Task<IResult> GetAsync()
         {
             List<Reservation> reservations = await _dataContext.Reservations
-                .Include(reservation => reservation.Dogs)
-                    .ThenInclude(dogs => dogs.Client)
+                .Include(r => r.Dogs)
+                    .ThenInclude(d => d.Client)
+                        .ThenInclude(c => c.Customer)
+                .Include(r => r.Dogs)
+                    .ThenInclude(d => d.Contract)
+                .Include(r => r.Dogs)
+                    .ThenInclude(d => d.ProgressReports)
+                .Include(r => r.Dogs)
+                    .ThenInclude(d => d.Invoices)
+                        .ThenInclude(i => i.Items)
                 .AsNoTracking().ToListAsync();
 
-            var json = JsonConvert.SerializeObject(reservations, new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
+            string json = JsonConvert.SerializeObject(reservations, new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
             return Results.Ok(JsonConvert.DeserializeObject<List<Shared.Reservation>>(json));
         }
 
@@ -35,8 +43,24 @@ namespace SouthSideK9Camp.Server.Controller
             if(reservation == null)
                 return Results.NotFound();
 
-            var json = JsonConvert.SerializeObject(reservation, new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
-            return Results.Ok(json);
+            string json = JsonConvert.SerializeObject(reservation, new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
+            return Results.Ok(JsonConvert.DeserializeObject<Shared.Reservation>(json));
+        }
+
+        // get by guid
+        [HttpGet("guid/{reservationGUID}")] public async Task<IResult> GetByGUIDAsync(string reservationGUID)
+        {
+
+            Shared.Reservation? reservation = await _dataContext.Reservations
+                .Include(r => r.Dogs)
+                    .ThenInclude(dogs => dogs.Client)
+                .FirstOrDefaultAsync(r => r.GUID.ToString() == reservationGUID);
+
+            if (reservation == null)
+                return Results.NotFound();
+
+            string json = JsonConvert.SerializeObject(reservation, new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
+            return Results.Ok(JsonConvert.DeserializeObject<Shared.Reservation>(json));
         }
 
         // add

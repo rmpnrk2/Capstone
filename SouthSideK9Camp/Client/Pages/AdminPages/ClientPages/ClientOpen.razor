@@ -1,0 +1,307 @@
+﻿@page "/admin/client/{clientID:int}";
+
+@layout AdminLayout
+
+@inject SouthSideK9CampHttpClient HttpClient
+@inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
+
+@using FluentValidation
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-16 mb-16">
+    <MudStack>
+
+        @* toolbar *@
+        <MudPaper>
+            <MudToolBar>
+                <MudStack Row>
+
+                    <MudButton OnClick="@_Back" StartIcon="@Icons.Material.Filled.ArrowBack">Back</MudButton>
+                    <MudButton OnClick="@_Cancel" Style="@_editModeButtonsDisplay" StartIcon="@Icons.Material.Filled.Cancel" Variant="Variant.Filled">Cancel</MudButton>
+                    <MudButton OnClick="@_Save" Style="@_editModeButtonsDisplay" StartIcon="@Icons.Material.Filled.Save" Variant="Variant.Filled" Color="Color.Primary">Save</MudButton>
+                    <MudButton OnClick="@_Edit" Style="@_editButtonDisplay" StartIcon="@Icons.Material.Filled.Edit" Variant="Variant.Filled" Color="Color.Primary">Edit</MudButton>
+                    <MudButton OnClick="@_ConfirmDeleteMessage" StartIcon="@Icons.Material.Filled.Delete" Variant="Variant.Filled" Color="Color.Error">Delete</MudButton>
+
+                </MudStack>
+            </MudToolBar>
+        </MudPaper>
+
+        <EditForm EditContext="_editContext" OnValidSubmit="@_Save">
+            <FluentValidationValidator />
+
+            @* client info *@
+            <MudGrid Spacing="2">
+                <MudItem xs="12" sm="6">
+                    <MudTextField @bind-Value="_client.FirstName" For="@(() => _client.FirstName)" Label="First Name" Variant="Variant.Outlined" ReadOnly="@_readOnly" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField @bind-Value="_client.LastName" For="@(() => _client.LastName)" Label="Last Name" Variant="Variant.Outlined" ReadOnly="@_readOnly" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField @bind-Value="_client.MiddleInitial" For="@(() => _client.MiddleInitial)" Label="Middle Initial" Variant="Variant.Outlined" ReadOnly="@_readOnly" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudSelect @bind-Value="_client.Sex" For="@(() => _client.Sex)" Label="Sex" Variant="Variant.Outlined" ReadOnly="@_readOnly">
+                        <MudSelectItem Value="@("Male")" />
+                        <MudSelectItem Value="@("Female")" />
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField @bind-Value="_client.Email" For="@(() => _client.Email)" Label="Email" Variant="Variant.Outlined" ReadOnly="@_readOnly" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudNumericField @bind-Value="_client.Contact" For="@(() => _client.Contact)" Label="Contact" Variant="Variant.Outlined" ReadOnly="@_readOnly" HideSpinButtons />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="_client.Address" For="@(() => _client.Address)" Label="Address" Variant="Variant.Outlined" Lines="2" ReadOnly="@_readOnly" AutoGrow />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudDatePicker @bind-Date="_client.Birthday" For="@(() => _client.Birthday)" IsDateDisabledFunc="@((DateTime dt)=>((int)dt.Day > DateTime.UtcNow.Day))" Label="Birthday" Variant="Variant.Outlined" ShowToolbar="false" ReadOnly="@_readOnly" />
+                </MudItem>
+
+                @* member info *@
+                @if (_client.Customer is not null)
+                {
+                    <MudItem xs="12" sm="12">
+                        <MudTextField @bind-Value="_client.Customer.WhereWillYouBeStating" For="@(() => _client.Customer.WhereWillYouBeStating)" Label="Where Will You Be Staying" Variant="Variant.Outlined" ReadOnly="@_readOnly" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudTextField @bind-Value="_client.Customer.EmergencyVet" For="@(() => _client.Customer.EmergencyVet)" Label="Emergency Veterinarian" Variant="Variant.Outlined" ReadOnly="@_readOnly" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudNumericField @bind-Value="_client.Customer.EmergencyVetNumber" For="@(() => _client.Customer.EmergencyVetNumber)" Label="Emergency Veterinarian Contact" Variant="Variant.Outlined" ReadOnly="@_readOnly" HideSpinButtons />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudTextField @bind-Value="_client.Customer.EmergencyContactName" For="@(() => _client.Customer.EmergencyContactName)" Label="Emergency Contact Name" Variant="Variant.Outlined" ReadOnly="@_readOnly" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudNumericField @bind-Value="_client.Customer.EmergencyContactNumber" For="@(() => _client.Customer.EmergencyContactNumber)" Label="Emergency Contact Number" ReadOnly="@_readOnly" Variant="Variant.Outlined" HideSpinButtons />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudTextField @bind-Value="_client.Customer.EmergencyContactEmail" For="@(() => _client.Customer.EmergencyContactEmail)" Label="Emergency Contact Email" ReadOnly="@_readOnly" Variant="Variant.Outlined" />
+                    </MudItem>
+
+                }
+
+                @* member info *@
+                @if (_client.Member is not null)
+                {
+                    <MudItem xs="12" sm="6">
+                        <MudTextField @bind-Value="_client.Member.Occupation" For="@(() => _client.Member.Occupation)" Label="Occupation" Variant="Variant.Outlined" ReadOnly="@_readOnly" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudAutocomplete @bind-Value="_client.Member.WhereDidYouHereAboutUs" For="@(() => _client.Member.WhereDidYouHereAboutUs)" Label="Where did you here about us?" SearchFunc="@_WhereDidYouHereAboutUsAutocomplete" Variant="Variant.Outlined" ReadOnly="@_readOnly" CoerceValue />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudAutocomplete @bind-Value="_client.Member.PurposeOfJoining" For="@(() => _client.Member.PurposeOfJoining)" Label="Purpose of joining" SearchFunc="@_PurposeOfJoiningAutocomplete" Variant="Variant.Outlined" ReadOnly="@_readOnly" CoerceValue />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudTextField @bind-Value="_client.Member.DogClinicAddress" For="@(() => _client.Member.DogClinicAddress)" Label="Dog's Veterinarian Clinic Address'" ReadOnly="@_readOnly" Variant="Variant.Outlined" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudTextField @bind-Value="_client.Member.WhoTrainYourDog" For="@(() => _client.Member.WhoTrainYourDog)" Label="Who will train your dog?" ReadOnly="@_readOnly" Variant="Variant.Outlined" />
+                    </MudItem>
+                }
+            </MudGrid>
+
+        </EditForm>
+
+    </MudStack>
+</MudContainer>
+
+@* confirmdelete messagebox *@
+<MudMessageBox @ref="_confirmDeleteMessageBox" Title="Warning">
+
+    <MessageContent>
+        Confirm delete?
+    </MessageContent>
+
+    <YesButton>
+        <MudButton Color="Color.Error" Variant="Variant.Filled">Delete</MudButton>
+    </YesButton>
+
+    <CancelButton>
+        <MudButton>Cancel</MudButton>
+    </CancelButton>
+
+</MudMessageBox>
+
+@* view receipt messagebox *@
+<MudMessageBox @ref="_receiptMessageBox">
+
+    <MessageContent>
+        @if (_client.Member != null)
+        {
+            <MudStack AlignItems="AlignItems.Center">
+                <MudImage Src="@_client.Member.RegistrationPaymentURL" Fluid />
+            </MudStack>
+        }
+        else
+        {
+            <MudText>Image not found</MudText>
+        }
+    </MessageContent>
+
+    <YesButton>
+        @if (_client.Member != null)
+        {
+            @if (_client.Member.RegistrationConfirmed)
+            {
+
+                <MudButton Disabled EndIcon="@Icons.Material.Filled.Check" Variant="Variant.Outlined">Approved</MudButton>
+            }
+            else
+            {
+                <MudButton OnClick="_Reject" Color="Color.Error" Variant="Variant.Filled">Reject</MudButton>
+                <MudButton OnClick="_Approve" Color="Color.Primary" Variant="Variant.Filled">Approve</MudButton>
+            }
+        }
+    </YesButton>
+
+</MudMessageBox>
+
+@code
+{
+    [Parameter] public int clientID { get; set; }
+
+    // on initialize
+    List<Shared.Client> _clients = new();
+    EditContext? _editContext;
+    protected override async Task OnInitializedAsync()
+    {
+        _editContext = new EditContext(_client);
+        _clients = await HttpClient.Client.GetAsync();
+    }
+
+    // on parameterset
+    Shared.Client _client = new()
+        {
+            Birthday = DateTime.UtcNow
+        };
+    Shared.Client _editClient = new();
+    protected override void OnParametersSet()
+    {
+        _client = _clients.FirstOrDefault(c => c.ID == clientID) ?? new();
+        _editContext = new EditContext(_client);
+    }
+
+    // back
+    private void _Back()
+    {
+        NavigationManager.NavigateTo($"/admin/client-list");
+    }
+
+    // cancel edit
+    private async void _Cancel()
+    {
+        _editModeButtonsDisplay = "display: none";
+        _editButtonDisplay = string.Empty;
+        await _RefreshData();
+    }
+
+    // edit
+    bool _readOnly = true;
+    private string _editModeButtonsDisplay = "display: none";
+    private string _editButtonDisplay = string.Empty;
+    private void _Edit()
+    {
+        _editModeButtonsDisplay = string.Empty;
+        _editButtonDisplay = "display: none";
+        _readOnly = false;
+    }
+
+    // save
+    private async Task _Save()
+    {
+        if (_editContext!.Validate())
+        {
+            _readOnly = true;
+            _editModeButtonsDisplay = "display: none";
+            _editButtonDisplay = string.Empty;
+
+            await HttpClient.Member.UpdateAsync(_client);
+            Snackbar.Add("Saved succesful", MudBlazor.Severity.Success);
+        }
+    }
+
+    // delete
+    private MudMessageBox? _confirmDeleteMessageBox { get; set; }
+    private async Task _ConfirmDeleteMessage()
+    {
+        bool? result = await _confirmDeleteMessageBox!.ShowAsync(new DialogOptions()
+        {
+            FullWidth = true,
+            MaxWidth = MaxWidth.Small
+        });
+        if (result is not null)
+        {
+            await HttpClient.Client.DeleteAsync(clientID);
+            Snackbar.Add("Delete succesful", MudBlazor.Severity.Error);
+            NavigationManager.NavigateTo($"/admin/client-list");
+        }
+    }
+
+    // open receipt
+    private MudMessageBox? _receiptMessageBox { get; set; }
+    private async Task _ShowReceipt()
+    {
+        bool? result = await _receiptMessageBox!.ShowAsync(new DialogOptions()
+            {
+                FullScreen = true,
+                CloseButton = true
+            });
+        if (result != null)
+        {
+        }
+    }
+    private async Task _Approve()
+    {
+        await HttpClient.Member.ApprovePaymentAsync(_client.ID);
+        await _RefreshData();
+        Snackbar.Add("Approved succesfully", MudBlazor.Severity.Success);
+    }
+    private async Task _Reject()
+    {
+        await HttpClient.Member.RejectPaymentAsync(_client.ID);
+        await _RefreshData();
+        Snackbar.Add("Reject", MudBlazor.Severity.Error);
+    }
+
+    // wheredidyouhearaboutus autocomplete
+    private string[] _whereDidYouHereAboutUsAutocompleteAnswers =
+    {
+        "Friend", "Colleague", "Family",
+        "Advertisement", "Blog", "Facebook",
+        "X (formerly Twitter)", "YouTube",
+    };
+    private async Task<IEnumerable<string>> _WhereDidYouHereAboutUsAutocomplete(string value, CancellationToken token)
+    {
+        await Task.Delay(5, token);
+
+        if (string.IsNullOrEmpty(value))
+            return _whereDidYouHereAboutUsAutocompleteAnswers;
+        return _whereDidYouHereAboutUsAutocompleteAnswers.Where(x => x.Contains(value, StringComparison.InvariantCultureIgnoreCase));
+    }
+
+    // purposeofjoining autocomplete
+    private string[] _PurposeOfJoiningAutocompleteAnswers =
+    {
+        "Sports", "Hobby", "IGP",
+    };
+    private async Task<IEnumerable<string>> _PurposeOfJoiningAutocomplete(string value, CancellationToken token)
+    {
+        await Task.Delay(5, token);
+
+        if (string.IsNullOrEmpty(value))
+            return _PurposeOfJoiningAutocompleteAnswers;
+        return _PurposeOfJoiningAutocompleteAnswers.Where(x => x.Contains(value, StringComparison.InvariantCultureIgnoreCase));
+    }
+
+
+    private async Task _RefreshData()
+    {
+        _clients = await HttpClient.Client.FetchAsync();
+        _client = _clients.FirstOrDefault(c => c.ID == clientID) ?? new();
+        StateHasChanged();
+    }
+}
