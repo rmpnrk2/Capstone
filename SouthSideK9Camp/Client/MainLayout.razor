@@ -13,6 +13,7 @@
     <MudAppBar Elevation="1" Style="@($"background:{_Theme.PaletteLight.AppbarBackground};")">
         <MudBreakpointProvider>
 
+            @* Desktop view *@
             <MudHidden Breakpoint="Breakpoint.MdAndDown">
 
                 <MudImage Src="Images/logoname.jpg" Height="50" Class="ml-16" />
@@ -21,6 +22,20 @@
                     <MudLink OnClick="@_Anchor" Href="javascript:void(0)" Typo="Typo.body1" Color="Color.Dark">JOIN US</MudLink>
                     <MudLink OnClick="@_Home" Typo="Typo.body1" Color="Color.Dark">HOME</MudLink>
                 </MudStack>
+
+            </MudHidden>
+
+            @* Mobile view *@
+            <MudHidden Breakpoint="Breakpoint.MdAndDown" Invert>
+
+                <MudImage Src="Images/logoname.jpg" Height="50" Class="ml-16" />
+
+                <MudSpacer />
+
+                <MudMenu Icon="@Icons.Material.Filled.Menu" Color="Color.Dark">
+                    <MudMenuItem><MudLink OnClick="@_Anchor" Href="javascript:void(0)" Typo="Typo.body1" Color="Color.Dark">JOIN US</MudLink></MudMenuItem>
+                    <MudMenuItem><MudLink OnClick="@_Home" Typo="Typo.body1" Color="Color.Dark">HOME</MudLink></MudMenuItem>
+                </MudMenu>
 
             </MudHidden>
 

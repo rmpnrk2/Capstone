@@ -110,10 +110,14 @@
 </MudContainer>
 
 @* confirmdelete messagebox *@
-<MudMessageBox @ref="_confirmDeleteMessageBox" Title="Warning">
+<MudMessageBox @ref="_confirmDeleteMessageBox">
+
+    <TitleContent>
+        <MudText Typo="Typo.h6">Confirm Delete</MudText>
+    </TitleContent>
 
     <MessageContent>
-        Confirm delete?
+        This action will permanently delete this item.
     </MessageContent>
 
     <YesButton>
@@ -123,40 +127,6 @@
     <CancelButton>
         <MudButton>Cancel</MudButton>
     </CancelButton>
-
-</MudMessageBox>
-
-@* view receipt messagebox *@
-<MudMessageBox @ref="_receiptMessageBox">
-
-    <MessageContent>
-        @if (_client.Member != null)
-        {
-            <MudStack AlignItems="AlignItems.Center">
-                <MudImage Src="@_client.Member.RegistrationPaymentURL" Fluid />
-            </MudStack>
-        }
-        else
-        {
-            <MudText>Image not found</MudText>
-        }
-    </MessageContent>
-
-    <YesButton>
-        @if (_client.Member != null)
-        {
-            @if (_client.Member.RegistrationConfirmed)
-            {
-
-                <MudButton Disabled EndIcon="@Icons.Material.Filled.Check" Variant="Variant.Outlined">Approved</MudButton>
-            }
-            else
-            {
-                <MudButton OnClick="_Reject" Color="Color.Error" Variant="Variant.Filled">Reject</MudButton>
-                <MudButton OnClick="_Approve" Color="Color.Primary" Variant="Variant.Filled">Approve</MudButton>
-            }
-        }
-    </YesButton>
 
 </MudMessageBox>
 
@@ -239,32 +209,6 @@
             Snackbar.Add("Delete succesful", MudBlazor.Severity.Error);
             NavigationManager.NavigateTo($"/admin/client-list");
         }
-    }
-
-    // open receipt
-    private MudMessageBox? _receiptMessageBox { get; set; }
-    private async Task _ShowReceipt()
-    {
-        bool? result = await _receiptMessageBox!.ShowAsync(new DialogOptions()
-            {
-                FullScreen = true,
-                CloseButton = true
-            });
-        if (result != null)
-        {
-        }
-    }
-    private async Task _Approve()
-    {
-        await HttpClient.Member.ApprovePaymentAsync(_client.ID);
-        await _RefreshData();
-        Snackbar.Add("Approved succesfully", MudBlazor.Severity.Success);
-    }
-    private async Task _Reject()
-    {
-        await HttpClient.Member.RejectPaymentAsync(_client.ID);
-        await _RefreshData();
-        Snackbar.Add("Reject", MudBlazor.Severity.Error);
     }
 
     // wheredidyouhearaboutus autocomplete
