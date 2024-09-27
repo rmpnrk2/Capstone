@@ -21,6 +21,7 @@
                     <MudButton OnClick="@_EditMode" Style="@_editButtonDisplay" StartIcon="@Icons.Material.Filled.Edit" Variant="Variant.Filled" Color="Color.Primary">Edit</MudButton>
                     <MudButton OnClick="@_CancelAsync" Style="@_editModeButtonDisplay" StartIcon="@Icons.Material.Filled.Cancel" Variant="Variant.Filled">Cancel</MudButton>
                     <MudButton OnClick="@_SaveAsync" Style="@_editModeButtonDisplay" StartIcon="@Icons.Material.Filled.Save" Variant="Variant.Filled" Color="Color.Primary">Save</MudButton>
+                    <MudButton OnClick="@_DeleteDialog" Disabled="@_disabledDelete" StartIcon="@Icons.Material.Filled.Delete" Variant="Variant.Filled" Color="Color.Error">Delete</MudButton>
 
                 </MudStack>
             </MudToolBar>
@@ -155,6 +156,25 @@
 
 </MudMessageBox>
 
+<MudMessageBox @ref="_messageBox">
+
+    <TitleContent>
+        <MudText Typo="Typo.h6">Confirm Delete</MudText>
+    </TitleContent>
+
+    <MessageContent>
+        <MudText Typo="Typo.body1">Are you sure you want to delete? This action is permanent and cannot be undone.</MudText>
+    </MessageContent>
+
+    <YesButton>
+        <MudButton Color="Color.Error" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Delete">Delete</MudButton>
+    </YesButton>
+
+    <CancelButton>
+        <MudButton>Cancel</MudButton>
+    </CancelButton>
+
+</MudMessageBox>
 
 @code
 {
@@ -163,15 +183,16 @@
     // on initialize
     private Shared.Reservation _reservation = new();
     private EditContext? _formContext;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _formContext = new EditContext(_reservation);
+        await _RefreshDataAsync();
+    }
+
     protected override async Task OnParametersSetAsync()
     {
-        await HttpClient.Reservation.FetchAsync();
-        _reservation = await HttpClient.Reservation.GetAsync(reservationID);
-        _formContext = new EditContext(_reservation);
-        StateHasChanged();
-    }
-    protected override void OnInitialized()
-    {
+        await _RefreshDataAsync();
         _formContext = new EditContext(_reservation);
     }
 
@@ -195,6 +216,20 @@
 
         // update
         _reservation = await HttpClient.Reservation.GetAsync(reservationID);
+    }
+
+    // delete reservation
+    private bool _disabledDelete;
+    private MudMessageBox? _messageBox { get; set; }
+
+    private async Task _DeleteDialog()
+    {
+        bool? result = await _messageBox!.ShowAsync(new DialogOptions() { });
+        if (result == true)
+        {
+            await HttpClient.Reservation.DeleteAsync(reservationID);
+            _Back();
+        }
     }
 
     // save
@@ -245,9 +280,26 @@
 
     private async Task _Reject(int dogID)
     {
-        await HttpClient.Customer.RejectPaymentAsync(dogID);
-        await _RefreshDataAsync();
-        Snackbar.Add("Rejected", MudBlazor.Severity.Error);
+        var dialog = await DialogService.ShowAsync<ReservationPagesComponents.ReasonForRejectionDialog>(string.Empty,
+        new DialogParameters<ReservationPagesComponents.ReasonForRejectionDialog>
+        {
+            { d => d.dogID, dogID },
+        },
+        new DialogOptions()
+        {
+            BackdropClick = false,
+            MaxWidth = MaxWidth.Medium,
+            FullWidth = true,
+            CloseButton = true,
+            CloseOnEscapeKey = true
+        });
+
+        // on dialog close
+        var result = await dialog.Result;
+        if (!result.Canceled)
+        {
+            await _RefreshDataAsync();
+        }
     }
 
     // refresh data

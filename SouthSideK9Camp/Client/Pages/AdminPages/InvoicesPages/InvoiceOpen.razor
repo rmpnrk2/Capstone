@@ -473,6 +473,8 @@
             CloseButton = true
         });
     }
+
+    // approve payment
     private async Task _Approve(int invoiceID)
     {
         _sentIconDisplay = "display: none";
@@ -480,11 +482,30 @@
         await _RefreshDataAsync();
         Snackbar.Add("Approved succesfully", Severity.Success);
     }
+
+    // reject payment
     private async Task _Reject(int invoiceID)
     {
-        await HttpClient.Invoice.RejectPaymentAsync(invoiceID);
-        await _RefreshDataAsync();
-        Snackbar.Add("Rejected", Severity.Error);
+        var dialog = await DialogService.ShowAsync<InvoicePageComponents.AccountStatementDialogReasonForRejection>(string.Empty,
+        new DialogParameters<InvoicePageComponents.AccountStatementDialogReasonForRejection>
+        {
+            { d => d.invoiceID, invoiceID },
+        },
+        new DialogOptions()
+        {
+            BackdropClick = false,
+            MaxWidth = MaxWidth.Medium,
+            FullWidth = true,
+            CloseButton = true,
+            CloseOnEscapeKey = true
+        });
+
+        // on dialog close
+        DialogResult? result = await dialog.Result;
+        if (!result.Canceled)
+        {
+            await _RefreshDataAsync();
+        }
     }
 
     // refresh

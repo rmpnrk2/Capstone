@@ -113,16 +113,12 @@
         await _RefreshDataAsync();
     }
 
-
     // open add-reservation-dialog
     private async Task _OpenDialog()
     {
 
-        var dialog = await DialogService.ShowAsync<ReservationPagesComponents.AddReservationDialog>("Title",
-        new DialogParameters<ReservationPagesComponents.AddReservationDialog>
-        {
-
-        },
+        var dialog = await DialogService.ShowAsync<ReservationPagesComponents.AddReservationDialog>(string.Empty,
+        new DialogParameters<ReservationPagesComponents.AddReservationDialog> { },
         new DialogOptions()
         {
             BackdropClick = false,

@@ -147,26 +147,31 @@ namespace SouthSideK9Camp.Server.Controller
         }
 
         // reject membership payment
-        [HttpPut("payment-reject/{clientID}")] public async Task<IResult> RejectAsync(int clientID)
+        [HttpPut("payment-reject/{clientID}")] public async Task<IResult> RejectAsync(int clientID, Shared.ReasonForRejection reason)
         {
             var client = await _dataContext.Clients.Include(c => c.Member).FirstOrDefaultAsync(c => c.ID == clientID);
-            if (client != null)
-                if (client.Member != null)
-                {
-                    client.Member.RegistrationPaymentURL = string.Empty;
-                    await _dataContext.SaveChangesAsync();
 
-                    // send email
-                    string emailSubject = "SouthSide K9 Camp Membership Registration";
-                    string emailBody = new ComponentRenderer<EmailTemplates.MembershipRegistrationRejectedTemplate>()
-                        .Set(c => c.clientName, client.FirstName + " " + client.LastName)
-                        .Set(c => c.client_guid, client.Member.GUID.ToString())
-                        .Set(c => c.host, _configuration["Host"])
-                        .Render();
-                    await _smtp.SendEmailAsync(client.Email, emailSubject, emailBody);
-
+            if (client == null || client.Member == null)
                     return Results.NoContent();
-                }
+
+            // create reason for rejection
+            _dataContext.Reasons.Add(reason);
+            await _dataContext.SaveChangesAsync();
+
+            // remove payment
+            client.Member.RegistrationPaymentURL = string.Empty;
+            await _dataContext.SaveChangesAsync();
+
+            // send email
+            string emailSubject = "SouthSide K9 Camp Membership Registration";
+            string emailBody = new ComponentRenderer<EmailTemplates.MembershipRegistrationRejectedTemplate>()
+                .Set(c => c.clientName, client.FirstName + " " + client.LastName)
+                .Set(c => c.client_guid, client.Member.GUID.ToString())
+                .Set(c => c.reason, reason)
+                .Set(c => c.host, _configuration["Host"])
+                .Render();
+            await _smtp.SendEmailAsync(client.Email, emailSubject, emailBody);
+
             return Results.NotFound();
         }
 

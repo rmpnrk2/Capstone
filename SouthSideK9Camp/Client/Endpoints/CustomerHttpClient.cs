@@ -62,8 +62,8 @@ public class CustomerHttpClient
         await _httpClient.PutAsync($"customer/payment-approve/{dogID}", null);
 
     // reject payment
-    public async Task RejectPaymentAsync(int dogID) =>
-        await _httpClient.PutAsync($"customer/payment-reject/{dogID}", null);
+    public async Task RejectPaymentAsync(int dogID, Shared.ReasonForRejection reason) =>
+        await _httpClient.PutAsJsonAsync($"customer/payment-reject/{dogID}", reason);
 
     // delete
     public async Task DeleteAsync(int customerID) =>

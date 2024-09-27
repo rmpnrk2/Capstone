@@ -60,8 +60,8 @@ public class InvoiceHttpClient
         await _httpClient.PutAsync($"invoice/payment-approve/{invoiceID}", null);
 
     // reject payment
-    public async Task RejectPaymentAsync(int invoiceID) =>
-        await _httpClient.PutAsync($"invoice/payment-reject/{invoiceID}", null);
+    public async Task RejectPaymentAsync(int invoiceID, Shared.ReasonForRejection reason) =>
+        await _httpClient.PutAsJsonAsync($"invoice/payment-reject/{invoiceID}", reason);
 
     // email invoice
     public async Task EmailAsync(int invoiceID) =>

@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using MudBlazor;
 using Newtonsoft.Json;
 using SouthSideK9Camp.Server.Data;
 using SouthSideK9Camp.Server.Services;
@@ -172,19 +173,46 @@ namespace SouthSideK9Camp.Server.Controller
         // approve reservation payment
         [HttpPut("payment-approve/{dogID}")] public async Task<IResult> ApproveAsync(int dogID)
         {
-            int rowsAffected = await _dataContext.Dogs.Where(d => d.ID == dogID).ExecuteUpdateAsync(updates => updates
-                .SetProperty(d => d.ReservationPaymentConfirmed, true));
+            Shared.Dog? dog = await _dataContext.Dogs.FirstOrDefaultAsync(d => d.ID == dogID);
+                
+            if(dog == null) return Results.NotFound();
 
-            return (rowsAffected == 0) ? Results.NotFound() : Results.NoContent();
+            dog.ReservationPaymentConfirmed = true;
+            await _dataContext.SaveChangesAsync();
+
+            // update dogs reservation duration
+            Shared.Reservation? reservation = await _dataContext.Reservations.Include(r => r.Dogs).FirstOrDefaultAsync(r => r.ID == dogID);
+
+            if(reservation != null)
+            {
+                if(reservation.Dogs.Any(d => d.Contract.TrainingType.Contains("Basic Obedience")))
+                {
+                    reservation.EndingDate = reservation.StartingDate?.AddDays(28);
+                }
+                if(reservation.Dogs.Any(d => d.Contract.TrainingType.Contains("Advanced Obedience")) || reservation.Dogs.Any(d => d.Contract.TrainingType.Contains("Behavioral Modification")) ||
+                    reservation.Dogs.Any(d => d.Contract.TrainingType.Contains("Personal Protection Dog")) || reservation.Dogs.Any(d => d.Contract.TrainingType.Contains("Search and Rescue")))
+                {
+                    reservation.EndingDate = reservation.StartingDate?.AddDays(42);
+                }
+            }
+
+            return Results.NoContent();
         }
 
         // reject reservation payment
-        [HttpPut("payment-reject/{dogID}")] public async Task<IResult> RejectAsync(int dogID)
+        [HttpPut("payment-reject/{dogID}")] public async Task<IResult> RejectAsync(int dogID, Shared.ReasonForRejection reason)
         {
-            var dog = await _dataContext.Dogs.Include(d => d.Client).FirstOrDefaultAsync(c => c.ID == dogID);
+            var dog = await _dataContext.Dogs
+                .Include(d => d.Client)
+                .Include(d => d.Reservation)
+                .FirstOrDefaultAsync(c => c.ID == dogID);
 
             if (dog == null || dog.Client == null)
                 return Results.NotFound();
+
+            // create reason for rejection
+            _dataContext.Reasons.Add(reason);
+            await _dataContext.SaveChangesAsync();
 
             // remove payment
             dog.ReservationPaymentURL = string.Empty;
@@ -193,7 +221,9 @@ namespace SouthSideK9Camp.Server.Controller
             // send payment rejection email
             string emailSubject = "SouthSide K9 Camp Board & Train Registration";
             string emailBody = new ComponentRenderer<EmailTemplates.CustomerRegistrationReservationRejection>()
+                .Set(c => c.clientName, dog.Client.FirstName + " " + dog.Client.LastName)
                 .Set(c => c.dogGUID, dog.GUID.ToString())
+                .Set(c => c.reason, reason)
                 .Set(c => c.host, _configuration["Host"])
                 .Render();
             await _smtp.SendEmailAsync(dog.Client.Email, emailSubject, emailBody);

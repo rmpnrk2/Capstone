@@ -2,8 +2,14 @@
 @inject ISnackbar Snackbar
 
 @using FluentValidation
+@using MudBlazor
 
 <MudDialog>
+
+    @* dialog content *@
+    <TitleContent>
+        Create Reservation
+    </TitleContent>
 
     @* dialog content *@
     <DialogContent>
@@ -12,23 +18,14 @@
 
             <MudStack Spacing="2" >
 
-                    <MudTextField @bind-Value="_reservation.Name" For="@(() => _reservation.Name)" Label="Title" Variant="Variant.Outlined" FullWidth />
+                <MudTextField @bind-Value="_reservation.Name" For="@(() => _reservation.Name)" Label="Title" Variant="Variant.Outlined" FullWidth />
 
-                    <MudDatePicker @bind-Date="_reservation.StartingDate" Label="Starting Date" Variant="Variant.Outlined" ShowToolbar="false" IsDateDisabledFunc="@((DateTime dt)=>(
-                        (int)dt.Year < DateTime.UtcNow.Year ||
-                        ((int)dt.Year == DateTime.UtcNow.Year && (int)dt.Month < DateTime.UtcNow.Month) ||
-                        ((int)dt.Year == DateTime.UtcNow.Year && (int)dt.Month == DateTime.UtcNow.Month && (int)dt.Day < DateTime.UtcNow.Day) ||
-                        ((int)dt.Year > _reservation.StartingDate?.Year ||
-                        ((int)dt.Year == _reservation.StartingDate?.Year && (int)dt.Month > _reservation.StartingDate?.Month) ||
-                        ((int)dt.Year == _reservation.StartingDate?.Year && (int)dt.Month == _reservation.StartingDate?.Month && (int)dt.Day >= _reservation.EndingDate?.Day)) && 
-                        _reservation.EndingDate == null))" />
-
-                    <MudDatePicker @bind-Date="_reservation.EndingDate" Label="Ending Date" Variant="Variant.Outlined" ShowToolbar="false" IsDateDisabledFunc="@((DateTime dt) =>(
-                        (int)dt.Year < _reservation.StartingDate?.Year ||
-                        ((int)dt.Year == _reservation.StartingDate?.Year && (int)dt.Month < _reservation.StartingDate?.Month) ||
-                        ((int)dt.Year == _reservation.StartingDate?.Year && (int)dt.Month == _reservation.StartingDate?.Month && (int)dt.Day <= _reservation.StartingDate?.Day)))" />
+                <MudDatePicker @bind-Date="_reservation.StartingDate" Label="Starting Date" Variant="Variant.Outlined" ShowToolbar="false" IsDateDisabledFunc="@((DateTime dt)=>(
+                    (int)dt.Year < DateTime.UtcNow.Year ||
+                    ((int)dt.Year == DateTime.UtcNow.Year && (int)dt.Month < DateTime.UtcNow.Month) ||
+                    ((int)dt.Year == DateTime.UtcNow.Year && (int)dt.Month == DateTime.UtcNow.Month && (int)dt.Day < DateTime.UtcNow.Day)))" />
                     
-                    <MudNumericField @bind-Value="_reservation.Slots" For="@(() => _reservation.Slots)" Label="Slots" Variant="Variant.Outlined" FullWidth />
+                <MudNumericField @bind-Value="_reservation.Slots" For="@(() => _reservation.Slots)" Label="Slots" Variant="Variant.Outlined" FullWidth />
 
             </MudStack>
 
@@ -37,7 +34,7 @@
 
     @* dialog button *@
     <DialogActions>
-        <MudButton OnClick="_SubmitAsync" Variant="Variant.Filled" Color="Color.Primary">Continue</MudButton>
+        <MudButton OnClick="@_SubmitAsync" Variant="Variant.Filled" Color="Color.Primary">Continue</MudButton>
         <MudButton OnClick="@_Cancel" Variant="Variant.Filled">Cancel</MudButton>
     </DialogActions>
 
@@ -60,11 +57,9 @@
     {
         if (!_formContext!.Validate()) return;
 
-        MudDialog!.Close();
         await HttpClient.Reservation.AddAsync(_reservation);
-        Snackbar.Add("Added new Reservation");
-
-        return;
+        Snackbar.Add("Added new Reservation", MudBlazor.Severity.Success);
+        MudDialog!.Close();
     }
 
     // close dialog

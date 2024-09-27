@@ -1,4 +1,5 @@
 ﻿@page "/membership-registration-payment/{clientGuid}";
+@page "/membership-registration-payment/{clientGuid}/{reasonGUID}";
 
 @inject SouthSideK9CampHttpClient HttpClient
 @inject NavigationManager NavigationManager
@@ -10,6 +11,12 @@
     <MudStack>
 
     <MudText Typo="Typo.h4">SouthSide K9 Membership Payment</MudText>
+
+    @* display reason for rejection *@
+    @if(reason.ID != 0)
+    {
+        <MudAlert Severity="MudBlazor.Severity.Warning">Your previous payment was rejected: @reason.Reason</MudAlert>
+    }
 
      @* editform for membership payment *@
     <EditForm EditContext="@_FormContext" OnValidSubmit="@_SubmitAsync" Context="context">
@@ -45,9 +52,12 @@
 @code
 {
     [Parameter] public string clientGUID { get; set; } = string.Empty;
+    [Parameter] public string? reasonGUID { get; set; } = string.Empty;
+
+    private Shared.ReasonForRejection reason = new();
+    Shared.Client? client = new();
 
     // on parameter set
-    Shared.Client? client = new();
     protected override async Task OnParametersSetAsync()
     {
         client = await HttpClient.Member.GetByGuid(clientGUID);

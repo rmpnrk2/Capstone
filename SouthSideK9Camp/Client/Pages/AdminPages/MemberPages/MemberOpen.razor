@@ -5,6 +5,7 @@
 @inject SouthSideK9CampHttpClient HttpClient
 @inject NavigationManager NavigationManager
 @inject ISnackbar Snackbar
+@inject IDialogService DialogService
 
 @using FluentValidation
 
@@ -190,7 +191,7 @@
     {
         _editModeButtonsDisplay = "display: none";
         _editButtonDisplay = string.Empty;
-        await _RefreshData();
+        await _RefreshDataAsync();
     }
 
     // edit
@@ -248,17 +249,38 @@
         {
         }
     }
+
+    // aprrove payment
     private async Task _Approve()
     {
         await HttpClient.Member.ApprovePaymentAsync(_client.ID);
-        await _RefreshData();
+        await _RefreshDataAsync();
         Snackbar.Add("Approved succesfully", MudBlazor.Severity.Success);
     }
-    private async Task _Reject()
+
+    // reject payment
+    private async Task _Reject(int clientID)
     {
-        await HttpClient.Member.RejectPaymentAsync(_client.ID);
-        await _RefreshData();
-        Snackbar.Add("Reject", MudBlazor.Severity.Error);
+        var dialog = await DialogService.ShowAsync<MemberPageComponents.RejectPaymentDialog>(string.Empty,
+        new DialogParameters<MemberPageComponents.RejectPaymentDialog>
+        {
+            { d => d.clientID, clientID },
+        },
+        new DialogOptions()
+        {
+            BackdropClick = false,
+            MaxWidth = MaxWidth.Medium,
+            FullWidth = true,
+            CloseButton = true,
+            CloseOnEscapeKey = true
+        });
+
+        // on dialog close
+        var result = await dialog.Result;
+        if (result != null && !result.Canceled)
+        {
+            await _RefreshDataAsync();
+        }
     }
 
     // wheredidyouhearaboutus autocomplete
@@ -292,7 +314,7 @@
     }
 
 
-    private async Task _RefreshData()
+    private async Task _RefreshDataAsync()
     {
         _clients = await HttpClient.Client.FetchAsync();
         _client = _clients.FirstOrDefault(c => c.ID == clientID) ?? new();

@@ -169,8 +169,9 @@ namespace SouthSideK9Camp.Server.Controller
         }
 
         // invoice payment reject
-        [HttpPut("payment-reject/{invoiceID}")] public async Task<IResult> RejectPaymentAsync(int invoiceID)
+        [HttpPut("payment-reject/{invoiceID}")] public async Task<IResult> RejectPaymentAsync(int invoiceID, Shared.ReasonForRejection reason)
         {
+            // find invoice
              Shared.Invoice? invoice = await _dataContext.Invoices
                 .Include(i => i.Items)
                 .Include(i => i.Dog)
@@ -179,6 +180,11 @@ namespace SouthSideK9Camp.Server.Controller
 
             if (invoice == null) return Results.NotFound();
 
+            // create reason for rejection
+            _dataContext.Reasons.Add(reason);
+            await _dataContext.SaveChangesAsync();
+
+            // remove payment
             invoice.ProofOfPaymentURL = string.Empty;
             await _dataContext.SaveChangesAsync();
 
@@ -187,6 +193,7 @@ namespace SouthSideK9Camp.Server.Controller
             string emailBody = new ComponentRenderer<EmailTemplates.InvoicePaymentRejection>()
                 .Set(c => c.invoice, invoice)
                 .Set(c => c.host, _configuration["Host"])
+                .Set(c => c.reason, reason)
                 .Render();
             await _smtp.SendEmailAsync(invoice.Dog?.Client?.Email ?? string.Empty, emailSubject, emailBody);
 

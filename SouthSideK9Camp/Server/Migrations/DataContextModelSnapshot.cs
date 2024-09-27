@@ -614,6 +614,29 @@ namespace SouthSideK9Camp.Server.Migrations
                     b.ToTable("ProgressReports");
                 });
 
+            modelBuilder.Entity("SouthSideK9Camp.Shared.ReasonForRejection", b =>
+                {
+                    b.Property<int>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ID"));
+
+                    b.Property<DateTime>("DateCreated")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("GUID")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("ID");
+
+                    b.ToTable("Reasons");
+                });
+
             modelBuilder.Entity("SouthSideK9Camp.Shared.Reservation", b =>
                 {
                     b.Property<int>("ID")

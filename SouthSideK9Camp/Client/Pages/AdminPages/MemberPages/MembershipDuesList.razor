@@ -1,7 +1,9 @@
 ﻿@using System.Text.Json
-@inject NavigationManager NavigationManager;
-@inject SouthSideK9CampHttpClient HttpClient;
-@inject ISnackbar Snackbar;
+
+@inject NavigationManager NavigationManager
+@inject SouthSideK9CampHttpClient HttpClient
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
 
 <MudStack>
 
@@ -174,17 +176,38 @@
         });
         if (result != null) { }
     }
+
+    // approve payment
     private async Task _Approve(int membershipDueID)
     {
         await HttpClient.MembershipDue.ApprovePaymentAsync(membershipDueID);
         await _RefreshDataAsync();
         Snackbar.Add("Approved succesfully", Severity.Success);
     }
+
+    // reject payment
     private async Task _Reject(int membershipDueID)
     {
-        await HttpClient.MembershipDue.RejectPaymentAsync(membershipDueID);
-        await _RefreshDataAsync();
-        Snackbar.Add("Reject", Severity.Error);
+        var dialog = await DialogService.ShowAsync<MemberPageComponents.RejectDueDialog>(string.Empty,
+        new DialogParameters<MemberPageComponents.RejectDueDialog>
+        {
+            { d => d.membershipDueID, membershipDueID },
+        },
+        new DialogOptions()
+        {
+            BackdropClick = false,
+            MaxWidth = MaxWidth.Medium,
+            FullWidth = true,
+            CloseButton = true,
+            CloseOnEscapeKey = true
+        });
+
+        // on dialog close
+        DialogResult? result = await dialog.Result;
+        if (result != null && !result.Canceled)
+        {
+            await _RefreshDataAsync();
+        }
     }
 
     // refresh data

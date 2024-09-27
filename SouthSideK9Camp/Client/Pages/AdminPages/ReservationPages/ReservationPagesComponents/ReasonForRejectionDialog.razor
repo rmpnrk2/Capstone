@@ -1,0 +1,62 @@
+﻿@inject SouthSideK9CampHttpClient HttpClient
+@inject ISnackbar Snackbar
+
+<MudDialog>
+
+    @* dialog content *@
+    <TitleContent>
+        <MudText Typo="Typo.h6">Reason For Rejection</MudText>
+    </TitleContent>
+
+    @* dialog content *@
+    <DialogContent>
+        <EditForm EditContext="@_editContext">
+
+            <FluentValidationValidator />
+
+            <MudTextField @bind-Value="_reason.Reason" For="@(() => _reason.Reason)" Label="Reason for rejection" Variant="Variant.Outlined" AutoGrow />
+
+        </EditForm>
+    </DialogContent>
+
+    @* dialog button *@
+    <DialogActions>
+        <MudButton OnClick="@_SubmitAsync" Variant="Variant.Filled" Color="Color.Error">Reject</MudButton>
+    </DialogActions>
+
+</MudDialog>
+
+@code
+{
+
+    [CascadingParameter] private MudDialogInstance MudDialog { get; set; } = new();
+
+    [Parameter] public int dogID { get; set; } = new();
+
+    // form model
+    private EditContext? _editContext;
+    private Shared.ReasonForRejection _reason = new();
+
+    protected override void OnInitialized()
+    {
+        _editContext = new EditContext(_reason);
+    }
+
+    // submit form
+    private async Task _SubmitAsync()
+    {
+
+        if (!_editContext!.Validate()) return;
+
+        MudDialog.Close();
+
+        await HttpClient.Customer.RejectPaymentAsync(dogID, _reason);  
+
+        Snackbar.Add("Rejected", MudBlazor.Severity.Error);
+
+        MudDialog.Close();
+    }
+
+    // close dialog
+    private void _Cancel() => MudDialog.Cancel();
+}

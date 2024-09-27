@@ -17,7 +17,10 @@
 
                 <MudImage Src="Images/logoname.jpg" Height="50" Class="ml-16" />
                 <MudSpacer />
-                <MudLink OnClick="@_Home" Typo="Typo.body1" Color="Color.Dark">HOME</MudLink>
+                <MudStack Row>
+                    <MudLink OnClick="@_Anchor" Href="javascript:void(0)" Typo="Typo.body1" Color="Color.Dark">JOIN US</MudLink>
+                    <MudLink OnClick="@_Home" Typo="Typo.body1" Color="Color.Dark">HOME</MudLink>
+                </MudStack>
 
             </MudHidden>
 
@@ -43,5 +46,10 @@
     private void _Home()
     {
         NavigationManager.NavigateTo("/");
+    }
+
+    private void _Anchor()
+    {
+        NavigationManager.NavigateTo(NavigationManager.BaseUri + "#join-us", forceLoad: true);
     }
 }

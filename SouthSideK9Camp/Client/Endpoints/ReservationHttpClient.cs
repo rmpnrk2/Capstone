@@ -59,5 +59,5 @@ public class ReservationHttpClient
 
     // delete
     public async Task DeleteAsync(int id) =>
-        await _httpClient.DeleteAsync($"clients/{id}");
+        await _httpClient.DeleteAsync($"reservations/{id}");
 }

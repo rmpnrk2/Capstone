@@ -1,4 +1,5 @@
 ﻿@page "/invoice-payment/{invoiceGuid}";
+@page "/invoice-payment/{invoiceGuid}/{reasonGUID}";
 
 @inject SouthSideK9CampHttpClient HttpClient
 @inject NavigationManager NavigationManager
@@ -11,87 +12,94 @@
 
     <MudText Typo="Typo.h4">SouthSide K9 Membership Payment</MudText>
 
-        <MudStack Spacing="1" Class="mt-3">
+    @* display reason for rejection *@
+    @if (reason.ID != 0)
+    {
+        <MudAlert Severity="MudBlazor.Severity.Warning">Your previous payment was rejected: @reason.Reason</MudAlert>
+    }
+    
+    @* statement of account table *@
+    <MudStack Spacing="1" Class="mt-3">
 
-            @* header *@
-            <MudPaper Class="pa-3">
+        @* header *@
+        <MudPaper Class="pa-3">
 
-                @* title *@
-                <MudText Color="Color.Primary" Typo="Typo.h6">Statement of Account #@_invoice.ID</MudText>
+            @* title *@
+            <MudText Color="Color.Primary" Typo="Typo.h6">Statement of Account #@_invoice.ID</MudText>
 
-                @* info *@
-                <MudGrid Justify="Justify.SpaceBetween">
-                    <MudItem xs="12" sm="6">
-                        <MudStack Spacing="1">
-                            <MudStack Row AlignItems="AlignItems.Center">
-                                <MudText Style="width: 8rem" Typo="Typo.body2">Company Name:</MudText>
-                                <MudText Typo="Typo.body1">@_invoice.CompanyName</MudText>
-                            </MudStack>
-                            <MudStack Row AlignItems="AlignItems.Center">
-                                <MudText Style="width: 8rem" Typo="Typo.body2">Company Address:</MudText>
-                                <MudText Typo="Typo.body1">@_invoice.CompanyAddress</MudText>
-                            </MudStack>
-                            <MudStack Row AlignItems="AlignItems.Center">
-                                <MudText Style="width: 8rem" Typo="Typo.body2">Company ZIP Code:</MudText>
-                                <MudText Typo="Typo.body1">@_invoice.CompanyZIPCode</MudText>
-                            </MudStack>
-                            <MudStack Row AlignItems="AlignItems.Center">
-                                <MudText Style="width: 8rem" Typo="Typo.body2">Company Phone:</MudText>
-                                <MudText Typo="Typo.body1">@_invoice.CompanyPhone</MudText>
-                            </MudStack>
+            @* info *@
+            <MudGrid Justify="Justify.SpaceBetween">
+                <MudItem xs="12" sm="6">
+                    <MudStack Spacing="1">
+                        <MudStack Row AlignItems="AlignItems.Center">
+                            <MudText Style="width: 8rem" Typo="Typo.body2">Company Name:</MudText>
+                            <MudText Typo="Typo.body1">@_invoice.CompanyName</MudText>
                         </MudStack>
-                    </MudItem>
-                    <MudItem xs="12" sm="6">
-                        <MudStack Spacing="1">
-                            <MudStack Row AlignItems="AlignItems.Center">
-                                <MudText Style="width: 8rem" Typo="Typo.body2">Date:</MudText>
-                                <MudText Typo="Typo.body1">@_invoice.DateCreated.ToString("dddd, dd MMMM yyyy")</MudText>
-                            </MudStack>
-                            <MudStack Row AlignItems="AlignItems.Center">
-                                <MudText Style="width: 8rem" Typo="Typo.body2">Date Due:</MudText>
-                                <MudText Typo="Typo.body1">@_invoice.DateDue?.ToString("dddd, dd MMMM yyyy")</MudText>
-                            </MudStack>
-                            <MudStack Row AlignItems="AlignItems.Center">
-                                <MudText Style="width: 8rem" Typo="Typo.body2">Account Name:</MudText>
-                                <MudText Typo="Typo.body1">@_invoice.AccountName</MudText>
-                            </MudStack>
-                            <MudStack Row AlignItems="AlignItems.Center">
-                                <MudText Style="width: 8rem" Typo="Typo.body2">Account Address:</MudText>
-                                <MudText Typo="Typo.body1">@_invoice.AccountAddress</MudText>
-                            </MudStack>
-                            <MudStack Row AlignItems="AlignItems.Center">
-                                <MudText Style="width: 8rem" Typo="Typo.body2">Account Balance:</MudText>
-                                <MudText Typo="Typo.body1" Color="Color.Tertiary">@_invoice.Balance.ToString("F2") PHP</MudText>
-                            </MudStack>
+                        <MudStack Row AlignItems="AlignItems.Center">
+                            <MudText Style="width: 8rem" Typo="Typo.body2">Company Address:</MudText>
+                            <MudText Typo="Typo.body1">@_invoice.CompanyAddress</MudText>
                         </MudStack>
-                    </MudItem>
-                </MudGrid>
+                        <MudStack Row AlignItems="AlignItems.Center">
+                            <MudText Style="width: 8rem" Typo="Typo.body2">Company ZIP Code:</MudText>
+                            <MudText Typo="Typo.body1">@_invoice.CompanyZIPCode</MudText>
+                        </MudStack>
+                        <MudStack Row AlignItems="AlignItems.Center">
+                            <MudText Style="width: 8rem" Typo="Typo.body2">Company Phone:</MudText>
+                            <MudText Typo="Typo.body1">@_invoice.CompanyPhone</MudText>
+                        </MudStack>
+                    </MudStack>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudStack Spacing="1">
+                        <MudStack Row AlignItems="AlignItems.Center">
+                            <MudText Style="width: 8rem" Typo="Typo.body2">Date:</MudText>
+                            <MudText Typo="Typo.body1">@_invoice.DateCreated.ToString("dddd, dd MMMM yyyy")</MudText>
+                        </MudStack>
+                        <MudStack Row AlignItems="AlignItems.Center">
+                            <MudText Style="width: 8rem" Typo="Typo.body2">Date Due:</MudText>
+                            <MudText Typo="Typo.body1">@_invoice.DateDue?.ToString("dddd, dd MMMM yyyy")</MudText>
+                        </MudStack>
+                        <MudStack Row AlignItems="AlignItems.Center">
+                            <MudText Style="width: 8rem" Typo="Typo.body2">Account Name:</MudText>
+                            <MudText Typo="Typo.body1">@_invoice.AccountName</MudText>
+                        </MudStack>
+                        <MudStack Row AlignItems="AlignItems.Center">
+                            <MudText Style="width: 8rem" Typo="Typo.body2">Account Address:</MudText>
+                            <MudText Typo="Typo.body1">@_invoice.AccountAddress</MudText>
+                        </MudStack>
+                        <MudStack Row AlignItems="AlignItems.Center">
+                            <MudText Style="width: 8rem" Typo="Typo.body2">Account Balance:</MudText>
+                            <MudText Typo="Typo.body1" Color="Color.Tertiary">@_invoice.Balance.ToString("F2") PHP</MudText>
+                        </MudStack>
+                    </MudStack>
+                </MudItem>
+            </MudGrid>
 
-            </MudPaper>
+        </MudPaper>
 
-            @* items *@
-            <MudTable Items="@_invoice.Items" Dense Hover>
+        @* items *@
+        <MudTable Items="@_invoice.Items" Dense Hover>
 
-                <HeaderContent>
-                    <MudTh>Date</MudTh>
-                    <MudTh>Name</MudTh>
-                    <MudTh>Description</MudTh>
-                    <MudTh>Quantity</MudTh>
-                    <MudTh>Price</MudTh>
-                    <MudTh>Total</MudTh>
-                </HeaderContent>
+            <HeaderContent>
+                <MudTh>Date</MudTh>
+                <MudTh>Name</MudTh>
+                <MudTh>Description</MudTh>
+                <MudTh>Quantity</MudTh>
+                <MudTh>Price</MudTh>
+                <MudTh>Total</MudTh>
+            </HeaderContent>
 
-                <RowTemplate>
-                    <MudTd DataLabel="Date">@context.Date?.ToString("dd MMMM yyyy")</MudTd>
-                    <MudTd DataLabel="Name">@context.Name</MudTd>
-                    <MudTd DataLabel="Description">@context.Description</MudTd>
-                    <MudTd DataLabel="Quantity">@(context.Quantity + " " + context.Unit)</MudTd>
-                    <MudTd DataLabel="Price">@context.Price.ToString("F2") PHP</MudTd>
-                    <MudTd DataLabel="Total">@((context.Total).ToString("F2")) PHP</MudTd>
-                </RowTemplate>
+            <RowTemplate>
+                <MudTd DataLabel="Date">@context.Date?.ToString("dd MMMM yyyy")</MudTd>
+                <MudTd DataLabel="Name">@context.Name</MudTd>
+                <MudTd DataLabel="Description">@context.Description</MudTd>
+                <MudTd DataLabel="Quantity">@(context.Quantity + " " + context.Unit)</MudTd>
+                <MudTd DataLabel="Price">@context.Price.ToString("F2") PHP</MudTd>
+                <MudTd DataLabel="Total">@((context.Total).ToString("F2")) PHP</MudTd>
+            </RowTemplate>
 
-            </MudTable>
-        </MudStack>
+        </MudTable>
+    </MudStack>
 
      @* editform for membership payment *@
     <EditForm EditContext="@_formContext" OnValidSubmit="@_SubmitAsync" Context="context">
@@ -127,9 +135,12 @@
 @code
 {
     [Parameter] public string invoiceGUID { get; set; } = string.Empty;
+    [Parameter] public string? reasonGUID { get; set; } = string.Empty;
+
+    private Shared.ReasonForRejection reason = new();
+    private Shared.Invoice _invoice = new();
 
     // on parameter set
-    private Shared.Invoice _invoice = new();
     protected override async Task OnParametersSetAsync()
     {
         _invoice = await HttpClient.Invoice.GetByGuid(invoiceGUID);

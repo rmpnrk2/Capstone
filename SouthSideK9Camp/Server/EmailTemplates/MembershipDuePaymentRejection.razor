@@ -41,6 +41,9 @@
 			To avoid any disruption of our service, we kindly request you to resubmit your payment details using the link provided below:
 		</p>
 		<br />
+		<h6>Reason For Rejection:</h6>
+		<p>@reason.Reason</p>
+		<br />
 		<h6>Payment Details:</h6>
 		<p>Membership Fee: 3000 php</p>
 		<p>Due: @dueDate.ToString("dd MMMM yyyy")</p>
@@ -60,11 +63,12 @@
 	[Parameter] public string membershipDueGUID { get; set; } = string.Empty;
 	[Parameter] public string host { get; set; } = string.Empty;
 	[Parameter] public DateTime dueDate { get; set; }
+	[Parameter] public Shared.ReasonForRejection reason { get; set; } = new();
 
 	private string? link;
 	protected override void OnInitialized()
 	{
-		link = $"{host}/membership-due-payment/{membershipDueGUID}";
+		link = $"{host}/membership-due-payment/{membershipDueGUID}/{reason.GUID}";
 		base.OnInitialized();
 	}
 }

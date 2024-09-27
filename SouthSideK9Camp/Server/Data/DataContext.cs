@@ -18,4 +18,5 @@ public class DataContext : DbContext
     public DbSet<Shared.ProgressReport> ProgressReports => Set<Shared.ProgressReport>();
     public DbSet<Shared.Reservation> Reservations => Set<Shared.Reservation>();
     public DbSet<Shared.User> Users => Set<Shared.User>();
+    public DbSet<Shared.ReasonForRejection> Reasons => Set<Shared.ReasonForRejection>();
 }

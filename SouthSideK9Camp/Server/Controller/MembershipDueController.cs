@@ -113,15 +113,20 @@ namespace SouthSideK9Camp.Server.Controller
         }
 
         // membership due payment reject
-        [HttpPut("payment-reject/{membershipDueID}")] public async Task<IResult> RejectDuePaymentAsync(int membershipDueID)
+        [HttpPut("payment-reject/{membershipDueID}")] public async Task<IResult> RejectDuePaymentAsync(int membershipDueID, Shared.ReasonForRejection reason)
         {
+            // find membership
             Shared.MembershipDue? membershipDue = await _dataContext.MembershipDues
                 .Include(d => d.Member).ThenInclude(m => m!.Client)
                 .FirstOrDefaultAsync(d => d.ID == membershipDueID);
 
-            if(membershipDue == null)
-                return Results.NotFound();
+            if(membershipDue == null) return Results.NotFound();
 
+            // create reason for rejection
+            _dataContext.Reasons.Add(reason);
+            await _dataContext.SaveChangesAsync();
+
+            // remove payment
             membershipDue.ProofOfPaymentURL = string.Empty;
 
             await _dataContext.SaveChangesAsync();
@@ -133,6 +138,7 @@ namespace SouthSideK9Camp.Server.Controller
                 .Set(c => c.membershipDueGUID, membershipDue.GUID.ToString())
                 .Set(c => c.host, _configuration["Host"])
                 .Set(c => c.dueDate, membershipDue.DateTimeDue)
+                .Set(c => c.reason, reason)
                 .Render();
             await _smtp.SendEmailAsync(membershipDue.Member?.Client?.Email ?? string.Empty, emailSubject, emailBody);
 

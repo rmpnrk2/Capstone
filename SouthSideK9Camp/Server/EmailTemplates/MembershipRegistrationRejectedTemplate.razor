@@ -41,6 +41,9 @@
 			To avoid any disruption, we kindly request you to resubmit your payment details using the link provided below:
 		</p>
 		<br />
+		<h6>Reason For Rejection:</h6>
+		<p>@reason.Reason</p>
+		<br />
 		<h6>Payment Details:</h6>
 		<p>Membership Registration Fee: 300 php</p>
 		<br />
@@ -57,11 +60,13 @@
 	[Parameter] public string clientName { get; set; } = string.Empty;
 	[Parameter] public string client_guid { get; set; } = string.Empty;
 	[Parameter] public string host { get; set; } = string.Empty;
+	[Parameter] public Shared.ReasonForRejection reason { get; set; } = new();
+
 
 	private string? link;
 	protected override void OnInitialized()
 	{
-		link = $"{host}/membership-registration-payment/{client_guid}";
+		link = $"{host}/membership-registration-payment/{client_guid}/{reason.GUID}";
 		base.OnInitialized();
 	}
 }

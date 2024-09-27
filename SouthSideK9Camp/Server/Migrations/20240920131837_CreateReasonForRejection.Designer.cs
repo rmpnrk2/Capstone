@@ -12,8 +12,8 @@ using SouthSideK9Camp.Server.Data;
 namespace SouthSideK9Camp.Server.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20240913140825_InitialMigration")]
-    partial class InitialMigration
+    [Migration("20240920131837_CreateReasonForRejection")]
+    partial class CreateReasonForRejection
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -615,6 +615,29 @@ namespace SouthSideK9Camp.Server.Migrations
                     b.HasIndex("DogID");
 
                     b.ToTable("ProgressReports");
+                });
+
+            modelBuilder.Entity("SouthSideK9Camp.Shared.ReasonForRejection", b =>
+                {
+                    b.Property<int>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ID"));
+
+                    b.Property<DateTime>("DateCreated")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("GUID")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("ID");
+
+                    b.ToTable("Reasons");
                 });
 
             modelBuilder.Entity("SouthSideK9Camp.Shared.Reservation", b =>

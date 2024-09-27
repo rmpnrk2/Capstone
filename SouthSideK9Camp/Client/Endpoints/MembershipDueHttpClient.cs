@@ -40,8 +40,8 @@ public class MembershipDueHttpClient
         await _httpClient.PutAsync($"membership-dues/payment-approve/{membershipDueID}", null);
 
     // reject membershipdue payment
-    public async Task RejectPaymentAsync(int membershipDueID) =>
-        await _httpClient.PutAsync($"membership-dues/payment-reject/{membershipDueID}", null);
+    public async Task RejectPaymentAsync(int membershipDueID, Shared.ReasonForRejection reason) =>
+        await _httpClient.PutAsJsonAsync($"membership-dues/payment-reject/{membershipDueID}", reason);
 
     // notify membershipdue
     public async Task NotifyAsync() =>

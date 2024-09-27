@@ -1,15 +1,23 @@
 ﻿@page "/customer-registration-payment/{dogGUID}";
+@page "/customer-registration-payment/{dogGUID}/{reasonGUID}";
 
 @inject SouthSideK9CampHttpClient HttpClient
 @inject NavigationManager NavigationManager
 
 @using System.Net.Http.Headers
 @using FluentValidation
+@using MudBlazor
 
 <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-16 mb-16">
     <MudStack>
 
         <MudText Typo="Typo.h4">SouthSide K9 Reservation Payment</MudText>
+
+        @* display reason for rejection *@
+        @if(reason.ID != 0)
+        {
+            <MudAlert Severity="MudBlazor.Severity.Warning">Your previous payment was rejected: @reason.Reason</MudAlert>
+        }
 
         @* editform for membership payment *@
         <EditForm EditContext="@_FormContext" OnValidSubmit="@_SubmitAsync" Context="context">
@@ -45,9 +53,12 @@
 @code
 {
     [Parameter] public string dogGUID { get; set; } = string.Empty;
+    [Parameter] public string? reasonGUID { get; set; } = string.Empty;
 
     // on parameter set
     Shared.Dog? dog = new();
+    Shared.ReasonForRejection reason = new();
+
     protected override async Task OnParametersSetAsync()
     {
         dog = await HttpClient.Dog.GetByGuid(dogGUID);
@@ -62,6 +73,8 @@
         if (dog.ReservationPaymentURL != string.Empty)
             NavigationManager.NavigateTo($"/customer-registration-payment-submitted/{dogGUID}");
 
+        // get reason for rejection
+        if(reasonGUID != null) reason = await HttpClient.Reason.GetByGUIDAsync(reasonGUID);
     }
 
     // form context with validation
