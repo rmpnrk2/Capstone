@@ -131,18 +131,20 @@ namespace SouthSideK9Camp.Server.Controller
         // approve membership payment
         [HttpPut("payment-approve/{clientID}")] public async Task<IResult> ApproveAsync(int clientID)
         {
-            var client = await _dataContext.Clients.Include(c => c.Member).FirstOrDefaultAsync(c => c.ID == clientID);
-            if (client != null)
-                if(client.Member != null)
-                {
-                    client.Member.RegistrationConfirmed = true;
+            // find client
+            var client = await _dataContext.Clients
+                .Include(c => c.Member).ThenInclude(m => m.MembershipDues)
+                .FirstOrDefaultAsync(c => c.ID == clientID);
 
-                    // create membership due
-                    client.Member.MembershipDues.Add(new());
-                    await _dataContext.SaveChangesAsync();
+            if (client == null || client.Member == null)
+                return Results.NoContent();
 
-                    return Results.NoContent();
-                }
+            client.Member.RegistrationConfirmed = true;
+
+            // create membership due
+            client.Member.MembershipDues.Add(new());
+            await _dataContext.SaveChangesAsync();
+
             return Results.NotFound();
         }
 
@@ -163,7 +165,7 @@ namespace SouthSideK9Camp.Server.Controller
             await _dataContext.SaveChangesAsync();
 
             // send email
-            string emailSubject = "SouthSide K9 Camp Membership Registration";
+            string emailSubject = "SouthSideK9 Camp Membership Registration Payment Unsuccessful";
             string emailBody = new ComponentRenderer<EmailTemplates.MembershipRegistrationRejectedTemplate>()
                 .Set(c => c.clientName, client.FirstName + " " + client.LastName)
                 .Set(c => c.client_guid, client.Member.GUID.ToString())

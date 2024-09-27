@@ -15,7 +15,7 @@
         <MudText Typo="Typo.body1">Your payment submission has been received. You may now safely close this website and wait for the approval of your payment.</MudText>
         <MudText Typo="Typo.body1">We will notify you once the payment has been successfully processed. If you have any questions in the meantime, please don't hesitate to contact us.</MudText>
         <MudText Typo="Typo.body1">If you wish to make changes to your payment submission, please click the link below:</MudText>
-        <MudButton OnClick="_SubmitAsync" Disabled="@_resubmitButtonDisabled" Variant="Variant.Outlined">Resubmit Payment</MudButton>
+        <MudButton OnClick="_SubmitAsync" Disabled="@_resubmitButtonDisabled" Variant="Variant.Outlined" FullWidth>Resubmit Payment</MudButton>
         <MudProgressLinear Style="@_linearProgressBar" Color="Color.Primary" Indeterminate="true" />
 
     </MudStack>
@@ -46,7 +46,7 @@
 
         if (_dog.ReservationPaymentConfirmed)
         {
-            NavigationManager.NavigateTo("/customer-registration-payment-confirmed/{dogGUID}");
+            NavigationManager.NavigateTo($"/customer-registration-payment-confirmed/{dogGUID}");
 
             return;
         }

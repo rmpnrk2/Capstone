@@ -1,5 +1,6 @@
 ﻿@page "/customer-registration-payment-confirmed/{dogGUID}";
 
+@inject SouthSideK9CampHttpClient HttpClient
 @inject NavigationManager NavigationManager
 
 <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-16 mb-16">
@@ -7,13 +8,32 @@
     <MudText Typo="Typo.h4">SouthSide K9 Reservation Paynent</MudText>
     <MudText Typo="Typo.body1">Your payment has been   succesfully and have been approved. You may now safely close this website.</MudText>
 
+    <MudStack Class="my-6" AlignItems="AlignItems.Start">
+        <MudText Typo="Typo.body1">Proof of Payment:</MudText>
+        <MudImage Src="@_imageString" Height="300" />
+    </MudStack>
+
+
     <MudButton OnClick="@_Return" Color="Color.Primary">Return to Homepage</MudButton>
 
 </MudContainer>
 
 @code
 {
-    [Parameter] public string? dogGUID { get; set; }
+    [Parameter] public string dogGUID { get; set; } = string.Empty;
+
+    private Shared.Dog? _dog = new();
+    private string _imageString = string.Empty;
+
+    // on parameter set
+    protected override async Task OnParametersSetAsync()
+    {
+        _dog = await HttpClient.Dog.GetByGuid(dogGUID);
+
+        if (_dog == null) return;
+
+        _imageString = _dog.ReservationPaymentURL;
+    }
 
     private void _Return()
     {

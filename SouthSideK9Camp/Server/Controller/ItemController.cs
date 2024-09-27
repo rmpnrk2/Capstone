@@ -45,6 +45,7 @@ namespace SouthSideK9Camp.Server.Controller
         // add
         [HttpPost("{invoiceID}")] public async Task<IResult> PostAsync(int invoiceID, Shared.Item item)
         {
+            // add item
             item.ID = 0;
             item.isModel = false;
             item.InvoiceID = invoiceID;
@@ -52,7 +53,14 @@ namespace SouthSideK9Camp.Server.Controller
             _dataContext.Items.Add(item);
             await _dataContext.SaveChangesAsync();
 
+            // recalculate invoice price
+            Shared.Invoice? invoice = await _dataContext.Invoices.Include(i => i.Items)
+                .FirstOrDefaultAsync(i => i.ID == item.InvoiceID);
 
+            if(invoice != null) invoice.CalculateBalance();
+            _dataContext.SaveChanges();
+
+            // return result
             var json = JsonConvert.SerializeObject(item, new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
             Shared.Item deserializedItem = JsonConvert.DeserializeObject<Shared.Item>(json)!;
             return Results.CreatedAtRoute("GetItem", new {itemID = item.ID}, deserializedItem);

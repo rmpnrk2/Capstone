@@ -30,6 +30,10 @@ public class ClientHttpClient
     // get by id
     public async Task<Shared.Client?> GetByIDAsync(int id) =>
         await _httpClient.GetFromJsonAsync<Shared.Client>($"clients/{id}") ?? null;
+    
+    // get by email
+    public async Task<Shared.Client> GetByEmailAsync(string clientEmail) =>
+        await _httpClient.GetFromJsonAsync<Shared.Client>($"clients/email/{clientEmail}") ?? new();
 
     // check for email availability when registering as member
     public async Task<bool> CheckCustomerEmailAvailabilityAsync(string email)

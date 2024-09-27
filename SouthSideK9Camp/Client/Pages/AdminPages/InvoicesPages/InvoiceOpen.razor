@@ -10,7 +10,7 @@
 <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-16 mb-16">
     <MudStack>
 
-        <MudText Typo="Typo.h3">Invoice</MudText>
+        <MudText Typo="Typo.h3">Stement of Account</MudText>
 
         @* toolbar *@
         <MudPaper Elevation="2">
@@ -41,31 +41,31 @@
                                 <MudAlert Severity="MudBlazor.Severity.Success" Dense>Approved</MudAlert>
                             </MudItem>
                         }
-                        @if (!invoice.PaymentConfirmed && invoice.ProofOfPaymentURL != string.Empty)
+                        else if (!invoice.PaymentConfirmed && invoice.ProofOfPaymentURL != string.Empty)
                         {
                             <MudItem>
                                 <MudAlert Severity="MudBlazor.Severity.Warning" Dense>Pending</MudAlert>
                             </MudItem>
                         }
-                        @if (!invoice.PaymentConfirmed && invoice.IsEmailed)
+                        else if (!invoice.PaymentConfirmed && invoice.IsEmailed)
                         {
                             <MudItem>
                                 <MudAlert Severity="MudBlazor.Severity.Error" Dense>Not Paid</MudAlert>
                             </MudItem>
                         }
-                        @if (invoice.ProofOfPaymentURL != string.Empty)
+                        else if (invoice.ProofOfPaymentURL != string.Empty)
                         {
                             <MudItem>
                                 <MudButton OnClick="@(() => _ShowReceipt(invoice))" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Receipt">Receipt</MudButton>
                             </MudItem>
                         }
-                        @if (invoice.IsEmailed)
+                        else if (invoice.IsEmailed)
                         {
                             <MudItem Style="@_sentIconDisplay">
                                 <MudButton OnClick="@(() => _EmailInvoice(invoice.ID))" StartIcon="@Icons.Material.Filled.Check" Variant="Variant.Filled" Color="Color.Primary" Disabled="invoice.PaymentConfirmed">Sent</MudButton>
                             </MudItem>
                         }
-                        @if (!invoice.IsEmailed)
+                        else if (!invoice.IsEmailed)
                         {
                             <MudItem>
                                 <MudButton OnClick="@(() => _EmailInvoice(invoice.ID))" StartIcon="@Icons.Material.Filled.Email" Variant="Variant.Filled" Color="Color.Primary">Send</MudButton>

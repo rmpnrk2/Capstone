@@ -31,12 +31,6 @@
                 <MudItem xs="12" sm="6">
                     <MudStack Spacing="1">
 
-                        <MudDatePicker @bind-Date="_invoice.DateDue" For="@(() => _invoice.DateDue)" Label="Due Date" Variant="Variant.Outlined" ShowToolbar="false"
-                            IsDateDisabledFunc="@((DateTime dt) =>(
-                            (int)dt.Year < DateTime.UtcNow.Year ||
-                            ((int)dt.Year == DateTime.UtcNow.Year && (int)dt.Month < DateTime.UtcNow.Month) ||
-                            ((int)dt.Year == DateTime.UtcNow.Year && (int)dt.Month == DateTime.UtcNow.Month && (int)dt.Day < DateTime.UtcNow.Day)))" />
-
                         <MudTextField @bind-Value="_invoice.AccountName" For="@(() => _invoice.AccountName)" Label="Account Name" Variant="Variant.Outlined" />
                         <MudTextField @bind-Value="_invoice.AccountAddress" For="@(() => _invoice.AccountAddress)" Label="Account Address" Variant="Variant.Outlined" />
 

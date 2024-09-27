@@ -189,7 +189,7 @@ namespace SouthSideK9Camp.Server.Controller
             await _dataContext.SaveChangesAsync();
 
             // send rejection email
-            string emailSubject = "SouthSide K9 Camp Invoice Statement of Account";
+            string emailSubject = "SouthSide K9 Camp Statement of Account Payment Unsuccesssul";
             string emailBody = new ComponentRenderer<EmailTemplates.InvoicePaymentRejection>()
                 .Set(c => c.invoice, invoice)
                 .Set(c => c.host, _configuration["Host"])
@@ -218,7 +218,7 @@ namespace SouthSideK9Camp.Server.Controller
             await _dataContext.SaveChangesAsync();
             
             // email to client
-            string emailSubject = "SouthSide K9 Camp Invoice Statement of Account";
+            string emailSubject = "SouthSide K9 Camp Statement of Account";
             string emailBody = new ComponentRenderer<EmailTemplates.InvoicePayment>()
                 .Set(c => c.invoice, invoice)
                 .Set(c => c.host, _configuration["Host"])

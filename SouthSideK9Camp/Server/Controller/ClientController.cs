@@ -68,7 +68,18 @@ namespace SouthSideK9Camp.Server.Controller
         }
 
         // check email availability for member
-        [HttpGet("check-member-email-availability/{email}")] public async Task<IResult> GetMemberEmailAvailabilityAsync(string email)
+        [HttpGet("email/{email}")] public async Task<IResult> GetMemberEmailAvailabilityAsync(string email)
+        {
+            Shared.Client? client = await _dataContext.Clients.FirstOrDefaultAsync(c => c.Email == email);
+
+            if (client == null) return Results.NotFound();
+
+            var json = JsonConvert.SerializeObject(client, new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
+            return Results.Ok(JsonConvert.DeserializeObject<Shared.Client>(json));
+        }
+
+        // get client using email
+        [HttpGet("check-member-email-availability/{email}")] public async Task<IResult> GetByEmailAsync(string email)
         {
             List<string> clientEmails = await _dataContext.Clients.Where(m => m.Member != null).Select(m => m.Email).ToListAsync();
 

@@ -15,19 +15,19 @@ public class EmailService : IEmailService
         SmtpClient client = new SmtpClient()
         {
             Port = 587,
-            Host = "smtp-mail.outlook.com",
+            Host = "mail37.mailasp.net",
             EnableSsl = true,
             DeliveryMethod = SmtpDeliveryMethod.Network,
             UseDefaultCredentials = false,
-            Credentials = new NetworkCredential("southsidek9camp@outlook.com", "southsideDB4649T20O6RS"),
+            Credentials = new NetworkCredential("postmaster@southsidek9camp.com", "iM!58-gXhW?6"),
         };
 
         MailMessage emailMessage = new()
         {
-            From = new MailAddress("southsidek9camp@outlook.com"),
+            From = new MailAddress("postmaster@southsidek9camp.com"),
             To = { new MailAddress(email) },
-            Subject = subject,
             IsBodyHtml = true,
+            Subject = subject,
             Body = body
         };
 

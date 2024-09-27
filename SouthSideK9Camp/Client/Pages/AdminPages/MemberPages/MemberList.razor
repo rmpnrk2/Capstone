@@ -5,6 +5,12 @@
 
     <MudTable Items="_clients" Hover="true">
 
+        <HeaderContent>
+            <MudTh>Name</MudTh>
+            <MudTh>Status</MudTh>
+            <MudTh></MudTh>
+        </HeaderContent>
+
         <RowTemplate>
 
             @* member data *@
@@ -21,7 +27,7 @@
                 </MudStack>
             </MudTd>
 
-            <MudTd>
+            <MudTd DataLabel="Status">
                 <MudStack Row>
 
                     @if(context.Member != null)

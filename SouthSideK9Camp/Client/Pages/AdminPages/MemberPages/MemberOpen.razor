@@ -12,6 +12,8 @@
 <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-16 mb-16">
     <MudStack>
 
+        <MudText Typo="Typo.h3">Member Records</MudText>
+
         <MudPaper>
             <MudToolBar>
                 <MudStack Row>
@@ -147,8 +149,8 @@
             }
             else
             {
-                <MudButton OnClick="_Reject" Color="Color.Error" Variant="Variant.Filled">Reject</MudButton>
-                <MudButton OnClick="_Approve" Color="Color.Primary" Variant="Variant.Filled">Approve</MudButton>
+                <MudButton OnClick="@(() => _Reject(clientID))" Color="Color.Error" Variant="Variant.Filled">Reject</MudButton>
+                <MudButton OnClick="@_Approve" Color="Color.Primary" Variant="Variant.Filled">Approve</MudButton>
             }
         }
     </YesButton>

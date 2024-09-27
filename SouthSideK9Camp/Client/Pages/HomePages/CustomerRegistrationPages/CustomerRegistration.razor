@@ -114,7 +114,7 @@
 
                             <MudItem xs="12" sm="6">
                                 <MudAutocomplete @bind-Value="dog.Breed" For="@(() => dog.Breed)" Variant="Variant.Outlined"
-                                    Label="Breed" SearchFunc="@_dogBreedAutocomplete" CoerceText="false" />
+                                    Label="Breed" SearchFunc="@_dogBreedAutocomplete" CoerceValue />
                             </MudItem>
 
                             <MudItem xs="12" sm="6">
@@ -158,12 +158,11 @@
 
                             <MudItem xs="12" sm="12">
                                 <MudSelect @bind-Value="dog.Contract.TrainingType" Label="Training Type" For="@(() => dog.Contract.TrainingType)" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter" TransformOrigin="Origin.TopCenter" FullWidth>
-                                    <MudSelectItem Value="@("Basic Obedience")" />
-                                    <MudSelectItem Value="@("Advanced Obedience")" />
-                                    <MudSelectItem Value="@("Behavioral Modification")" />
-                                    <MudSelectItem Value="@("Personal Protection Dog")" />
-                                    <MudSelectItem Value="@("Detection Dog")" />
-                                    <MudSelectItem Value="@("Search and Rescue")" />
+                                    <MudSelectItem Value="@("Basic Obedience (4 weeks)")" />
+                                    <MudSelectItem Value="@("Advanced Obedience (6 weeks)")" />
+                                    <MudSelectItem Value="@("Behavioral Modification (6 weeks)")" />
+                                    <MudSelectItem Value="@("Personal Protection Dog (6 weeks)")" />
+                                    <MudSelectItem Value="@("Detection Dog (6 weeks)")" />
                                 </MudSelect>
                             </MudItem>
 
@@ -338,7 +337,7 @@
         if(clientGUID != null)
         {
             _client = await HttpClient.Customer.GetByGuid(clientGUID) ?? new();
-            _client.Customer = new();
+            _client.Customer = _client.Customer;
             _client.Dogs = new();
             _client.Dogs.Add(new Shared.Dog() { Contract = new() });
         }

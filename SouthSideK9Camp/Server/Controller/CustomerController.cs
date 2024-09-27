@@ -81,14 +81,13 @@ namespace SouthSideK9Camp.Server.Controller
             if(reservation == null || (reservation.Slots - reservation.Dogs.Count) < client.Dogs.Count)
                 return Results.NotFound();
 
-
             // reserve dogs
             foreach(Shared.Dog dog in client.Dogs)
             {
                 dog.ReservationID = reservation.ID;
 
                 // send email for each registered dog
-                string emailSubject = "SouthSide K9 Camp Board & Train Registration";
+                string emailSubject = "SouthSideK9 Camp Board & Train Registration";
                 string emailBody = new ComponentRenderer<EmailTemplates.CustomerRegistratinReservationPayment>()
                     .Set(c => c.clientName, client.FirstName + " " + client.LastName)
                     .Set(c => c.dogName, dog.Name)
@@ -219,7 +218,7 @@ namespace SouthSideK9Camp.Server.Controller
             await _dataContext.SaveChangesAsync();
 
             // send payment rejection email
-            string emailSubject = "SouthSide K9 Camp Board & Train Registration";
+            string emailSubject = "SouthSideK9 Camp Board & Train Registration Payment Unsuccessful";
             string emailBody = new ComponentRenderer<EmailTemplates.CustomerRegistrationReservationRejection>()
                 .Set(c => c.clientName, dog.Client.FirstName + " " + dog.Client.LastName)
                 .Set(c => c.dogGUID, dog.GUID.ToString())

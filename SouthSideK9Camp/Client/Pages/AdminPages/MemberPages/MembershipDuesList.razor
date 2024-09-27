@@ -29,6 +29,13 @@
     @* table *@
     <MudTable Items="_clients" Hover="true">
 
+        <HeaderContent>
+            <MudTh>Name</MudTh>
+            <MudTh>Expiration</MudTh>
+            <MudTh>Due</MudTh>
+            <MudTh></MudTh>
+        </HeaderContent>
+
         <RowTemplate>
 
             @* member data *@
@@ -66,7 +73,7 @@
                     }
                     else if (context.Member?.MembershipDues.FirstOrDefault(d => d.DateTimeDue.Year == _yearMonth?.Year && d.DateTimeDue.Month == _yearMonth.Value.Month)?.ProofOfPaymentURL == string.Empty)
                     {
-                        <MudChip T="string" Variant="Variant.Text" Color="Color.Error">Not Paid</MudChip>
+                        <MudChip T="string" Variant="Variant.Text" Color="Color.Error">Active</MudChip>
                     }
 
                 </MudStack>

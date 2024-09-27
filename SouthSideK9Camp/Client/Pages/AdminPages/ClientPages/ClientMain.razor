@@ -34,6 +34,12 @@
 
         <MudTable Items="_clients" Hover="true">
 
+            <HeaderContent>
+                <MudTh>Name</MudTh>
+                <MudTh>Type</MudTh>
+                <MudTh></MudTh>
+            </HeaderContent>
+
             <RowTemplate>
 
                 @* member data *@
@@ -50,10 +56,10 @@
                     </MudStack>
                 </MudTd>
 
-                <MudTd>
+                <MudTd DataLabel="Type">
                     <MudStack Spacing="0" Row>
 
-                        @if (context.Member != null)
+                        @if (context.Customer != null)
                         {
                             <MudChip T="string" Variant="Variant.Text" Color="Color.Success">Customer</MudChip>
                         }

@@ -26,6 +26,13 @@
         @* reservation table *@
         <MudTable Items="_reservations" Hover="true">
 
+            <HeaderContent>
+                <MudTh>Reservation</MudTh>
+                <MudTh>Slots</MudTh>
+                <MudTh>Status</MudTh>
+                <MudTh></MudTh>
+            </HeaderContent>
+
             <RowTemplate>
 
                 @* data *@
@@ -71,8 +78,8 @@
                     </MudStack>
                 </MudTd>
 
-                @* actions *@
-                <MudTd>
+                @* status *@
+                <MudTd DataLabel="Status">
                     <MudStack Spacing="0">
 
                         @if (_NotPaidCount(context.Dogs) != 0)

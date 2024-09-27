@@ -15,10 +15,20 @@
         </MudText>
 
         @* reservation table *@
+        <MudProgressLinear Style="@_loadingDisplay" Color="Color.Primary" Indeterminate="true"/>
+
+        @* reservation table *@
         <MudTable Items="_reservations" Hover="true">
+
+            <HeaderContent>
+                <MudTh>Title</MudTh>
+                <MudTh>Slots</MudTh>
+                <MudTh></MudTh>
+            </HeaderContent>
+
             <RowTemplate>
 
-                <MudTd>
+                <MudTd DataLabel="Title">
                     <MudStack Row AlignItems="AlignItems.Center" Spacing="5">
 
                         <MudText Typo="Typo.h6">@context.Name</MudText>
@@ -37,7 +47,7 @@
                     </MudStack>
                 </MudTd>
 
-                <MudTd>
+                <MudTd DataLabel="Slots">
                     <MudStack Row AlignItems="AlignItems.Center">
 
                         <MudText Typo="Typo.body2">Slots Available: @(context.Slots - context.Dogs.Count())</MudText>
@@ -87,12 +97,15 @@
     List<Shared.Reservation> _reservations = new();
 
     // on initialize
+    private string _loadingDisplay = string.Empty;
+
+    // on initialize
     protected override async Task OnInitializedAsync()
     {
         await HttpClient.Reservation.FetchAsync();
         _reservations = await HttpClient.Reservation.GetAsync();
+        _loadingDisplay = "display: none";
     }
-
 
     // open reservation
     private void _SelectReservation(string reservationGUID)

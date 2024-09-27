@@ -101,12 +101,21 @@ namespace SouthSideK9Camp.Server.Controller
         // membership due payment approve
         [HttpPut("payment-approve/{membershipDueID}")] public async Task<IResult> ApproveDuePaymentAsync(int membershipDueID)
         {
+            // find membership due
             Shared.MembershipDue? membershipDue = await _dataContext.MembershipDues.FirstOrDefaultAsync(d => d.ID == membershipDueID);
 
             if(membershipDue == null)
                 return Results.NotFound();
             
+            // set membership due to paid
             membershipDue.PaymentConfirmed = true;
+            await _dataContext.SaveChangesAsync();
+
+            // create new membershp due
+            Shared.MembershipDue newMembershipDue = new();
+            newMembershipDue.MemberID = membershipDue.MemberID;
+
+            _dataContext.MembershipDues.Add(newMembershipDue);
             await _dataContext.SaveChangesAsync();
 
             return Results.NoContent();
@@ -132,7 +141,7 @@ namespace SouthSideK9Camp.Server.Controller
             await _dataContext.SaveChangesAsync();
 
             // send payment rejection email
-            string emailSubject = "SouthSide K9 Camp Membership Due";
+            string emailSubject = "SouthSide K9 Camp Membership Due Payment Unsuccessful";
             string emailBody = new ComponentRenderer<EmailTemplates.MembershipDuePaymentRejection>()
                 .Set(c => c.clientName, membershipDue.Member?.Client?.FirstName + " " + membershipDue.Member?.Client?.LastName)
                 .Set(c => c.membershipDueGUID, membershipDue.GUID.ToString())

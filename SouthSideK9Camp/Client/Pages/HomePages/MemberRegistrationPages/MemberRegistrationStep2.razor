@@ -105,7 +105,7 @@
 
 @code
 {
-    [Parameter] public string? emailParameter { get; set; }
+    [Parameter] public string emailParameter { get; set; } = string.Empty;
 
     // Form model
     private EditContext? _formContext;
@@ -120,10 +120,24 @@
         _formContext = new EditContext(_client);
     }
 
+    private Shared.Client _clientFromEmail = new();
+
     // on parameter
-    protected override void OnParametersSet()
+    protected override async Task OnParametersSetAsync()
     {
         _client.Email = emailParameter ?? string.Empty;
+
+        // if email already exist copy information to form
+        _clientFromEmail = await HttpClient.Client.GetByEmailAsync(emailParameter ?? string.Empty);
+
+        _client.ID = _clientFromEmail.ID;
+        _client.FirstName = _clientFromEmail.FirstName;
+        _client.LastName = _clientFromEmail.LastName;
+        _client.MiddleInitial = _clientFromEmail.MiddleInitial;
+        _client.Sex = _clientFromEmail.Sex;
+        _client.Contact = _clientFromEmail.Contact;
+        _client.Address = _clientFromEmail.Address;
+        _client.Birthday = _clientFromEmail.Birthday;
     }
 
     // submit form
