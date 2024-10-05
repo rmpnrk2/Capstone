@@ -1,0 +1,30 @@
+﻿@inherits LayoutComponentBase
+
+@inject NavigationManager NavigationManager
+@inject SouthSideK9CampHttpClient HttpClient;
+
+@* add mudblazor components *@
+<MudThemeProvider IsDarkMode />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<MudLayout>
+
+    <MudAppBar Elevation="1">
+
+        <MudImage Src="Images/logonamedark.jpg" Height="50" Class="ml-16" />
+
+        <MudSpacer />
+
+    </MudAppBar>
+
+    <MudMainContent>
+        @Body
+    </MudMainContent>
+
+</MudLayout>
+
+@code
+{
+}

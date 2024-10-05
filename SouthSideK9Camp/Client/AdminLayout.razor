@@ -1,6 +1,7 @@
 ﻿@inherits LayoutComponentBase
 
 @inject NavigationManager NavigationManager
+@inject SouthSideK9CampHttpClient HttpClient;
 
 @* add mudblazor components *@
 <MudThemeProvider IsDarkMode/>
@@ -17,6 +18,21 @@
 
         <MudSpacer />
 
+        @if (user != null)
+        {
+            <MudMenu>
+
+                <ActivatorContent>
+                    <MudAvatar Variant="Variant.Outlined" Color="Color.Primary">@user.FullName[0]</MudAvatar>
+                </ActivatorContent>
+
+                <ChildContent>
+                    <MudMenuItem OnClick="@_Logout">Log Out</MudMenuItem>
+                </ChildContent>
+
+            </MudMenu>
+        }
+
     </MudAppBar>
 
     <MudDrawer @bind-Open="@mudDrawerToggle" ClipMode="DrawerClipMode.Docked">
@@ -26,10 +42,10 @@
                 <MudImage Src="Images/watermark.png" Height="120" />
             </MudStack>
 
-            <MudNavLink Disabled Href="" Icon="@Icons.Material.Filled.Dashboard" Match="NavLinkMatch.All">Dashboard</MudNavLink>
+            <MudNavLink Href="/admin/dashboard" Icon="@Icons.Material.Filled.Dashboard" Match="NavLinkMatch.All">Dashboard</MudNavLink>
             <MudNavLink Href="/admin/reservation-list" Icon="@Icons.Material.Filled.DateRange" Match="NavLinkMatch.All">Reservation</MudNavLink>
             <MudNavLink Href="/admin/report-list" Icon="@Icons.Material.Filled.Flag" Match="NavLinkMatch.All">Progress</MudNavLink>
-            <MudNavLink Href="/admin/invoice-list" Icon="@Icons.Material.Filled.ReceiptLong" Match="NavLinkMatch.All">Statements</MudNavLink>
+            <MudNavLink Disabled="@( (user != null && user.Role == "trainer") ? true : false )" Href="/admin/invoice-list" Icon="@Icons.Material.Filled.ReceiptLong" Match="NavLinkMatch.All">Statements</MudNavLink>
 
             <MudNavGroup Title="Records" Icon="@Icons.Material.Filled.People" Expanded>
                 <MudNavLink Href="/admin/client-list" Icon="@Icons.Material.Filled.Person" Match="NavLinkMatch.All">Clients</MudNavLink>
@@ -37,22 +53,59 @@
                 <MudNavLink Href="/admin/member-list" Icon="@Icons.Material.Filled.Person" Match="NavLinkMatch.All">Members</MudNavLink>
             </MudNavGroup>
 
-            <MudNavLink Disabled Href="/manage" Icon="@Icons.Material.Filled.ManageAccounts" Match="NavLinkMatch.All">Manage User</MudNavLink>
+            <MudNavLink Disabled="@( (user != null && user.Role == "trainer") ? true : false )" Href="admin/user-list" Icon="@Icons.Material.Filled.ManageAccounts" Match="NavLinkMatch.All">Manage User</MudNavLink>
 
         </MudNavMenu>
     </MudDrawer>
 
     <MudMainContent>
-        @Body
+        @if(user != null)
+        {
+            @Body
+        }
     </MudMainContent>
 
 </MudLayout>
 
 @code
 {
+    protected override async Task OnInitializedAsync()
+    {
+        await Authorize();
+    }
+
+    // Logout, clears User from sessionstorage
+    private async Task _Logout()
+    {
+        await HttpClient.User.LogoutAsync();
+        await Authorize();
+    }
+
+    // Security (very bad don't ever DYI your own security)
+    private Shared.User? user; 
+
+    private async Task Authorize()
+    {
+        // Checks if there are no User in database, if there are no user redirect to create user page
+        List<Shared.User> users = await HttpClient.User.FetchAsync();
+        if (!users.Any())
+        {
+            NavigationManager.NavigateTo("/admin/user-create");
+            return;
+        }
+
+        user = await HttpClient.User.LoginStatusAsync();
+        if (user is null)
+        {
+            NavigationManager.NavigateTo("/admin/user-login");
+            return;
+        }
+    }
+
     // muddrawer toggle
     bool mudDrawerToggle = false;
     string menuIcon = Icons.Material.Filled.Menu;
+
     public void ToggleMudDrawer()
     {
         menuIcon = (mudDrawerToggle) ? @Icons.Material.Filled.Menu : @Icons.Material.Filled.MenuOpen;

@@ -1,0 +1,196 @@
+﻿@page "/admin/user-list"
+
+@layout AdminLayout
+
+@inject SouthSideK9CampHttpClient HttpClient
+@inject NavigationManager NavigationManager
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-16 mb-16">
+    <MudStack>
+
+        <MudText Typo="Typo.h3">Manage Users</MudText>
+
+        @* table toolbar *@
+        <MudPaper Elevation="1">
+            <MudToolBar>
+
+                <MudButton Class="mr-1" OnClick="@(() => _OpenEditUser(new()))" StartIcon="@Icons.Material.Filled.Add" Color="Color.Primary" Variant="Variant.Filled">New</MudButton>
+
+                <MudMenu TransformOrigin="Origin.TopCenter" AnchorOrigin="Origin.BottomCenter">
+
+                    <ActivatorContent>
+                        <MudButton StartIcon="@Icons.Material.Outlined.FilterAlt" EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Variant="Variant.Filled" Color="Color.Primary">@_filter</MudButton>
+                    </ActivatorContent>
+
+                    <ChildContent>
+                        <MudMenuItem OnTouch="@(() => _FilterListAsync("All"))" OnClick="@(() => _FilterListAsync("All"))">All</MudMenuItem>
+                        <MudMenuItem OnTouch="@(() => _FilterListAsync("Admin"))" OnClick="@(() => _FilterListAsync("Admin"))">Admin</MudMenuItem>
+                        <MudMenuItem OnTouch="@(() => _FilterListAsync("Trainer"))" OnClick="@(() => _FilterListAsync("Trainer"))">Trainer</MudMenuItem>
+                    </ChildContent>
+
+                </MudMenu>
+
+            </MudToolBar>
+        </MudPaper>
+
+        @* table *@
+        <MudTable Items="@_users">
+
+            <HeaderContent>
+                <MudTh>Name</MudTh>
+                <MudTh>Role</MudTh>
+                <MudTh></MudTh>
+            </HeaderContent>
+
+            @* row template *@
+            <RowTemplate>
+
+                <MudTd DataLabel="Name">
+                    <MudStack Row>
+
+                        <MudAvatar Variant="Variant.Outlined" Color="Color.Primary">@context.FullName[0]</MudAvatar>
+
+                        <MudStack Spacing="0">
+                            <MudText Typo="Typo.body1">@context.FullName</MudText>
+
+                            <MudStack Row>
+                                <MudText Typo="Typo.caption">@context.Username</MudText>
+                                <MudText Typo="Typo.caption">@context.Email</MudText>
+                            </MudStack>
+                        </MudStack>
+
+                    </MudStack>
+                </MudTd>
+
+                <MudTd DataLabel="Role">
+                    @if (context.Role == "admin")
+                    {
+                        <MudChip T="string" Variant="Variant.Text" Color="Color.Info">Admin</MudChip>
+                    }
+                    @if (context.Role == "trainer")
+                    {
+                        <MudChip T="string" Variant="Variant.Text" Color="Color.Success">Trainer</MudChip>
+                    }
+                </MudTd>
+
+                @* row buttons *@
+                <MudTd>
+                    <MudStack Row Spacing="1" Justify="Justify.FlexEnd">
+                        <MudButton OnClick="() => _OpenEditUser(context)" Color="Color.Primary" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Edit">Edit</MudButton>
+                        <MudButton OnClick="() => _DeleteUser(context.ID)" Color="Color.Error" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Delete">Delete</MudButton>
+                    </MudStack>
+                </MudTd>
+
+            </RowTemplate>
+
+            <PagerContent>
+                <MudTablePager />
+            </PagerContent>
+
+        </MudTable>
+        
+
+    </MudStack>
+</MudContainer>
+
+@* Prompt delete messagebox *@
+<MudMessageBox @ref="_messageBox">
+
+    <TitleContent>
+        <MudText Typo="Typo.h6">Delete</MudText>
+    </TitleContent>
+
+    <MessageContent>
+        <MudText Typo="Typo.body1">This action will permanently delete the item. Are you sure?</MudText>
+    </MessageContent>
+
+    <YesButton>
+        <MudButton Color="Color.Secondary" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Delete">Delete</MudButton>
+    </YesButton>
+
+    <CancelButton>
+        <MudButton>Cancel</MudButton>
+    </CancelButton>
+
+</MudMessageBox>
+
+@code
+{
+    // On initialize
+    protected override async Task OnInitializedAsync()
+    {
+        await _RefreshDataAsync();
+    }
+
+    // Filter Users list
+    private string _filter = "All";
+
+    private async Task _FilterListAsync(string filter)
+    {
+        await _RefreshDataAsync();
+
+        _filter = filter;
+
+        if (_filter == "All")
+            return;
+
+        if (_filter == "Admin")
+            _users = _users.Where(u => u.Role == "admin").ToList();
+
+        if (_filter == "Trainer")
+            _users = _users.Where(u => u.Role == "trainer").ToList();
+
+        StateHasChanged();
+    }
+
+    // open EditUserDoalog
+    private async Task _OpenEditUser(Shared.User user)
+    {
+        var dialog = await DialogService.ShowAsync<ManageUserComponents.EditUserDialog>(string.Empty,
+            new DialogParameters<ManageUserComponents.EditUserDialog>
+            {
+                { d => d.user, user},
+            },
+            new DialogOptions()
+            {
+                BackdropClick = false,
+                MaxWidth = MaxWidth.Small,
+                FullWidth = true
+            });
+
+        // on dialog close
+        var result = await dialog.Result;
+        if (result != null)
+        {
+            await _RefreshDataAsync();
+        }
+    }
+
+    // Delete User
+    private MudMessageBox? _messageBox { get; set; }
+    private async Task _DeleteUser(int userID)
+    {
+        bool? result = await _messageBox!.ShowAsync(new DialogOptions()
+        {
+            BackdropClick = true,
+        });
+        if (result == true)
+        {
+            await HttpClient.User.DeleteAsync(userID);
+            await _RefreshDataAsync();
+        }
+    }
+
+    // Fetch User database and save to browser localstorage
+    private List<Shared.User> _users = new();
+
+    private async Task _RefreshDataAsync()
+    {
+        _users = await HttpClient.User.GetAsync();
+        StateHasChanged();
+
+        _users = await HttpClient.User.FetchAsync();
+    }
+}

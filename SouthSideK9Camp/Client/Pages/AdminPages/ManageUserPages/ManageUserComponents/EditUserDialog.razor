@@ -1,0 +1,126 @@
+﻿@inject SouthSideK9CampHttpClient HttpClient
+@inject ISnackbar Snackbar
+
+<MudDialog>
+
+    @* dialog content *@
+    <TitleContent>
+        @if (user.ID == 0)
+        {
+            <MudText Typo="Typo.h6">Create User</MudText>
+        }
+        else
+        {
+            <MudText Typo="Typo.h6">Edit User</MudText>
+        }
+    </TitleContent>
+
+    @* dialog content *@
+    <DialogContent>
+        <EditForm EditContext="_editContext">
+            <FluentValidationValidator />
+            <MudStack Spacing="0">
+
+                <MudTextField @bind-Value="user.Username" For="@(() => user.Username)" Label="Username" Variant="Variant.Outlined" FullWidth />
+                <MudTextField @bind-Value="user.Password" For="@(() => user.Password)" Label="Password" Variant="Variant.Outlined" Adornment="Adornment.End" AdornmentAriaLabel="Show Password"
+                    InputType="@_passwordInput" AdornmentIcon="@_passwordInputIcon" OnAdornmentClick="@_PasswordVisibilityToggle" />
+                <MudTextField @bind-Value="user.Email" For="@(() => user.Email)" Label="Email Address" Variant="Variant.Outlined" FullWidth />
+                <MudTextField @bind-Value="user.FullName" For="@(() => user.FullName)" Label="Full Name" Variant="Variant.Outlined" FullWidth />
+                <MudNumericField @bind-Value="user.Contact" For="@(() => user.Contact)" Label="Contact Number" Variant="Variant.Outlined" FullWidth HideSpinButtons="true" />
+                <MudSelect @bind-Value="user.Role" Label="Training Type" For="@(() => user.Role)" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter" TransformOrigin="Origin.TopCenter" FullWidth>
+                    <MudSelectItem Value="@("admin")">Admin</MudSelectItem>
+                    <MudSelectItem Value="@("trainer")">Trainer</MudSelectItem>
+                </MudSelect>
+
+            </MudStack>
+        </EditForm>
+    </DialogContent>
+
+    @* dialog button *@
+    <DialogActions>
+        <MudButton OnClick="@_Cancel">Cancel</MudButton>
+
+        @if (user.ID == 0)
+        {
+            <MudButton OnClick="@_CreateAsync" Color="Color.Primary" Class="mt-2" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Create">Create</MudButton>
+        }
+        else
+        {
+            <MudButton OnClick="@_UpdateUser" Color="Color.Primary" Class="mt-2" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Save">Save</MudButton>
+        }
+    </DialogActions>
+
+</MudDialog>
+
+@code
+{
+    [CascadingParameter] private MudDialogInstance MudDialog { get; set; } = new();
+
+    [Parameter] public Shared.User user { get; set; } = new();
+
+    private EditContext _editContext;
+
+    protected override void OnParametersSet()
+    {
+        _editContext = new EditContext(user);
+    }
+
+    // Attempt User login
+    private bool _createAccountFailed = false;
+
+    // Create new User
+    private async Task _CreateAsync()
+    {
+        if (!_editContext.Validate())
+            return;
+
+        if (await HttpClient.User.CreateAsync(user))
+        {
+            Snackbar.Add("Success: User created successfully", Severity.Success);
+            MudDialog.Close();
+        }
+
+        Snackbar.Add("Error: Conflicting account detected", Severity.Error);
+    }
+
+    // Update User
+    private async Task _UpdateUser()
+    {
+        if (!_editContext.Validate())
+            return;
+
+        bool _updateSuccess = (await HttpClient.User.UpdateAsync(user));
+
+        if (_updateSuccess)
+        {
+            Snackbar.Add("Success: User updated successfully", Severity.Success);
+            MudDialog.Close();
+        }
+        else
+        {
+            Snackbar.Add("Error: Conflicting account detected", Severity.Error);
+        }
+    }
+
+
+    // Form password input visibility toggle
+    private InputType _passwordInput = InputType.Password;
+    private string _passwordInputIcon = Icons.Material.Filled.VisibilityOff;
+
+    private void _PasswordVisibilityToggle()
+    {
+        @if (_passwordInput == InputType.Text)
+        {
+            _passwordInputIcon = Icons.Material.Filled.VisibilityOff;
+            _passwordInput = InputType.Password;
+        }
+        else
+        {
+            _passwordInputIcon = Icons.Material.Filled.Visibility;
+            _passwordInput = InputType.Text;
+        }
+    }
+
+    // close dialog
+    private void _Cancel() => MudDialog.Cancel();
+}

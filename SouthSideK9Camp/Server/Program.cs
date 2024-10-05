@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.EntityFrameworkCore;
 using SouthSideK9Camp.Server.Data;
+using SouthSideK9Camp.Server.JSONSettings;
 using SouthSideK9Camp.Server.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -15,7 +16,7 @@ builder.Services.AddDbContext<DataContext>(options => options.UseSqlServer(conne
 
 // email Service
 builder.Services.AddTransient<IEmailService, EmailService>();
-builder.Services.Configure<AuthMessageSenderOptions>(builder.Configuration.GetSection("AuthMessageSenderOptions"));
+builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
 
 var app = builder.Build();
 

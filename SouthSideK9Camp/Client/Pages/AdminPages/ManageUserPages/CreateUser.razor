@@ -1,0 +1,91 @@
+﻿@page "/admin/user-create"
+
+@layout LoginLayout
+
+@using FluentValidation
+
+@inject NavigationManager NavigationManager;
+@inject SouthSideK9CampHttpClient HttpClient;
+
+<MudContainer MaxWidth="MaxWidth.Small" Class="mt-16 mb-16">
+    <MudStack Spacing="6" AlignItems="AlignItems.Center">
+
+        <MudImage Src="Images/watermark.png" Height="200" />
+
+        <MudPaper Elevation="3" Class="pa-6" Width="100%">
+
+            <MudText Class="mb-2" Align="Align.Center" Typo="Typo.h6">Admin Login</MudText>
+
+            <EditForm EditContext="_editContext">
+                <FluentValidationValidator />
+                <MudStack Spacing="0">
+
+                    <MudTextField @bind-Value="_userModel.Username" For="@(() => _userModel.Username)" Label="Username" Variant="Variant.Outlined" FullWidth />
+                    <MudTextField @bind-Value="_userModel.Password" For="@(() => _userModel.Password)" Label="Password" Variant="Variant.Outlined" Adornment="Adornment.End" AdornmentAriaLabel="Show Password"
+                                  InputType="@_passwordInput" AdornmentIcon="@_passwordInputIcon" OnAdornmentClick="@_PasswordVisibilityToggle" />
+                    <MudTextField @bind-Value="_userModel.Email" For="@(() => _userModel.Email)" Label="Email Address" Variant="Variant.Outlined" FullWidth />
+                    <MudTextField @bind-Value="_userModel.FullName" For="@(() => _userModel.FullName)" Label="Full Name" Variant="Variant.Outlined" FullWidth />
+                    <MudNumericField @bind-Value="_userModel.Contact" For="@(() => _userModel.Contact)" Label="Contact Number" Variant="Variant.Outlined" FullWidth HideSpinButtons="true" />
+
+                    <MudButton OnClick="@_CreateAsync" Color="Color.Primary" Class="mt-2" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Login" FullWidth>Create Account</MudButton>
+
+                </MudStack>
+            </EditForm>
+
+        </MudPaper>
+
+    </MudStack>
+</MudContainer>
+
+@code
+{
+    private Shared.User _userModel = new();
+    private EditContext _editContext;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _userModel.Role = "admin";
+        _editContext = new EditContext(_userModel);
+
+        await _CheckExistingUsers();
+    }
+
+    // Attempt User login
+    private bool _createAccountFailed = false;
+
+    // Create new User
+    private async Task _CreateAsync()
+    {
+        if (!_editContext.Validate())
+            return;
+
+        await HttpClient.User.CreateAsync(_userModel);
+        await _CheckExistingUsers();
+    }
+
+    // Form password input visibility toggle
+    private InputType _passwordInput = InputType.Password;
+    private string _passwordInputIcon = Icons.Material.Filled.VisibilityOff;
+
+    private void _PasswordVisibilityToggle()
+    {
+        @if (_passwordInput == InputType.Text)
+        {
+            _passwordInputIcon = Icons.Material.Filled.VisibilityOff;
+            _passwordInput = InputType.Password;
+        }
+        else
+        {
+            _passwordInputIcon = Icons.Material.Filled.Visibility;
+            _passwordInput = InputType.Text;
+        }
+    }
+
+    // Checks if there are existing User in database, if there are existing user redirect to login page
+    private async Task _CheckExistingUsers()
+    {
+        List<Shared.User> users = await HttpClient.User.FetchAsync();
+        if (users.Any())
+            NavigationManager.NavigateTo("/admin/user-login");
+    }
+}

@@ -1,0 +1,102 @@
+﻿@page "/admin/user-login"
+
+@layout LoginLayout
+
+@using FluentValidation
+
+@inject NavigationManager NavigationManager;
+@inject SouthSideK9CampHttpClient HttpClient;
+
+<MudContainer MaxWidth="MaxWidth.Small" Class="mt-16 mb-16">
+    <MudStack Spacing="6" AlignItems="AlignItems.Center">
+
+        <MudImage Src="Images/watermark.png" Height="200"/>
+
+        <MudPaper Elevation="3" Class="pa-6" Width="100%">
+
+            <MudText Class="mb-2" Align="Align.Center" Typo="Typo.h6">Admin Login</MudText>
+
+            <EditForm EditContext="_editContext">
+                <FluentValidationValidator />
+                <MudStack>
+
+                    <MudTextField @bind-Value="_loginModel.Username" For="@(() => _loginModel.Username)" Label="Username" Variant="Variant.Outlined" FullWidth />
+                    <MudTextField @bind-Value="_loginModel.Password" For="@(() => _loginModel.Password)" Label="Password" Variant="Variant.Outlined" Adornment="Adornment.End" AdornmentAriaLabel="Show Password"
+                        InputType="@_passwordInput" AdornmentIcon="@_passwordInputIcon" OnAdornmentClick="@_PasswordVisibilityToggle"  />
+
+                    @if (_loginFailed)
+                    {
+                        <MudText Class="mt-4" Align="Align.Center" Typo="Typo.body2" Color="Color.Error">
+                            Email or Password incorrect
+                        </MudText>
+                    }
+
+                    <MudButton OnClick="@_LoginAsync" Color="Color.Primary" Class="mt-2" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Login" FullWidth>Login</MudButton>
+
+                </MudStack>
+            </EditForm>
+
+        </MudPaper>
+
+    </MudStack>
+</MudContainer>
+
+@code
+{
+    // Login form model
+    public class LoginModel
+    {
+        public string Username { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
+    }
+    public class LoginModelValidator : AbstractValidator<LoginModel>
+    {
+        public LoginModelValidator()
+        {
+            RuleFor(c => c.Username).NotEmpty().WithMessage("This field is required").MaximumLength(20).WithMessage("This field should not exceed 50 characters");
+            RuleFor(c => c.Password).NotEmpty().WithMessage("This field is required").MaximumLength(20).WithMessage("This field should not exceed 50 characters");
+        }
+    }
+
+    private LoginModel _loginModel = new();
+
+    private EditContext _editContext;
+
+    protected override void OnInitialized()
+    {
+        _editContext = new EditContext(_loginModel);
+    }
+
+    // Attempt User login
+    private bool _loginFailed = false;
+
+    private async Task _LoginAsync()
+    {
+        if (!_editContext.Validate()) return;
+
+        Shared.User? user = await HttpClient.User.LoginAsync(_loginModel.Username, _loginModel.Password);
+
+        if (user != null)
+            NavigationManager.NavigateTo("admin/dashboard");
+
+        _loginFailed = true;
+    }
+
+    // Form password input visibility toggle
+    private InputType _passwordInput = InputType.Password;
+    private string _passwordInputIcon = Icons.Material.Filled.VisibilityOff;
+
+    private void _PasswordVisibilityToggle()
+    {
+        @if (_passwordInput == InputType.Text)
+        {
+            _passwordInputIcon = Icons.Material.Filled.VisibilityOff;
+            _passwordInput = InputType.Password;
+        }
+        else
+        {
+            _passwordInputIcon = Icons.Material.Filled.Visibility;
+            _passwordInput = InputType.Text;
+        }
+    }
+}
