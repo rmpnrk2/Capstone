@@ -102,7 +102,9 @@ namespace SouthSideK9Camp.Server.Controller
         [HttpPut("payment-approve/{membershipDueID}")] public async Task<IResult> ApproveDuePaymentAsync(int membershipDueID)
         {
             // find membership due
-            Shared.MembershipDue? membershipDue = await _dataContext.MembershipDues.FirstOrDefaultAsync(d => d.ID == membershipDueID);
+            Shared.MembershipDue? membershipDue = await _dataContext.MembershipDues
+                .Include(m => m.Member).ThenInclude(m => m.Client)
+                .FirstOrDefaultAsync(d => d.ID == membershipDueID);
 
             if(membershipDue == null)
                 return Results.NotFound();
@@ -117,6 +119,16 @@ namespace SouthSideK9Camp.Server.Controller
 
             _dataContext.MembershipDues.Add(newMembershipDue);
             await _dataContext.SaveChangesAsync();
+
+            // email client
+            string emailSubject = "SouthSideK9 Camp Board & Train Registration Payment Unsuccessful";
+            string emailBody = new ComponentRenderer<EmailTemplates.PaymentConfirmationMembershipDue>()
+                .Set(c => c.membershipDue, membershipDue)
+                .Set(c => c.client, membershipDue.Member?.Client)
+                .Render();
+
+            if(membershipDue.Member != null && membershipDue.Member.Client != null)
+                await _smtp.SendEmailAsync(membershipDue.Member.Client.Email, emailSubject, emailBody);
 
             return Results.NoContent();
         }

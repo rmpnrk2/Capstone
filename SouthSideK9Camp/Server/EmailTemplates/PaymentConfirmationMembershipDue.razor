@@ -75,45 +75,16 @@
 <body>
     <div class="container">
 
-        <h1>SouthSide K9 Camp Statement of Account Payment unsuccessful</h1>
+        <h1>SouthSide K9 Membership Due Payment Successful</h1>
         <br />
-        <p>Dear, @(invoice.Dog?.Client?.FirstName + " " + invoice.Dog?.Client?.LastName)</p>
+        <p>Dear, @client.LastName, @client.FirstName</p>
         <br />
-        <p>Your previous Statement of Account for your dog @invoice.Dog?.Name Board & Training is invalid or unsuccessful.</p>
-        <p>To avoid any disruption, we kindly request you to resubmit your payment details using the link provided below:</p>
-        <br />
-        <h6>Reason For Rejection:</h6>
-        <p>@reason.Reason</p>
+        <p>Your payment for your Membership Monthly Due is accepted successfuly.</p>
+        <p>Thank you for your continuing support for SouthSide K9 Camp.</p>
         <br />
         <h6>Payment Details:</h6>
-        <table cellspacing="0">
-            <thead>
-                <tr>
-                    <th>Description</th>
-                    <th>Quantity</th>
-                    <th>Price</th>
-                    <th>Amount</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (SouthSideK9Camp.Shared.Item item in invoice.Items)
-                {
-                    <tr>
-                        <td>@item.Name</td>
-                        <td>@(item.Quantity + " " + item.Unit)</td>
-                        <td>@item.Price</td>
-                        <td>@item.Total</td>
-                    </tr>
-                }
-                <tr class="total">
-                    <td colspan="3">Total</td>
-                    <td>@invoice.Balance</td>
-                </tr>
-            </tbody>
-        </table>
-        <br />
-        <a href="@link" target="_blank">Continue Payment</a>
-        <br />
+        <p>Membership Due Fee: 300 php</p>
+        <p>Due: @membershipDue.DateTimeDue.ToString("dd MMMM yyyy")</p>
         <br />
         <p>Best regards,</p>
         <p>SouthSide K9 Camp</p>
@@ -122,15 +93,6 @@
 
 @code
 {
-    [Parameter] public Shared.Invoice invoice { get; set; } = new();
-    [Parameter] public string host { get; set; } = string.Empty;
-
-    [Parameter] public Shared.ReasonForRejection reason { get; set; } = new();
-
-    private string? link;
-    protected override void OnInitialized()
-    {
-        link = $"{host}/invoice-payment/{invoice.GUID}/{reason.GUID}";
-        base.OnInitialized();
-    }
+    [Parameter] public Shared.Client client { get; set; } = new();
+    [Parameter] public Shared.MembershipDue membershipDue { get; set; } = new();
 }

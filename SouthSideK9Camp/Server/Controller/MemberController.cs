@@ -145,6 +145,13 @@ namespace SouthSideK9Camp.Server.Controller
             client.Member.MembershipDues.Add(new());
             await _dataContext.SaveChangesAsync();
 
+            // email client
+            string emailSubject = "SouthSideK9 Camp Board & Train Registration Payment Unsuccessful";
+            string emailBody = new ComponentRenderer<EmailTemplates.PaymentConfirmationMembershipDue>()
+                .Set(c => c.client, client)
+                .Render();
+            await _smtp.SendEmailAsync(client.Email, emailSubject, emailBody);
+
             return Results.NotFound();
         }
 

@@ -172,7 +172,10 @@ namespace SouthSideK9Camp.Server.Controller
         // approve reservation payment
         [HttpPut("payment-approve/{dogID}")] public async Task<IResult> ApproveAsync(int dogID)
         {
-            Shared.Dog? dog = await _dataContext.Dogs.FirstOrDefaultAsync(d => d.ID == dogID);
+            Shared.Dog? dog = await _dataContext.Dogs
+                .Include(d => d.Client)
+                .Include(d => d.Reservation)
+                .FirstOrDefaultAsync(d => d.ID == dogID);
                 
             if(dog == null) return Results.NotFound();
 
@@ -194,6 +197,17 @@ namespace SouthSideK9Camp.Server.Controller
                     reservation.EndingDate = reservation.StartingDate?.AddDays(42);
                 }
             }
+
+            // email client
+            string emailSubject = "SouthSideK9 Camp Board & Train Registration Payment Unsuccessful";
+            string emailBody = new ComponentRenderer<EmailTemplates.PaymentConfirmationReservation>()
+                .Set(c => c.client, dog.Client)
+                .Set(c => c.reservation , dog.Reservation)
+                .Set(c => c.dog, dog)
+                .Render();
+
+            if(dog.Client != null)
+                await _smtp.SendEmailAsync(dog.Client.Email, emailSubject, emailBody);
 
             return Results.NoContent();
         }

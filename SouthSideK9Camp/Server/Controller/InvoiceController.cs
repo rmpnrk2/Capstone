@@ -161,11 +161,28 @@ namespace SouthSideK9Camp.Server.Controller
         [HttpPut("payment-approve/{invoiceID}")] public async Task<IResult> ApprovePaymentAsync(int invoiceID)
         {
             // remove payment submission
-            int rowsUpdated = await _dataContext.Invoices.Where(i => i.ID == invoiceID).ExecuteUpdateAsync(updates => updates
-                .SetProperty(i => i.PaymentConfirmed, true)
-            );
+            Shared.Invoice? invoice = await _dataContext.Invoices
+                .Include(i => i.Dog)
+                .ThenInclude(i => i.Client)
+                .FirstOrDefaultAsync(i => i.ID == invoiceID);
 
-            return (rowsUpdated == 0) ? Results.NotFound() : Results.NoContent();
+            if (invoice == null) return Results.NotFound();
+
+            invoice.PaymentConfirmed = true;
+            
+            await _dataContext.SaveChangesAsync();
+
+            // email client
+            string emailSubject = "SouthSideK9 Camp Board & Train Registration Payment Unsuccessful";
+            string emailBody = new ComponentRenderer<EmailTemplates.PaymentConfirmationStatementOfAccount>()
+                .Set(c => c.client, invoice.Dog?.Client)
+                .Set(c => c.invoice, invoice)
+                .Render();
+
+            if(invoice.Dog != null && invoice.Dog.Client != null)
+                await _smtp.SendEmailAsync(invoice.Dog.Client.Email, emailSubject, emailBody);
+
+            return Results.NoContent();
         }
 
         // invoice payment reject

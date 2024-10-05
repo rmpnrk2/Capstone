@@ -1,5 +1,121 @@
-﻿<h3>PaymentConfirmation.StatementOfAccount</h3>
+﻿<head>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 0;
+            padding: 0;
+        }
 
-@code {
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 30px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
 
+        header {
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .header-details {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+            .header-details p {
+                margin: 0;
+            }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            text-align: left;
+            padding: 10px;
+            border: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+
+        .total {
+            font-weight: bold;
+        }
+
+        .button {
+            background-color: #4CAF50; /* Green */
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin-top: 20px;
+            cursor: pointer;
+        }
+
+            .button:hover {
+                background-color: #3e8e41;
+            }
+    </style>
+</head>
+<body>
+    <div class="container">
+
+        <h1>SouthSide K9 Membership Due Payment Successful</h1>
+        <br />
+        <p>Dear, @client.LastName, @client.FirstName</p>
+        <br />
+        <p>Your statement of account payment is accepted successfuly.</p>
+        <p>Thank you for supporting SouthSide K9 Camp!</p>
+        <br />
+        <h6>Payment Details:</h6>
+        <table cellspacing="0">
+            <thead>
+                <tr>
+                    <th>Description</th>
+                    <th>Quantity</th>
+                    <th>Price</th>
+                    <th>Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (SouthSideK9Camp.Shared.Item item in invoice.Items)
+                {
+                    <tr>
+                        <td>@item.Name</td>
+                        <td>@(item.Quantity + " " + item.Unit)</td>
+                        <td>@item.Price</td>
+                        <td>@item.Total</td>
+                    </tr>
+                }
+                <tr class="total">
+                    <td colspan="3">Total</td>
+                    <td>@invoice.Balance</td>
+                </tr>
+            </tbody>
+        </table>
+        <br />
+        <p>Best regards,</p>
+        <p>SouthSide K9 Camp</p>
+    </div>
+</body>
+
+@code
+{
+    [Parameter] public Shared.Client client { get; set; } = new();
+    [Parameter] public Shared.Invoice invoice { get; set; } = new();
 }
