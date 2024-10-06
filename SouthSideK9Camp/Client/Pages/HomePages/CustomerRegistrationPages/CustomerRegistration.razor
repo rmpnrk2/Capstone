@@ -151,8 +151,6 @@
 
                         </MudGrid>
 
-
-
                         @* contract details *@
                         <MudGrid Spacing="2">
 
@@ -337,7 +335,7 @@
         if(clientGUID != null)
         {
             _client = await HttpClient.Customer.GetByGuid(clientGUID) ?? new();
-            _client.Customer = _client.Customer;
+            _client.Customer = _client.Customer ?? new();
             _client.Dogs = new();
             _client.Dogs.Add(new Shared.Dog() { Contract = new() });
         }
