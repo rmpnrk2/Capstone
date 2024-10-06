@@ -10,6 +10,10 @@
 <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-16 mb-16">
     <MudStack>
 
+        <MudStack AlignItems="AlignItems.Center">
+            <MudImage Src="Images/logo.jpg" Height="150" />
+        </MudStack>
+
         <MudText Typo="Typo.h4">SouthSide K9 Membership Due Payment</MudText>
 
         @* display reason for rejection *@
@@ -18,19 +22,43 @@
             <MudAlert Severity="MudBlazor.Severity.Warning">Your previous payment was rejected: @reason.Reason</MudAlert>
         }
 
+        @* payment information *@
+        <MudStack Spacing="0">
+            <MudDivider Class="my-4" />
+            <MudText Typo="Typo.body1">
+                This is a reminder from Southside K9 Camp of your membership monthly dues of 300 php.
+                Kindly note that your payment is due on @_due?.DateTimeDue.ToString("dd MMMM yyyy").
+            </MudText>
+            <MudDivider Class="my-4" />
+            <MudText Typo="Typo.h6">Payment Details:</MudText>
+            <MudText Typo="Typo.body1">Membership Due Fee: 300.00 php</MudText>
+            <MudDivider Class="my-4" />
+            <MudText Typo="Typo.h6">GCash Payment Instruction:</MudText>
+            <MudText Typo="Typo.body1">1. Open GCash App</MudText>
+            <MudText Typo="Typo.body1">2. Click "Pay QR"</MudText>
+            <MudText Typo="Typo.body1">
+                3. Scan QR Code
+                <MudButton OnClick="@_ViewQRcode" StartIcon="@Icons.Material.Filled.OpenInNew" Size="Size.Small" Color="Color.Primary">Click here to view QR code</MudButton>
+            </MudText>
+            <MudText Typo="Typo.body1">4. Input Ammount: 300.00 php</MudText>
+            <MudText Typo="Typo.body1">5. Send payment</MudText>
+            <MudText Typo="Typo.body1">6. Screenshot payment receipt</MudText>
+            <MudText Typo="Typo.body1">7. Upload payment receipt</MudText>
+            <MudDivider Class="my-4" />
+        </MudStack>
+
+        @* image display *@
+        @if (_FormModel.file is not null)
+        {
+            <MudStack AlignItems="AlignItems.Center">
+                <MudImage Src="@_imageString" Height="300" />
+                <MudText><MudIcon Icon="@Icons.Material.Filled.AttachFile" />@_FormModel.file.Name</MudText>
+            </MudStack>
+        }
+
         @* editform for membership payment *@
         <EditForm EditContext="@_FormContext" OnValidSubmit="@_SubmitAsync" Context="context">
             <FluentValidationValidator />
-
-            @* image display *@
-            <MudStack AlignItems="AlignItems.Center">
-                <MudImage Src="@_imageString" Height="500" />
-                @if (_FormModel.file is not null)
-                {
-                    <MudText><MudIcon Icon="@Icons.Material.Filled.AttachFile" />@_FormModel.file.Name</MudText>
-                    <MudText><code>@_FormModel.file.Size bytes</code></MudText>
-                }
-            </MudStack>
 
             @* upload button *@
             <MudFileUpload T="IBrowserFile" FilesChanged="UploadFiles" Accept=".png, .jpg" For="@(() => _FormModel.file)" MaxFileSize="10485760">
@@ -49,6 +77,22 @@
     </MudStack>
 </MudContainer>
 
+@* View QR code MessageBox *@
+<MudMessageBox @ref="_messageBox">
+
+    <TitleContent>
+        <MudText Typo="Typo.h6"></MudText>
+    </TitleContent>
+
+    <MessageContent>
+        <MudImage Src="Images/qrcode.png" />
+    </MessageContent>
+
+    <YesButton/>
+    <CancelButton/>
+
+</MudMessageBox>
+
 @code
 {
     [Parameter] public string membershipDueGUID { get; set; } = string.Empty;
@@ -56,11 +100,13 @@
 
     private Shared.ReasonForRejection reason = new();
     private Shared.Client? _client = new();
+    private Shared.MembershipDue? _due = new();
 
     // on parameter set
     protected override async Task OnParametersSetAsync()
     {
         _client = await HttpClient.MembershipDue.GetByGuid(membershipDueGUID);
+        _due = _client?.Member?.MembershipDues.FirstOrDefault(d => d.GUID.ToString() == membershipDueGUID);
 
         if (_client == null || _client.Member == null)
         {
@@ -71,6 +117,9 @@
         // if member has already sent payment
         if (_client.Member.MembershipDues.First(d => d.GUID.ToString() == membershipDueGUID).ProofOfPaymentURL != string.Empty)
             NavigationManager.NavigateTo($"/membership-due-payment-pending/{membershipDueGUID}");
+
+        // get reason for rejection
+        if (reasonGUID != null) reason = await HttpClient.Reason.GetByGUIDAsync(reasonGUID);
     }
 
 
@@ -141,5 +190,16 @@
                 NavigationManager.NavigateTo($"/membership-due-payment-pending/{membershipDueGUID}");
             }
         return;
+    }
+
+    // View QR code messagebox
+    private MudMessageBox? _messageBox { get; set; }
+    private async Task _ViewQRcode()
+    {
+        bool? result = await _messageBox!.ShowAsync(new DialogOptions()
+            {
+                CloseButton = true,
+                BackdropClick = true
+            });
     }
 }

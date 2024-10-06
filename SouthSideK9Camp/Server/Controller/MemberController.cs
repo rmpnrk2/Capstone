@@ -137,7 +137,7 @@ namespace SouthSideK9Camp.Server.Controller
                 .FirstOrDefaultAsync(c => c.ID == clientID);
 
             if (client == null || client.Member == null)
-                return Results.NoContent();
+                return Results.NotFound();
 
             client.Member.RegistrationConfirmed = true;
 
@@ -152,7 +152,7 @@ namespace SouthSideK9Camp.Server.Controller
                 .Render();
             await _smtp.SendEmailAsync(client.Email, emailSubject, emailBody);
 
-            return Results.NotFound();
+            return Results.NoContent();
         }
 
         // reject membership payment
@@ -161,7 +161,7 @@ namespace SouthSideK9Camp.Server.Controller
             var client = await _dataContext.Clients.Include(c => c.Member).FirstOrDefaultAsync(c => c.ID == clientID);
 
             if (client == null || client.Member == null)
-                    return Results.NoContent();
+                    return Results.NotFound();
 
             // create reason for rejection
             _dataContext.Reasons.Add(reason);
@@ -181,7 +181,7 @@ namespace SouthSideK9Camp.Server.Controller
                 .Render();
             await _smtp.SendEmailAsync(client.Email, emailSubject, emailBody);
 
-            return Results.NotFound();
+            return Results.NoContent();
         }
 
         // delete

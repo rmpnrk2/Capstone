@@ -1,4 +1,5 @@
 ﻿@page "/admin/invoice/{dogID:int}"
+@using Newtonsoft.Json
 
 @layout AdminLayout
 
@@ -53,7 +54,7 @@
                                 <MudAlert Severity="MudBlazor.Severity.Error" Dense>Not Paid</MudAlert>
                             </MudItem>
                         }
-                        else if (invoice.ProofOfPaymentURL != string.Empty)
+                        @if (invoice.ProofOfPaymentURL != string.Empty)
                         {
                             <MudItem>
                                 <MudButton OnClick="@(() => _ShowReceipt(invoice))" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Receipt">Receipt</MudButton>
@@ -146,7 +147,6 @@
                     </ToolBarContent>
 
                     <HeaderContent>
-
                         <MudTh>Date</MudTh>
                         <MudTh>Name</MudTh>
                         <MudTh>Description</MudTh>
@@ -154,7 +154,6 @@
                         <MudTh>Price</MudTh>
                         <MudTh>Total</MudTh>
                         <MudTh></MudTh>
-
                     </HeaderContent>
 
                     <RowTemplate>
@@ -272,6 +271,13 @@
         </MudStack>
     </MessageContent>
 
+    <NoButton>
+        @if (!_viewInvoice.PaymentConfirmed)
+        {
+            <MudButton Color="Color.Error" Variant="Variant.Filled">Reject</MudButton>
+        }
+    </NoButton>
+
     <YesButton>
         @if (_viewInvoice.PaymentConfirmed)
         {
@@ -279,8 +285,7 @@
         }
         else
         {
-            <MudButton OnClick="@(() => _Reject(_viewInvoice.ID))" Color="Color.Error" Variant="Variant.Filled">Reject</MudButton>
-            <MudButton OnClick="@(() => _Approve(_viewInvoice.ID))" Color="Color.Primary" Variant="Variant.Filled">Approve</MudButton>
+            <MudButton Class="ml-1" Color="Color.Primary" Variant="Variant.Filled">Approve</MudButton>
         }
     </YesButton>
 
@@ -472,39 +477,46 @@
             FullScreen = true,
             CloseButton = true
         });
-    }
 
-    // approve payment
-    private async Task _Approve(int invoiceID)
-    {
-        _sentIconDisplay = "display: none";
-        await HttpClient.Invoice.ApprovePaymentAsync(invoiceID);
-        await _RefreshDataAsync();
-        Snackbar.Add("Approved succesfully", Severity.Success);
-    }
+        // approve payment
+        if(result == true)
+        {
+            _sentIconDisplay = "display: none";
+            await HttpClient.Invoice.ApprovePaymentAsync(invoice.ID);
 
-    // reject payment
-    private async Task _Reject(int invoiceID)
-    {
-        var dialog = await DialogService.ShowAsync<InvoicePageComponents.AccountStatementDialogReasonForRejection>(string.Empty,
-        new DialogParameters<InvoicePageComponents.AccountStatementDialogReasonForRejection>
-        {
-            { d => d.invoiceID, invoiceID },
-        },
-        new DialogOptions()
-        {
-            BackdropClick = false,
-            MaxWidth = MaxWidth.Medium,
-            FullWidth = true,
-            CloseButton = true,
-            CloseOnEscapeKey = true
-        });
-
-        // on dialog close
-        DialogResult? result = await dialog.Result;
-        if (!result.Canceled)
-        {
+            Snackbar.Add("Approved succesfully", Severity.Success);
             await _RefreshDataAsync();
+        }
+
+        // reject payment
+        if (result == false)
+        {
+            var dialog = await DialogService.ShowAsync<InvoicePageComponents.AccountStatementDialogReasonForRejection>(string.Empty,
+            new DialogParameters<InvoicePageComponents.AccountStatementDialogReasonForRejection>
+            {
+                { d => d.invoiceID, invoice.ID },
+            },
+            new DialogOptions()
+            {
+                BackdropClick = false,
+                MaxWidth = MaxWidth.Medium,
+                FullWidth = true,
+                CloseButton = true,
+                CloseOnEscapeKey = true
+            });
+
+            // on dialog close
+            DialogResult? dialogResult = await dialog.Result;
+            if (dialogResult != null && !dialogResult.Canceled)
+            {
+                string json = JsonConvert.SerializeObject(dialogResult.Data);
+                Shared.ReasonForRejection reason = JsonConvert.DeserializeObject<Shared.ReasonForRejection>(json) ?? new();
+                await HttpClient.Invoice.RejectPaymentAsync(invoice.ID, reason);
+
+                Snackbar.Add("Rejected", MudBlazor.Severity.Error);
+
+                await _RefreshDataAsync();
+            }
         }
     }
 

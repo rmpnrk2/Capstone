@@ -21,7 +21,7 @@
 
     @* dialog button *@
     <DialogActions>
-        <MudButton OnClick="@_SubmitAsync" Variant="Variant.Filled" Color="Color.Error">Reject</MudButton>
+        <MudButton OnClick="@_Submit" Variant="Variant.Filled" Color="Color.Error">Reject</MudButton>
     </DialogActions>
 
 </MudDialog>
@@ -43,18 +43,11 @@
     }
 
     // submit form
-    private async Task _SubmitAsync()
+    private void _Submit()
     {
-
         if (!_editContext!.Validate()) return;
 
-        MudDialog.Close();
-
-        await HttpClient.Customer.RejectPaymentAsync(dogID, _reason);  
-
-        Snackbar.Add("Rejected", MudBlazor.Severity.Error);
-
-        MudDialog.Close();
+        MudDialog.Close(DialogResult.Ok(_reason));
     }
 
     // close dialog

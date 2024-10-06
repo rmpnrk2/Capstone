@@ -1,4 +1,5 @@
 ﻿@using System.Text.Json
+@using Newtonsoft.Json
 
 @inject NavigationManager NavigationManager
 @inject SouthSideK9CampHttpClient HttpClient
@@ -12,7 +13,7 @@
         <MudToolBar>
 
             <MudIconButton OnClick="_PreviousMonth" Icon="@Icons.Material.Filled.NavigateBefore"></MudIconButton>
-            <MudDatePicker Variant="Variant.Outlined" Label="Month" @bind-Date="_yearMonth" PickerMonthChanged="@_RefreshDataAsync" OpenTo="OpenTo.Month" DateFormat="MMMM yyyy" FixDay="1" Margin="Margin.Dense" ShowToolbar="false"
+            <MudDatePicker Variant="Variant.Outlined" Label="Month" @bind-Date="_yearMonthFilter" PickerMonthChanged="@_RefreshDataAsync" OpenTo="OpenTo.Month" DateFormat="MMMM yyyy" FixDay="1" Margin="Margin.Dense" ShowToolbar="false"
                 IsDateDisabledFunc="@((DateTime dt)=>
                     (int)dt.Year > DateTime.UtcNow.Year ||
                     ((int)dt.Year == DateTime.UtcNow.Year && (int)dt.Month > DateTime.UtcNow.AddMonths(1).Month)
@@ -32,7 +33,7 @@
         <HeaderContent>
             <MudTh>Name</MudTh>
             <MudTh>Expiration</MudTh>
-            <MudTh>Due</MudTh>
+            <MudTh>Status</MudTh>
             <MudTh></MudTh>
         </HeaderContent>
 
@@ -51,29 +52,29 @@
             <MudTd DataLabel="Expiration">
                 <MudStack Row>
 
-                    <MudText Typo="Typo.body1">@context.Member?.MembershipDues?.FirstOrDefault(d => d.DateTimeDue.Year == _yearMonth?.Year && d.DateTimeDue.Month == _yearMonth.Value.Month)?.DateTimeDue.ToString("dd MMMM yyyy")</MudText>
+                    <MudText Typo="Typo.body1">@context.Member?.MembershipDues?.FirstOrDefault(d => d.DateTimeDue.Year == _yearMonthFilter?.Year && d.DateTimeDue.Month == _yearMonthFilter.Value.Month)?.DateTimeDue.ToString("dd MMMM yyyy")</MudText>
 
                 </MudStack>
             </MudTd>
 
-            <MudTd DataLabel="Due">
+            <MudTd DataLabel="Status">
                 <MudStack Row>
 
-                    @if(context.Member?.MembershipDues?.FirstOrDefault(d => d.DateTimeDue.Year == _yearMonth?.Year && d.DateTimeDue.Month == _yearMonth.Value.Month)?.DateTimeDue > DateTime.UtcNow)
+                    @if(context.Member?.MembershipDues?.FirstOrDefault(d => d.DateTimeDue.Year == _yearMonthFilter?.Year && d.DateTimeDue.Month == _yearMonthFilter.Value.Month)?.DateTimeDue > DateTime.UtcNow)
                     {
-                        <MudChip T="string" Variant="Variant.Text">Not Expired</MudChip>
+                        <MudChip T="string" Variant="Variant.Text" Color="Color.Success">Active</MudChip>
                     }
-                    else if (context.Member?.MembershipDues.FirstOrDefault(d => d.DateTimeDue.Year == _yearMonth?.Year && d.DateTimeDue.Month == _yearMonth.Value.Month)?.PaymentConfirmed ?? false)
+                    else if (context.Member?.MembershipDues.FirstOrDefault(d => d.DateTimeDue.Year == _yearMonthFilter?.Year && d.DateTimeDue.Month == _yearMonthFilter.Value.Month)?.PaymentConfirmed ?? false)
                     {
                         <MudChip T="string" Variant="Variant.Text" Color="Color.Success">Approved</MudChip>
                     }
-                    else if (context.Member?.MembershipDues.FirstOrDefault(d => d.DateTimeDue.Year == _yearMonth?.Year && d.DateTimeDue.Month == _yearMonth.Value.Month)?.ProofOfPaymentURL != string.Empty)
+                    else if (context.Member?.MembershipDues.FirstOrDefault(d => d.DateTimeDue.Year == _yearMonthFilter?.Year && d.DateTimeDue.Month == _yearMonthFilter.Value.Month)?.ProofOfPaymentURL != string.Empty)
                     {
                         <MudChip T="string" Variant="Variant.Text" Color="Color.Warning">Pending</MudChip>
                     }
-                    else if (context.Member?.MembershipDues.FirstOrDefault(d => d.DateTimeDue.Year == _yearMonth?.Year && d.DateTimeDue.Month == _yearMonth.Value.Month)?.ProofOfPaymentURL == string.Empty)
+                    else if (context.Member?.MembershipDues.FirstOrDefault(d => d.DateTimeDue.Year == _yearMonthFilter?.Year && d.DateTimeDue.Month == _yearMonthFilter.Value.Month)?.ProofOfPaymentURL == string.Empty)
                     {
-                        <MudChip T="string" Variant="Variant.Text" Color="Color.Error">Active</MudChip>
+                        <MudChip T="string" Variant="Variant.Text" Color="Color.Error">Not Paid</MudChip>
                     }
 
                 </MudStack>
@@ -86,11 +87,11 @@
 
                         <MudButtonGroup Variant="Variant.Filled" Color="Color.Primary">
 
-                            @if (context.Member?.MembershipDues.FirstOrDefault(d => d.DateTimeDue.Year == _yearMonth?.Year && d.DateTimeDue.Month == _yearMonth.Value.Month)?.PaymentConfirmed ?? false)
+                            @if (context.Member?.MembershipDues.FirstOrDefault(d => d.DateTimeDue.Year == _yearMonthFilter?.Year && d.DateTimeDue.Month == _yearMonthFilter.Value.Month)?.PaymentConfirmed ?? false)
                             {
                                 <MudButton OnClick="@(() => _ShowReceipt(context.Member?.MembershipDues.FirstOrDefault()?.ID ?? 0))" StartIcon="@Icons.Material.Filled.Receipt">Receipt</MudButton>
                             }
-                            else if (context.Member?.MembershipDues.FirstOrDefault(d => d.DateTimeDue.Year == _yearMonth?.Year && d.DateTimeDue.Month == _yearMonth.Value.Month)?.ProofOfPaymentURL != string.Empty)
+                            else if (context.Member?.MembershipDues.FirstOrDefault(d => d.DateTimeDue.Year == _yearMonthFilter?.Year && d.DateTimeDue.Month == _yearMonthFilter.Value.Month)?.ProofOfPaymentURL != string.Empty)
                             {
                                 <MudButton OnClick="@(() => _ShowReceipt(context.Member?.MembershipDues.FirstOrDefault()?.ID ?? 0))" StartIcon="@Icons.Material.Filled.Receipt">Receipt</MudButton>
                             }
@@ -118,16 +119,21 @@
             </MudStack>
     </MessageContent>
 
+    <NoButton>
+        @if (!_due?.PaymentConfirmed ?? false)
+        {
+            <MudButton Color="Color.Error" Variant="Variant.Filled">Reject</MudButton>
+        }
+    </NoButton>
+
     <YesButton>
         @if (_due?.PaymentConfirmed ?? false)
         {
-
             <MudButton Disabled EndIcon="@Icons.Material.Filled.Check" Variant="Variant.Outlined">Approved</MudButton>
         }
         else
         {
-            <MudButton OnClick="@(() => _Reject(_due?.ID ?? 0))" Color="Color.Error" Variant="Variant.Filled">Reject</MudButton>
-            <MudButton OnClick="@(() => _Approve(_due?.ID ?? 0))" Color="Color.Primary" Variant="Variant.Filled">Approve</MudButton>
+            <MudButton Class="ml-1" Color="Color.Primary" Variant="Variant.Filled">Approve</MudButton>
         }
     </YesButton>
 
@@ -135,29 +141,30 @@
 
 @code
 {
-
-    // on initialize
     private List<Shared.Client> _clients = new();
+
     protected override async Task OnInitializedAsync()
     {
         await _RefreshDataAsync();
     }
 
     // date filter
-    private DateTime? _yearMonth = DateTime.UtcNow;
+    private DateTime? _yearMonthFilter = DateTime.UtcNow;
     private bool _isNextMonthDisabled = false;
+
     private async Task _NextMonth()
     {
-        _yearMonth = _yearMonth?.AddMonths(1);
+        _yearMonthFilter = _yearMonthFilter?.AddMonths(1);
 
-        if (_yearMonth?.Month == DateTime.UtcNow.AddMonths(1).Month || _yearMonth?.Year > DateTime.UtcNow.Year)
+        if (_yearMonthFilter?.Month == DateTime.UtcNow.AddMonths(1).Month || _yearMonthFilter?.Year > DateTime.UtcNow.Year)
             _isNextMonthDisabled = true;
 
         await _RefreshDataAsync();
     }
+
     private async Task _PreviousMonth()
     {
-        _yearMonth = _yearMonth?.AddMonths(-1);
+        _yearMonthFilter = _yearMonthFilter?.AddMonths(-1);
         _isNextMonthDisabled = false;
         await _RefreshDataAsync();
     }
@@ -166,6 +173,7 @@
     private async Task _EmailDues()
     {
         await HttpClient.MembershipDue.NotifyAsync();
+        Snackbar.Add("Emails sent", Severity.Success);
     }
 
     // open receipt
@@ -173,47 +181,55 @@
     private Shared.MembershipDue? _due = new();
     private async Task _ShowReceipt(int membershipDueID)
     {
-        _due = _clients.Where(c => c.Member != null && c.Member.MembershipDues.Any(d => d.ID == membershipDueID))
-            .SelectMany(c => c.Member!.MembershipDues).Where(d => d.ID == membershipDueID).FirstOrDefault();
+        _due = _clients
+            .Where(c => c.Member != null && c.Member.MembershipDues
+            .Any(d => d.ID == membershipDueID))
+            .SelectMany(c => c.Member!.MembershipDues)
+            .Where(d => d.ID == membershipDueID)
+            .FirstOrDefault();
 
         bool? result = await _receiptMessageBox!.ShowAsync(new DialogOptions()
         {
             FullScreen = true,
             CloseButton = true
         });
-        if (result != null) { }
-    }
 
-    // approve payment
-    private async Task _Approve(int membershipDueID)
-    {
-        await HttpClient.MembershipDue.ApprovePaymentAsync(membershipDueID);
-        await _RefreshDataAsync();
-        Snackbar.Add("Approved succesfully", Severity.Success);
-    }
-
-    // reject payment
-    private async Task _Reject(int membershipDueID)
-    {
-        var dialog = await DialogService.ShowAsync<MemberPageComponents.RejectDueDialog>(string.Empty,
-        new DialogParameters<MemberPageComponents.RejectDueDialog>
+        // Approve payment
+        if (result == true)
         {
-            { d => d.membershipDueID, membershipDueID },
-        },
-        new DialogOptions()
-        {
-            BackdropClick = false,
-            MaxWidth = MaxWidth.Medium,
-            FullWidth = true,
-            CloseButton = true,
-            CloseOnEscapeKey = true
-        });
-
-        // on dialog close
-        DialogResult? result = await dialog.Result;
-        if (result != null && !result.Canceled)
-        {
+            await HttpClient.MembershipDue.ApprovePaymentAsync(membershipDueID);
             await _RefreshDataAsync();
+            Snackbar.Add("Approved succesfully", Severity.Success);
+        }
+
+        // Reject payment
+        if (result == false)
+        {
+            var dialog = await DialogService.ShowAsync<MemberPageComponents.RejectDueDialog>(string.Empty,
+            new DialogParameters<MemberPageComponents.RejectDueDialog>
+            {
+                { d => d.membershipDueID, membershipDueID },
+            },
+            new DialogOptions()
+            {
+                BackdropClick = false,
+                MaxWidth = MaxWidth.Medium,
+                FullWidth = true,
+                CloseButton = true,
+                CloseOnEscapeKey = true
+            });
+
+            // on dialog close
+            DialogResult? dialogResult = await dialog.Result;
+            if (dialogResult != null && !dialogResult.Canceled)
+            {
+                string json = JsonConvert.SerializeObject(dialogResult.Data);
+                Shared.ReasonForRejection reason = JsonConvert.DeserializeObject<Shared.ReasonForRejection>(json) ?? new();
+                await HttpClient.MembershipDue.RejectPaymentAsync(membershipDueID, reason);
+
+                Snackbar.Add("Payment rejected", Severity.Error);
+                await _RefreshDataAsync();
+            }
         }
     }
 
@@ -221,11 +237,11 @@
     private async Task _RefreshDataAsync()
     {
         _clients = await HttpClient.Client.GetAsync();
-        _clients = _clients.Where(c => c.Member != null && c.Member.MembershipDues.Any(d => d.DateTimeDue.Year == _yearMonth?.Year && d.DateTimeDue.Month == _yearMonth.Value.Month)).ToList();
+        _clients = _clients.Where(c => c.Member != null && c.Member.MembershipDues.Any(d => d.DateTimeDue.Year == _yearMonthFilter?.Year && d.DateTimeDue.Month == _yearMonthFilter.Value.Month)).ToList();
         StateHasChanged();
 
         _clients = await HttpClient.Client.FetchAsync();
-        _clients = _clients.Where(c => c.Member != null && c.Member.MembershipDues.Any(d => d.DateTimeDue.Year == _yearMonth?.Year && d.DateTimeDue.Month == _yearMonth.Value.Month)).ToList();
+        _clients = _clients.Where(c => c.Member != null && c.Member.MembershipDues.Any(d => d.DateTimeDue.Year == _yearMonthFilter?.Year && d.DateTimeDue.Month == _yearMonthFilter.Value.Month)).ToList();
         StateHasChanged();
     }
 }

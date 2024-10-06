@@ -98,13 +98,13 @@
                     <tr>
                         <td>@item.Name</td>
                         <td>@(item.Quantity + " " + item.Unit)</td>
-                        <td>@item.Price</td>
-                        <td>@item.Total</td>
+                        <td>@item.Price.ToString("0.00")</td>
+                        <td>@item.Total.ToString("0.00")</td>
                     </tr>
                 }
                 <tr class="total">
                     <td colspan="3">Total</td>
-                    <td>@invoice.Balance</td>
+                    <td>@invoice.Balance.ToString("0.00")</td>
                 </tr>
             </tbody>
         </table>

@@ -8,6 +8,7 @@
 @inject IDialogService DialogService
 
 @using FluentValidation
+@using Newtonsoft.Json
 
 <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-16 mb-16">
     <MudStack>
@@ -69,14 +70,14 @@
                 <MudTh>Name</MudTh>
                 <MudTh>Owner</MudTh>
                 <MudTh>Status</MudTh>
-                <MudTh>Status</MudTh>
+                <MudTh></MudTh>
             </HeaderContent>
 
             <RowTemplate>
 
                 @* data *@
                 <MudTd DataLabel="Name">
-                    <MudStack Row AlignItems="AlignItems.Center">
+                    <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.Center">
 
                         <MudAvatar>
                             <MudImage ObjectFit="ObjectFit.Cover" Src="@context.AvatarURL" />
@@ -84,7 +85,7 @@
 
                         <MudStack Spacing="0">
                             <MudText Typo="Typo.h6">@context.Name</MudText>
-                            <MudText Typo="Typo.caption">@context.Breed</MudText>
+                            <MudText Typo="Typo.body2">@context.Breed</MudText>
                         </MudStack>
 
                     </MudStack>
@@ -94,10 +95,8 @@
                 <MudTd DataLabel="Owner">
                     <MudStack Spacing="0">
 
-                        <MudStack Spacing="0">
                             <MudText Typo="Typo.body2">@(context?.Client?.FirstName + " " + context?.Client?.LastName)</MudText>
                             <MudText Typo="Typo.body2">@context?.Client?.Email</MudText>
-                        </MudStack>
 
                     </MudStack>
                 </MudTd>
@@ -150,16 +149,21 @@
             </MudStack>
     </MessageContent>
 
+    <NoButton>
+        @if (!_dogOpen.ReservationPaymentConfirmed)
+        {
+            <MudButton Color="Color.Error" Variant="Variant.Filled">Reject</MudButton>
+        }
+    </NoButton>
+
     <YesButton>
         @if (_dogOpen.ReservationPaymentConfirmed)
         {
-
             <MudButton Disabled EndIcon="@Icons.Material.Filled.Check" Variant="Variant.Outlined">Approved</MudButton>
         }
         else
         {
-            <MudButton OnClick="@(() => _Reject(_dogOpen.ID))" Color="Color.Error" Variant="Variant.Filled">Reject</MudButton>
-            <MudButton OnClick="@(() => _Approve(_dogOpen.ID))" Color="Color.Primary" Variant="Variant.Filled">Approve</MudButton>
+            <MudButton Color="Color.Primary" Variant="Variant.Filled">Approve</MudButton>
         }
     </YesButton>
 
@@ -277,41 +281,47 @@
             FullScreen = true,
             CloseButton = true
         });
-        if (result != null) { }
-    }
 
-    private async Task _Approve(int dogID)
-    {
-        await HttpClient.Customer.ApprovePaymentAsync(dogID);
-        await _RefreshDataAsync();
-        Snackbar.Add("Approved succesfully", MudBlazor.Severity.Success);
-    }
-
-    private async Task _Reject(int dogID)
-    {
-        var dialog = await DialogService.ShowAsync<ReservationPagesComponents.ReasonForRejectionDialog>(string.Empty,
-        new DialogParameters<ReservationPagesComponents.ReasonForRejectionDialog>
+        // Accept payment
+        if (result == true)
         {
-            { d => d.dogID, dogID },
-        },
-        new DialogOptions()
-        {
-            BackdropClick = false,
-            MaxWidth = MaxWidth.Medium,
-            FullWidth = true,
-            CloseButton = true,
-            CloseOnEscapeKey = true
-        });
-
-        // on dialog close
-        var result = await dialog.Result;
-        if (!result.Canceled)
-        {
+            await HttpClient.Customer.ApprovePaymentAsync(dog.ID);
             await _RefreshDataAsync();
+            Snackbar.Add("Payment approved", MudBlazor.Severity.Success);
+        }
+
+        // Reject payment
+        if (result == false)
+        {
+            var dialog = await DialogService.ShowAsync<ReservationPagesComponents.ReasonForRejectionDialog>(string.Empty,
+            new DialogParameters<ReservationPagesComponents.ReasonForRejectionDialog>
+            {
+                { d => d.dogID, dog.ID },
+            },
+            new DialogOptions()
+            {
+                BackdropClick = false,
+                MaxWidth = MaxWidth.Medium,
+                FullWidth = true,
+                CloseButton = true,
+                CloseOnEscapeKey = true
+            });
+
+            // on dialog close
+            var dialogResult = await dialog.Result;
+            if (dialogResult != null && !dialogResult.Canceled)
+            {
+                string json = JsonConvert.SerializeObject(dialogResult.Data);
+                Shared.ReasonForRejection reason = JsonConvert.DeserializeObject<Shared.ReasonForRejection>(json) ?? new();
+                await HttpClient.Customer.RejectPaymentAsync(dog.ID, reason);
+
+                Snackbar.Add("Payment Rejected", MudBlazor.Severity.Error);
+                await _RefreshDataAsync();
+            } 
         }
     }
 
-    // refresh data
+    // Refresh data
     private async Task _RefreshDataAsync()
     {
         _reservation = await HttpClient.Reservation.GetAsync(reservationID);
@@ -321,9 +331,6 @@
         _reservation = await HttpClient.Reservation.GetAsync(reservationID);
     }
 
-    // back
-    private void _Back()
-    {
+    private void _Back() =>
         NavigationManager.NavigateTo($"/admin/reservation-list");
-    }
 }

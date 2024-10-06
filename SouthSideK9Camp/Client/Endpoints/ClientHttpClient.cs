@@ -1,5 +1,7 @@
 ﻿using Blazored.LocalStorage;
+using SouthSideK9Camp.Shared;
 using System.Net;
+using System.Net.Http;
 using System.Net.Http.Json;
 
 namespace SouthSideK9Camp.Client.Endpoints;
@@ -32,8 +34,15 @@ public class ClientHttpClient
         await _httpClient.GetFromJsonAsync<Shared.Client>($"clients/{id}") ?? null;
     
     // get by email
-    public async Task<Shared.Client> GetByEmailAsync(string clientEmail) =>
-        await _httpClient.GetFromJsonAsync<Shared.Client>($"clients/email/{clientEmail}") ?? new();
+    public async Task<Shared.Client> GetByEmailAsync(string clientEmail)
+    {
+        HttpResponseMessage response = await _httpClient.GetAsync($"clients/email/{clientEmail}");
+
+        if(response.StatusCode == System.Net.HttpStatusCode.NotFound)
+            return new();
+
+        return await _httpClient.GetFromJsonAsync<Shared.Client>($"clients/email/{clientEmail}") ?? new();
+    }
 
     // check for email availability when registering as member
     public async Task<bool> CheckCustomerEmailAvailabilityAsync(string email)

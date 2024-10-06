@@ -74,7 +74,7 @@
 
                     @* invoices status *@
                     <MudTd DataLabel="Status">
-                        <MudGrid Spacing="0" Justify="Justify.Center">
+                        <MudGrid Spacing="0">
                             @foreach(Shared.Invoice invoice in context.Invoices)
                             {
                                 <MudItem>
@@ -84,11 +84,11 @@
                                     }
                                     else if (invoice.ProofOfPaymentURL != string.Empty)
                                     {
-                                        <MudChip T="string" Variant="Variant.Text" Color="Color.Info">@invoice.Title: Pending</MudChip>
+                                        <MudChip T="string" Variant="Variant.Text" Color="Color.Warning">@invoice.Title: Pending</MudChip>
                                     }
                                     else if (invoice.IsEmailed)
                                     {
-                                        <MudChip T="string" Variant="Variant.Text" Color="Color.Warning">Not Paid</MudChip>
+                                        <MudChip T="string" Variant="Variant.Text" Color="Color.Error">@invoice.Title: Not Paid</MudChip>
                                     }
                                     else
                                     {

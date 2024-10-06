@@ -8,6 +8,7 @@
 @inject IDialogService DialogService
 
 @using FluentValidation
+@using Newtonsoft.Json
 
 <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-16 mb-16">
     <MudStack>
@@ -139,19 +140,21 @@
         }
     </MessageContent>
 
-    <YesButton >
-        @if(_client.Member != null)
+    <NoButton>
+        @if (_client.Member != null && !_client.Member.RegistrationConfirmed)
         {
-            @if(_client.Member.RegistrationConfirmed)
-            {
-                
-                <MudButton Disabled EndIcon="@Icons.Material.Filled.Check" Variant="Variant.Outlined">Approved</MudButton>
-            }
-            else
-            {
-                <MudButton OnClick="@(() => _Reject(clientID))" Color="Color.Error" Variant="Variant.Filled">Reject</MudButton>
-                <MudButton OnClick="@_Approve" Color="Color.Primary" Variant="Variant.Filled">Approve</MudButton>
-            }
+            <MudButton Color="Color.Error" Variant="Variant.Filled">Reject</MudButton>
+        }
+    </NoButton>
+
+    <YesButton >
+        @if (_client.Member != null && _client.Member.RegistrationConfirmed)
+        {
+            <MudButton Disabled EndIcon="@Icons.Material.Filled.Check" Variant="Variant.Outlined">Approved</MudButton>
+        }
+        else
+        {
+            <MudButton Class="ml-1" Color="Color.Primary" Variant="Variant.Filled">Approve</MudButton>
         }
     </YesButton>
 
@@ -161,25 +164,23 @@
 {
     [Parameter] public int clientID { get; set; }
 
-    // on initialize
-    List<Shared.Client> _clients = new();
     EditContext? _editContext;
-    protected override async Task OnInitializedAsync()
-    {
-        _editContext = new EditContext(_client);
-        _clients = await HttpClient.Client.GetAsync();
-    }
-
-    // on parameterset
     Shared.Client _client = new()
     {
         Birthday = DateTime.UtcNow
     };
-    Shared.Client _editClient = new();
-    protected override void OnParametersSet()
+
+    // on initialize
+    protected override void OnInitialized()
     {
-        _client = _clients.FirstOrDefault(c => c.ID == clientID) ?? new();
         _editContext = new EditContext(_client);
+    }
+
+
+    // on parameterset
+    protected override async Task OnParametersSetAsync()
+    {
+        await _RefreshDataAsync();
     }
 
     // back
@@ -247,41 +248,44 @@
             FullScreen = true,
             CloseButton = true
         });
-        if (result != null)
-        {
-        }
-    }
 
-    // aprrove payment
-    private async Task _Approve()
-    {
-        await HttpClient.Member.ApprovePaymentAsync(_client.ID);
-        await _RefreshDataAsync();
-        Snackbar.Add("Approved succesfully", MudBlazor.Severity.Success);
-    }
-
-    // reject payment
-    private async Task _Reject(int clientID)
-    {
-        var dialog = await DialogService.ShowAsync<MemberPageComponents.RejectPaymentDialog>(string.Empty,
-        new DialogParameters<MemberPageComponents.RejectPaymentDialog>
+        // Aprrove payment
+        if (result == true)
         {
-            { d => d.clientID, clientID },
-        },
-        new DialogOptions()
-        {
-            BackdropClick = false,
-            MaxWidth = MaxWidth.Medium,
-            FullWidth = true,
-            CloseButton = true,
-            CloseOnEscapeKey = true
-        });
-
-        // on dialog close
-        var result = await dialog.Result;
-        if (result != null && !result.Canceled)
-        {
+            await HttpClient.Member.ApprovePaymentAsync(_client.ID);
             await _RefreshDataAsync();
+            Snackbar.Add("Approved succesfully", MudBlazor.Severity.Success);            
+        }
+
+        // Reject apyment
+        if (result == false)
+        {
+            // Open ReasonForRejection dialog
+            IDialogReference? dialog = await DialogService.ShowAsync<MemberPageComponents.RejectPaymentDialog>(string.Empty,
+                new DialogParameters<MemberPageComponents.RejectPaymentDialog>
+                {
+                    { d => d.clientID, clientID },
+                },
+                new DialogOptions()
+                {
+                    BackdropClick = false,
+                    MaxWidth = MaxWidth.Medium,
+                    FullWidth = true,
+                    CloseButton = true,
+                    CloseOnEscapeKey = true
+                });
+
+            DialogResult? dialogResult = await dialog.Result;
+            if (dialogResult != null && !dialogResult.Canceled)
+            {
+                string json = JsonConvert.SerializeObject(dialogResult.Data);
+                Shared.ReasonForRejection reason = JsonConvert.DeserializeObject<Shared.ReasonForRejection>(json) ?? new();
+                await HttpClient.Member.RejectPaymentAsync(clientID, reason);
+
+                Snackbar.Add("Payment Rejected", MudBlazor.Severity.Error);
+                 
+                await _RefreshDataAsync();
+            }
         }
     }
 
@@ -318,8 +322,7 @@
 
     private async Task _RefreshDataAsync()
     {
-        _clients = await HttpClient.Client.FetchAsync();
+        List<Shared.Client> _clients = await HttpClient.Client.FetchAsync();
         _client = _clients.FirstOrDefault(c => c.ID == clientID) ?? new();
-        StateHasChanged();
     }
 }
