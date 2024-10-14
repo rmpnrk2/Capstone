@@ -123,5 +123,28 @@ namespace SouthSideK9Camp.Server.Controller
             var rowsAffected = await _dataContext.Dogs.Where(dog => dog.ID == dogID).ExecuteDeleteAsync();
             return rowsAffected == 0 ? Results.NotFound() : Results.NoContent();
         }
+
+        // Delete dogs who are expired
+        [HttpDelete("delete-expired")] public async Task<IResult> DeleteExpiredAsync()
+        {
+            List<Shared.Dog> dogs = _dataContext.Dogs.Include(d => d.Reservation).AsNoTracking().ToList();
+
+            int rowsDeleted = 0;
+
+            foreach (Shared.Dog dog in dogs)
+            {
+                DateTime? deadLine = (dog.DateCreated.AddDays(5) > dog.Reservation?.StartingDate) ? dog.Reservation.StartingDate : dog.DateCreated.AddDays(5);
+                TimeSpan? timeLeft = deadLine - DateTime.UtcNow;
+
+                if (timeLeft != null)
+                    if ((int)timeLeft.Value.TotalDays <= 0)
+                    {
+                        await _dataContext.Dogs.Where(d => d.ID == dog.ID).ExecuteDeleteAsync();
+                        rowsDeleted++;
+                    }
+            }
+            return rowsDeleted == 0 ? Results.NotFound() : Results.NoContent();
+        }
+
     }
 }

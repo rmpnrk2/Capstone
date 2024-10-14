@@ -94,6 +94,7 @@ namespace SouthSideK9Camp.Server.Controller
                     .Set(c => c.endingDate, reservation.EndingDate!.Value)
                     .Set(c => c.host, _configuration["Host"])
                     .Set(c => c.dogGUID, dog.GUID.ToString())
+                    .Set(c => c.dueDate, (dog.DateCreated.AddDays(5) > reservation.StartingDate) ? reservation.StartingDate : dog.DateCreated.AddDays(5)) // Duedate is 5 days upon reservation or the ending date of reservation
                     .Render();
                 await _smtp.SendEmailAsync(client.Email, emailSubject, emailBody);
             }

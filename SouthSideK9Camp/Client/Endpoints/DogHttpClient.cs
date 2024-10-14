@@ -60,9 +60,12 @@ public class DogHttpClient
     public async Task UploadAvatar(int dogID, MultipartFormDataContent multipartContent) =>
         await _httpClient.PostAsync($"dog/upload-avatar/{dogID}", multipartContent);
 
+    // delete expired
+    public async Task DeleteExpiredAsync() =>
+        await _httpClient.DeleteAsync($"dog/delete-expired");
+
     // delete
-    public async Task DeleteAsync(int dogID)
-    {
+    public async Task DeleteAsync(int dogID) =>
         await _httpClient.DeleteAsync($"dog/{dogID}");
-    }
+    
 }

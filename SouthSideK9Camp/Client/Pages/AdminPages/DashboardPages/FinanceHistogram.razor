@@ -26,7 +26,7 @@
         _customers = Client.SelectMany(c => c.Dogs).Where(d => d.ReservationPaymentConfirmed).ToList();
         _members = Client.Where(c => c.Member != null).Select(c => c.Member).Where(m => m.RegistrationConfirmed).ToList();
         _invoices = Client.SelectMany(c => c.Dogs).SelectMany(d => d.Invoices).Where(i => i.PaymentConfirmed).ToList();
-        _membershipdues = Client.Select(c => c.Member).SelectMany(m => m.MembershipDues).Where(m => m.PaymentConfirmed).ToList();
+        _membershipdues = Client.Where(c => c.Member != null).Select(c => c.Member).SelectMany(m => m.MembershipDues).Where(m => m.PaymentConfirmed).ToList();
 
         // Compute finance histogram
         _financeSeries = new List<ChartSeries>()
