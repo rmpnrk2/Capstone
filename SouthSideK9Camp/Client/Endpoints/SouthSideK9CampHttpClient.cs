@@ -1,5 +1,6 @@
 ﻿using Blazored.LocalStorage;
 using Blazored.SessionStorage;
+using SouthSideK9Camp.Shared;
 
 namespace SouthSideK9Camp.Client.Endpoints;
 
@@ -16,6 +17,7 @@ public class SouthSideK9CampHttpClient
     private readonly ReportHttpClient _report;
     private readonly ReasonForRejectionHttpClient _reason;
     private readonly UserHttpClient _user;
+    private readonly LogHttpClient _logs;
 
     public SouthSideK9CampHttpClient(HttpClient httpClient, ILocalStorageService localStorage, ISessionStorageService sessionStorageService)
     {
@@ -30,6 +32,7 @@ public class SouthSideK9CampHttpClient
         _report = new(httpClient);
         _reason = new(httpClient);
         _user = new(httpClient, localStorage, sessionStorageService);
+        _logs = new(httpClient, localStorage);
     }
 
     public ClientHttpClient Client => _client;
@@ -43,4 +46,5 @@ public class SouthSideK9CampHttpClient
     public ReportHttpClient Report => _report;
     public ReasonForRejectionHttpClient Reason => _reason;
     public UserHttpClient User => _user;
+    public LogHttpClient Log => _logs;
 }

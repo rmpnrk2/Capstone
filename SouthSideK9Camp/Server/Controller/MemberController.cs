@@ -81,6 +81,19 @@ namespace SouthSideK9Camp.Server.Controller
                 .SetProperty(member => member.RegistrationPaymentURL, _configuration["Host"] + "/Images/MembershipRegistrationPayment/" + imageFileName)
             );
 
+            // Create new log for Membership registration payment
+            Shared.Member member = _dataContext.Members
+                .Include(m => m.Client)
+                .FirstOrDefault(m => m.ID == memberID) ?? new();
+
+            Shared.Log log = new()
+            {
+              Message = "Membership Registration Payment",
+              Subject = member.Client?.FirstName + " " + member.Client?.MiddleInitial + " " + member.Client?.LastName,
+              Severity = "Severity.Info"
+            };
+
+            _dataContext.Logs.Add(log);
             await _dataContext.SaveChangesAsync();
 
             return Results.Ok();

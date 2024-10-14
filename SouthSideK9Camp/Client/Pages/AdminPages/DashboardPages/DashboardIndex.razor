@@ -5,13 +5,91 @@
 @inject SouthSideK9CampHttpClient HttpClient;
 
 <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-16 mb-16">
-    <MudStack>
+    <MudStack Spacing="2">
 
+        <MudItem xs="12">
+            <MudText Typo="Typo.h3">Dashboard</MudText>
+        </MudItem>
+
+        @* Toolbar *@
+        <MudPaper>
+            <MudToolBar>
+                <MudStack Row Spacing="0" Justify="Justify.FlexStart">
+
+                    <MudIconButton OnClick="@_PreviousYear" Icon="@Icons.Material.Filled.NavigateBefore"></MudIconButton>
+                    <MudDatePicker Variant="Variant.Outlined" Label="Year" @bind-Date="_year" PickerMonthChanged="@_RefreshDataAsync" OpenTo="OpenTo.Year" DateFormat="yyyy" FixMonth="1" FixDay="1" Margin="Margin.Dense" ShowToolbar="false" />
+                    <MudIconButton OnClick="@_NextYear" Icon="@Icons.Material.Filled.NavigateNext"></MudIconButton>
+
+                </MudStack>
+            </MudToolBar>
+        </MudPaper>
+
+        @* Dashboard components *@
+        <MudGrid Spacing="2">
+
+
+            @* body *@
+            <MudItem xs="12" sm="8">
+                <MudStack Spacing="2">
+
+                    <ClientHistogram Client="_clients" />
+                    <DonutCharts Client="_clients" />
+                    <FinanceHistogram Client="_clients" />
+
+                </MudStack>
+            </MudItem>
+
+            @* sidebar *@
+            <MudItem xs="12" sm="4">
+                <LogHistoryComponent Logs="@_logs" />
+            </MudItem>
+
+        </MudGrid>
 
     </MudStack>
 </MudContainer>
 
 @code
 {
+    private List<Shared.Client> _clients = new();
+    private List<Shared.Log> _logs = new();
 
+    protected override async Task OnInitializedAsync()
+    {
+        await _RefreshDataAsync();
+    }
+
+    // Filter statistics by year
+    private DateTime? _year = DateTime.UtcNow;
+    private async Task _NextYear()
+    {
+        _year = _year?.AddYears(1);
+        await _RefreshDataAsync();
+    }
+    private async Task _PreviousYear()
+    {
+        _year = _year?.AddYears(-1);
+        await _RefreshDataAsync();
+    }
+
+    // Refresh data
+    private async Task _RefreshDataAsync()
+    {
+        _clients = await HttpClient.Client.GetAsync(); // Get data from local storage
+        _clients = _clients.Where(c => c.DateCreated.Year == _year?.Year).ToList(); // Filter by year
+
+        _logs = await HttpClient.Log.GetAsync(); // Get data from local storage
+        _logs.Reverse();
+
+        StateHasChanged();
+
+        _clients = await HttpClient.Client.FetchAsync(); // Get data from local storage
+        _clients = _clients.Where(c => c.DateCreated.Year == _year?.Year).ToList(); // Filter by year
+
+        await HttpClient.Log.FetchAsync(); // Get data from server database
+        _logs = await HttpClient.Log.GetAsync(); // Get data from local storage
+        _logs.Reverse();
+
+        StateHasChanged();
+    }
 }

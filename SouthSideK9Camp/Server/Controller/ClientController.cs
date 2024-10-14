@@ -116,6 +116,18 @@ namespace SouthSideK9Camp.Server.Controller
                 .Render();
             await _smtp.SendEmailAsync(client.Email, emailSubject, emailBody);
 
+            // Create new log for Membership registration
+            Shared.Log log = new()
+            {
+              Message = "Membership Registration",
+              Subject = client?.FirstName + " " + client?.MiddleInitial + " " + client?.LastName,
+              Severity = "Severity.Info"
+            };
+
+            _dataContext.Logs.Add(log);
+            await _dataContext.SaveChangesAsync();
+
+            // Return JSON with error loop handling
             var json = JsonConvert.SerializeObject(client, new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
             Shared.Client? deserializedClient = JsonConvert.DeserializeObject<Shared.Client>(json);
             return Results.CreatedAtRoute("GetClient", new {clientID = client.ID}, deserializedClient);

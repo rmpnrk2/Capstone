@@ -1,0 +1,75 @@
+﻿@* Client histogram *@
+<MudPaper Class="pt-4">
+
+    <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center">
+        <MudText Typo="Typo.h6">Client Histogram</MudText>
+    </MudStack>
+
+    @* Bar chart *@
+    <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center">
+        <MudChart ChartOptions="_ClientStatisticSeriesChartOptions" ChartType="ChartType.StackedBar" ChartSeries="@_ClientStatisticSeries" XAxisLabels="@_ClientStatisticAxisLabels" Height="300px" Width="100%" />
+    </MudStack>
+
+</MudPaper>
+
+@code
+{
+    [Parameter] public List<Shared.Client> Client { get; set; } = new();
+
+    private List<Shared.Dog> _customers = new();
+    private List<Shared.Member> _members = new();
+
+    protected override void OnParametersSet()
+    {
+        _customers = Client.SelectMany(c => c.Dogs).Where(d => d.ReservationPaymentConfirmed).ToList();
+        _members = Client.Where(c => c.Member != null).Select(c => c.Member).Where(m => m.RegistrationConfirmed).ToList();
+
+        // Compute histogram
+        _ClientStatisticSeries = new List<ChartSeries>()
+        {
+            new ChartSeries() { Name = "Customers", Data = _ClientSeriesCustomer() },
+            new ChartSeries() { Name = "Members", Data = _ClientSeriesMember() },
+        };
+    }
+
+    // Client statistics stacked bar-chart
+    private List<ChartSeries> _ClientStatisticSeries = new List<ChartSeries>();
+    private ChartOptions _ClientStatisticSeriesChartOptions = new ChartOptions()
+        {
+            YAxisLines = true,
+            YAxisTicks = 1,
+        };
+    private string[] _ClientStatisticAxisLabels = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
+
+    // Calculate Client statistics
+    private double[] _ClientSeriesCustomer()
+    {
+        List<double> listSeries = new();
+
+        // Loop through every month of the year
+        DateTime date = new(DateTime.Now.Year, 1, 1);
+        while (date.Year == DateTime.UtcNow.Year)
+        {
+            double count = _customers.FindAll(c => c.DateCreated.Month == date.Month).Count();
+            listSeries.Add(count);
+            date = date.AddMonths(1);
+        }
+
+        return listSeries.ToArray();
+    }
+    private double[] _ClientSeriesMember()
+    {
+        List<double> listSeries = new();
+
+        // Loop through every month of the year
+        DateTime date = new(DateTime.Now.Year, 1, 1);
+        while (date.Year == DateTime.UtcNow.Year)
+        {
+            double count = _members.FindAll(c => c.DateCreated.Month == date.Month).Count();
+            listSeries.Add(count);
+            date = date.AddMonths(1);
+        }
+
+        return listSeries.ToArray();
+    }
+}

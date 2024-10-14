@@ -141,6 +141,20 @@ namespace SouthSideK9Camp.Server.Controller
                 .SetProperty(i => i.ProofOfPaymentURL, _configuration["Host"] + "/Images/InvoicePayments/" + imageFileName)
             );
 
+
+            // Create new log for statement of account payment
+            Shared.Invoice invoice = _dataContext.Invoices
+                .Include(i => i.Dog).ThenInclude(d => d.Client)
+                .FirstOrDefault(i => i.ID == invoiceID) ?? new();
+
+            Shared.Log log = new()
+            {
+              Message = "Statement of Account Payment",
+              Subject = invoice.Dog?.Client?.FirstName + " " + invoice.Dog?.Client?.MiddleInitial + " " + invoice.Dog?.Client?.LastName,
+              Severity = "Severity.Success"
+            };
+
+            _dataContext.Logs.Add(log);
             await _dataContext.SaveChangesAsync();
 
             return Results.Ok();

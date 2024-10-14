@@ -1,5 +1,4 @@
 ﻿using BlazorTemplater;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MudBlazor;
@@ -111,8 +110,19 @@ namespace SouthSideK9Camp.Server.Controller
                 existingClient.Dogs = client.Dogs;
             }
 
+            // Create new log for Board & Train registration
+            Shared.Log log = new()
+            {
+              Message = "Board & Train Registration",
+              Subject = client.FirstName + " " + client.MiddleInitial + " " + client.LastName,
+              Severity = "Severity.Success"
+            };
+
+            _dataContext.Logs.Add(log);
             await _dataContext.SaveChangesAsync();
 
+
+            // Return JSON with error loop handling
             var json = JsonConvert.SerializeObject(client, new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
             Shared.Client? deserializedClient = JsonConvert.DeserializeObject<Shared.Client>(json);
 
@@ -141,6 +151,19 @@ namespace SouthSideK9Camp.Server.Controller
             // set dog reservation to paid
             await _dataContext.Dogs.Where(dog => dog.ID == dogID).ExecuteUpdateAsync(updates => updates
                 .SetProperty(d => d.ReservationPaymentURL, _configuration["Host"] + "/Images/ReservationPayment/" + imageFileName));
+
+            // Create new log for Board & Train registration payment
+            Shared.Dog dog = _dataContext.Dogs.Include(d => d.Client).FirstOrDefault(d => d.ID == dogID) ?? new();
+
+            Shared.Log log = new()
+            {
+              Message = "Board & Train Payment",
+              Subject = dog.Client?.FirstName + " " + dog.Client?.MiddleInitial + " " + dog.Client?.LastName,
+              Severity = "Severity.Success"
+            };
+
+            _dataContext.Logs.Add(log);
+            await _dataContext.SaveChangesAsync();
 
             return Results.Ok();
         }

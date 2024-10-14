@@ -78,6 +78,19 @@ namespace SouthSideK9Camp.Server.Controller
                 .SetProperty(due => due.ProofOfPaymentURL, _configuration["Host"] + "/Images/MembershipDuePayments/" + imageFileName)
             );
 
+            // Create new log for Membership due payment
+            Shared.MembershipDue mebershipDue = _dataContext.MembershipDues
+                .Include(m => m.Member).ThenInclude(m => m.Client)
+                .FirstOrDefault(m => m.ID == membershipDueID) ?? new();
+
+            Shared.Log log = new()
+            {
+              Message = "Membership Due Payment",
+              Subject = mebershipDue.Member?.Client?.FirstName + " " + mebershipDue.Member?.Client?.MiddleInitial + " " + mebershipDue.Member?.Client?.LastName,
+              Severity = "Severity.Info"
+            };
+
+            _dataContext.Logs.Add(log);
             await _dataContext.SaveChangesAsync();
 
             return Results.Ok();

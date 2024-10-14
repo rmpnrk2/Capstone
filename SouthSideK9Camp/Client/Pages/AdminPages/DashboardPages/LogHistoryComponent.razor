@@ -1,0 +1,73 @@
+﻿<MudPaper Class="pr-4 py-4">
+
+    <MudText Typo="Typo.h6" Align="Align.Center">Log History</MudText>
+
+    <MudStack AlignItems="AlignItems.Start" Justify="Justify.FlexStart">
+        <MudTimeline TimelinePosition="TimelinePosition.Left">
+
+            @foreach (Shared.Log log in _logs)
+            {
+                <MudTimelineItem Color="Color.Info" Size="Size.Small">
+                    <MudText Typo="Typo.body2" Color="@_Color(log.Severity)">@log.Message</MudText>
+                    <MudText Typo="Typo.subtitle2">@log.Subject</MudText>
+                    <MudText Typo="Typo.caption" Style="@($"color:{Colors.Gray.Lighten1};")">@log.DateCreated.ToString("h:M tt | dd MMM")</MudText>
+                </MudTimelineItem>
+            }
+
+        </MudTimeline>
+    </MudStack>
+
+    <MudStack AlignItems="AlignItems.Center">
+        @if (_moreToggle)
+        {
+            <MudLink OnClick="() => _LogToggle(false)">Less</MudLink>
+        }
+        else
+        {
+            <MudLink OnClick="() => _LogToggle(true)">More</MudLink>
+        }
+    </MudStack>
+
+</MudPaper>
+
+@code
+{
+    [Parameter] public List<Shared.Log> Logs { get; set; } = new();
+
+    protected override void OnParametersSet()
+    {
+        _LogToggle(false);
+    }
+
+    // Severity to color
+    private Color _Color(string severity)
+    {
+        if (severity == "Severity.Info")
+            return Color.Info;
+
+        if (severity == "Severity.Success")
+            return Color.Success;
+
+        return Color.Default;
+    }
+
+    // Log history toggle
+    bool _moreToggle;
+    private List<Shared.Log> _logs { get; set; } = new();
+
+    private List<Shared.Log> _LogToggle(bool toggle)
+    {
+        _moreToggle = toggle;
+
+        if (_moreToggle == true)
+        {
+            _logs = Logs;
+        }
+        else
+        {
+            _logs = Logs.Take(10).ToList();
+        }
+
+        return _logs;
+    }
+}
