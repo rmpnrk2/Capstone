@@ -13,21 +13,26 @@
 
     <MudGrid Spacing="3">
 
-        @* statbar *@
+        @* Statistics *@
         <MudItem xs="12">
-            <MudPaper Elevation="4" Class="pt-2">
+            <MudTabs Elevation="1" Rounded ApplyEffectsToContainer>
 
-                <MudText Typo="Typo.h5" Align="Align.Center" Color="Color.Primary">Statistics</MudText>
-                <MudChart ChartType="ChartType.Line" ChartSeries="@Series" XAxisLabels="@XAxisLabels" Width="100%" Height="300px" ChartOptions="options"></MudChart>
+                <MudTabPanel Text="Training">
+                    <SouthSideK9Camp.Client.Pages.AdminPages.ProgressPages.ProgressComponents.TrainingTimeStatisticsComponent dog="_dog" />
+                </MudTabPanel>
 
-            </MudPaper>
+                <MudTabPanel Text="Score">
+                    <SouthSideK9Camp.Client.Pages.AdminPages.ProgressPages.ProgressComponents.ProgressHistogramComponent dog="_dog" />
+                </MudTabPanel>
+
+            </MudTabs>
         </MudItem>
 
         @* main content *@
         <MudItem xs="12" sm="7">
 
             @* toolbar *@
-            <MudPaper Elevation="4">
+            <MudPaper>
                 <MudToolBar>
                     <MudStack Row Spacing="2" AlignItems="AlignItems.Center">
 
@@ -81,15 +86,15 @@
 
                                 <MudItem xs="12" sm="6">
                                     <MudStack Spacing="0" AlignItems="AlignItems.Center">
+                                        <MudText Typo="Typo.body1" Style="font-weight: bold">@report.SpanDuration?.ToString(@"h\:mm") hours</MudText>
                                         <MudText Typo="Typo.caption">Hours Trained:</MudText>
-                                        <MudText Typo="Typo.body1">@report.SpanDuration?.ToString(@"h\:mm") hours</MudText>
                                     </MudStack>
                                 </MudItem>
 
                                 <MudItem xs="12" sm="6">
                                     <MudStack Spacing="0" AlignItems="AlignItems.Center">
+                                        <MudText Typo="Typo.body1" Style="font-weight: bold">@report.DateTraining?.ToString("dd MMM")</MudText>
                                         <MudText Typo="Typo.caption">Training Date:</MudText>
-                                        <MudText Typo="Typo.body1">@report.DateTraining?.ToString("dd MMM")</MudText>
                                     </MudStack>
                                 </MudItem>
 
@@ -132,68 +137,7 @@
 
         @* Side profile *@
         <MudItem xs="12" sm="5">
-            <MudPaper Elevation="4" Class="pa-6">
-                <MudStack AlignItems="AlignItems.Center">
-
-                    @* dog *@
-                    <MudGrid Spacing="1" Justify="Justify.Center">
-
-                        <MudItem xs="12" sm="3">
-                            <MudAvatar Color="Color.Dark" Variant="Variant.Filled" Size="Size.Large">
-                                <MudImage ObjectFit="ObjectFit.Cover" Src="@_dog.AvatarURL" />
-                            </MudAvatar>
-                        </MudItem>
-
-                        <MudItem xs="12" sm="9">
-                            <MudText Typo="Typo.h4" Color="Color.Primary">@_dog.Name</MudText>
-                            <MudText Typo="Typo.body2">@_dog.Breed</MudText>
-                        </MudItem>
-
-                        <MudItem xs="12">
-                            <MudStack Spacing="3">
-
-                                <MudStack Row AlignItems="AlignItems.Center">
-                                    <MudIcon Icon="@Icons.Material.Filled.FitnessCenter" Size="Size.Small" />
-                                    <MudChip T="string" Variant="Variant.Text" Color="Color.Default">@_dog.Contract.TrainingType</MudChip>
-                                </MudStack>
-
-                                <MudStack Row AlignItems="AlignItems.Center">
-                                    <MudIcon Icon="@Icons.Material.Filled.Flag" Size="Size.Small" />
-                                    <MudText Typo="Typo.body1">@_dog.Contract.TrainingGoal</MudText>
-                                </MudStack>
-
-                                <MudStack Row AlignItems="AlignItems.Center">
-                                    <MudIcon Icon="@Icons.Material.Filled.DateRange" Size="Size.Small" />
-                                    <MudStack Spacing="0">
-                                        <MudText Typo="Typo.caption">@_dog.Reservation?.StartingDate?.ToString("dd MMMM yyyy")</MudText>
-                                        <MudText Typo="Typo.caption">@_dog.Reservation?.EndingDate?.ToString("dd MMMM yyyy")</MudText>
-                                    </MudStack>
-                                </MudStack>
-
-                            </MudStack>
-                        </MudItem>
-
-                    </MudGrid>
-
-                    <MudDivider Class="my-2" />
-
-                    @* Owner *@
-                    <MudStack Spacing="0" AlignItems="AlignItems.Start">
-
-                        <MudStack Row Spacing="1">
-                            <MudText Typo="Typo.h6">@_dog.Client?.FirstName</MudText>
-                            <MudText Typo="Typo.h6">@_dog.Client?.MiddleInitial</MudText>
-                            <MudText Typo="Typo.h6">@_dog.Client?.LastName</MudText>
-                        </MudStack>
-
-                        <MudText Typo="Typo.body1">@_dog.Client?.Email</MudText>
-
-                        <MudText Typo="Typo.body1">@_dog.Client?.Contact</MudText>
-
-                    </MudStack>
-
-                </MudStack>
-            </MudPaper>
+            <SouthSideK9Camp.Client.Pages.AdminPages.ProgressPages.ProgressComponents.DogProfileComponent dog="_dog" />            
         </MudItem>
 
     </MudGrid>
@@ -229,15 +173,6 @@
     // On Initialized set
     protected override async Task OnInitializedAsync()
     {
-        // for charts
-        options.InterpolationOption = InterpolationOption.NaturalSpline;
-
-        await _RefreshData();
-    }
-
-    // On Parameter set
-    protected override async Task OnParametersSetAsync()
-    {
         await _RefreshData();
     }
 
@@ -249,8 +184,8 @@
         new DialogParameters<ProgressComponents.EditProgressDialog>
         {
             { p => p.dogID, dogID},
-            { p => p._report, report},
-            { p => p._reservation, _dog.Reservation}
+            { p => p.report, report},
+            { p => p.reservation, _dog.Reservation}
         },
         new DialogOptions()
         {
@@ -300,14 +235,6 @@
         _dog = await HttpClient.Dog.GetByIDAsync(dogID);
         _dog.ProgressReports.Reverse();
 
-        Series = new List<ChartSeries>()
-        {
-            new ChartSeries() { Name = "Obedience", Data = _GetReportScores(_dog.Reservation ?? new(), _dog.ProgressReports, "obedience") },
-            new ChartSeries() { Name = "Focus", Data = _GetReportScores(_dog.Reservation ?? new(), _dog.ProgressReports, "focus") },
-            new ChartSeries() { Name = "Protection", Data = _GetReportScores(_dog.Reservation ?? new(), _dog.ProgressReports, "protection") },
-        };
-        XAxisLabels = _GetDates(new DateRange(_dog.Reservation?.StartingDate, _dog.Reservation?.EndingDate));
-
         StateHasChanged();
     }
 
@@ -321,87 +248,4 @@
         5 => "Excellent Results!",
         _ => "No Rating"
     };
-
-    ////////// BELOW ARE MUDCHART SHIT
-
-    private ChartOptions options = new ChartOptions();
-
-    private List<ChartSeries> Series = new List<ChartSeries>()
-    {
-        new ChartSeries() { Name = "Obedience", Data = new double[] { 1, 1, 1, 1 } },
-        new ChartSeries() { Name = "Focus", Data = new double[] { 1, 1, 1, 1 } },
-        new ChartSeries() { Name = "Protection", Data = new double[] { 1, 1, 1, 1 } },
-    };
-
-    // get int[] array of report-scores
-    private double[] _GetReportScores(Shared.Reservation reservation, List<Shared.ProgressReport> reports, string scoreType)
-    {
-        // create daterange
-        DateRange dateRange = new(reservation.StartingDate, reservation.EndingDate);
-
-        // create a dictionary to store report scores by date
-        Dictionary<DateTime, int> reportDateScoreDictionary = new Dictionary<DateTime, int>();
-
-        // populate the dictionary with report scores
-        foreach (Shared.ProgressReport report in reports)
-        {
-            if (dateRange.Start <= report.DateTraining && report.DateTraining <= dateRange.End)
-            {
-                if (scoreType == "protection")
-                {
-                    if (report.ScoreProtection is 0) report.ScoreProtection = 1;
-                    reportDateScoreDictionary[report.DateTraining.Value] = report.ScoreProtection;
-                }
-                if (scoreType == "obedience")
-                {
-                    if (report.ScoreObedience is 0) report.ScoreObedience = 1;
-                    reportDateScoreDictionary[report.DateTraining.Value] = report.ScoreProtection;
-                }
-                if (scoreType == "focus")
-                {
-                    if (report.ScoreFocus is 0) report.ScoreFocus = 1;
-                    reportDateScoreDictionary[report.DateTraining.Value] = report.ScoreProtection;
-                }
-            }
-        }
-
-        // create an score[] for each day in daterange
-        double[] reportScores = new double[(dateRange.End - dateRange.Start)?.Days ?? 0 + 1];
-
-        // Initialize the previous score
-        int previousScore = 0;
-
-        // Populate the array with report scores
-        for (int i = 0; i < reportScores.Length; i++)
-        {
-            DateTime date = dateRange.Start?.AddDays(i) ?? new();
-            if (reportDateScoreDictionary.ContainsKey(date))
-            {
-                previousScore = reportDateScoreDictionary[date];
-            }
-            reportScores[i] = previousScore;
-        }
-
-        return reportScores;
-    }
-
-    public string[] XAxisLabels = { string.Empty, string.Empty, string.Empty };
-
-    private string[] _GetDates(DateRange dateRange)
-    {
-        // calculate number of dates
-        int numDays = (dateRange.End - dateRange.Start)?.Days ?? 0 + 1;
-
-        // create date[]
-        string[] dates = new string[numDays];
-
-        // populate date[] with dates
-        for (int i = 0; i < numDays; i++)
-        {
-            DateTime date = dateRange.Start?.AddDays(i) ?? new();
-            dates[i] = date.ToString("dd");
-        }
-
-        return dates;
-    }
 }

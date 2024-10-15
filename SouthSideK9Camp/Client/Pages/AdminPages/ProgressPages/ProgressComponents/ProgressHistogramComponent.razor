@@ -1,0 +1,95 @@
+﻿<MudItem xs="12">
+    <MudPaper Class="pa-6">
+        <MudChart ChartType="ChartType.Line" ChartSeries="@chartSeries" XAxisLabels="@XAxisLabels" Width="100%" Height="100%" ChartOptions="@chartOptions"></MudChart>
+    </MudPaper>
+</MudItem>
+
+@code
+{
+    [Parameter] public Shared.Dog dog { get; set; } = new();
+
+    private ChartOptions chartOptions = new ChartOptions
+    {
+        XAxisLines = true,
+        YAxisLines = true,
+        YAxisTicks = 1
+    };
+
+    private List<ChartSeries> chartSeries = new();
+
+    protected override void OnParametersSet()
+    {
+        chartSeries = new()
+        {
+            new ChartSeries() { Name = "Obedience", Data = _GetReportScores(dog.Reservation ?? new(), dog.ProgressReports, "obedience") },
+            new ChartSeries() { Name = "Focus", Data = _GetReportScores(dog.Reservation ?? new(), dog.ProgressReports, "focus") },
+            new ChartSeries() { Name = "Protection", Data = _GetReportScores(dog.Reservation ?? new(), dog.ProgressReports, "protection") },
+        };
+
+        XAxisLabels = _GetDates(new DateRange(dog.Reservation?.StartingDate, dog.Reservation?.EndingDate));
+    }
+
+    // Get int[] array of report-scores
+    private double[] _GetReportScores(Shared.Reservation reservation, List<Shared.ProgressReport> reports, string scoreType)
+    {
+        DateRange dateRange = new(reservation.StartingDate, reservation.EndingDate);
+
+        Dictionary<DateTime, int> reportDateScoreDictionary = new Dictionary<DateTime, int>();
+
+        foreach (Shared.ProgressReport report in reports) // Populate the dictionary with report scores
+        {
+            if (dateRange.Start <= report.DateTraining && report.DateTraining <= dateRange.End)
+            {
+                if (scoreType == "protection")
+                {
+                    if (report.ScoreProtection is 0) report.ScoreProtection = 1;
+                    reportDateScoreDictionary[report.DateTraining.Value] = report.ScoreProtection;
+                }
+                if (scoreType == "obedience")
+                {
+                    if (report.ScoreObedience is 0) report.ScoreObedience = 1;
+                    reportDateScoreDictionary[report.DateTraining.Value] = report.ScoreObedience;
+                }
+                if (scoreType == "focus")
+                {
+                    if (report.ScoreFocus is 0) report.ScoreFocus = 1;
+                    reportDateScoreDictionary[report.DateTraining.Value] = report.ScoreFocus;
+                }
+            }
+        }
+
+        double[] reportScores = new double[(dateRange.End - dateRange.Start)?.Days ?? 0 + 1]; // Create a score[] for each day in daterange
+
+        int previousScore = 0; // Initialize the previous score
+
+        // Populate the array with report scores
+        for (int i = 0; i < reportScores.Length; i++)
+        {
+            DateTime date = dateRange.Start?.AddDays(i) ?? new();
+            if (reportDateScoreDictionary.ContainsKey(date))
+            {
+                previousScore = reportDateScoreDictionary[date];
+            }
+            reportScores[i] = previousScore;
+        }
+
+        return reportScores;
+    }
+
+    public string[] XAxisLabels = { string.Empty, string.Empty, string.Empty };
+
+    private string[] _GetDates(DateRange dateRange)
+    {
+        int numDays = (dateRange.End - dateRange.Start)?.Days ?? 0 + 1; // Calculate number of dates
+
+        string[] dates = new string[numDays];
+
+        for (int i = 0; i < numDays; i++) // Populate date[] with dates
+        {
+            DateTime date = dateRange.Start?.AddDays(i) ?? new();
+            dates[i] = date.ToString("dd");
+        }
+
+        return dates;
+    }
+}

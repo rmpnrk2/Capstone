@@ -44,45 +44,45 @@
                 </MudItem>
 
                 <MudItem xs="12">
-                    <MudTextField @bind-Value="_report.Subject" For="() => _report.Subject" Label="Training" Variant="Variant.Outlined" />
+                    <MudTextField @bind-Value="report.Subject" For="() => report.Subject" Label="Training" Variant="Variant.Outlined" />
                 </MudItem>
 
                 <MudItem xs="12">
-                    <MudTextField @bind-Value="_report.Message" For="() => _report.Message" Label="Remarks" Variant="Variant.Outlined" Lines="2" MaxLines="5" AutoGrow />
+                    <MudTextField @bind-Value="report.Message" For="() => report.Message" Label="Remarks" Variant="Variant.Outlined" Lines="2" MaxLines="5" AutoGrow />
                 </MudItem>
 
                 <MudItem xs="12" sm="6">
-                    <MudTimePicker @bind-Time="_report.SpanDuration" For="() => _report.SpanDuration" Label="Training Duration" Variant="Variant.Outlined" AmPm TimeFormat="h:mm" MinuteSelectionStep="5" ShowToolbar="false" />
+                    <MudTimePicker @bind-Time="report.SpanDuration" For="() => report.SpanDuration" Label="Training Duration" Variant="Variant.Outlined" AmPm TimeFormat="h:mm" MinuteSelectionStep="5" ShowToolbar="false" />
                 </MudItem>
 
                 <MudItem xs="12" sm="6">
-                    <MudDatePicker @bind-Date="_report.DateTraining" For="() => _report.DateTraining" Label="Training Date" Variant="Variant.Outlined" ShowToolbar="false" IsDateDisabledFunc="@((DateTime dt)=>(
-                        ((int)dt.Year < _reservation.StartingDate?.Year ||
-                        (int)dt.Year > _reservation.EndingDate?.Year ||
-                        ((int)dt.Year == _reservation.StartingDate?.Year && (int)dt.Month < _reservation.StartingDate?.Month) ||
-                        ((int)dt.Year == _reservation.EndingDate?.Year && (int)dt.Month > _reservation.EndingDate?.Month) ||
-                        ((int)dt.Year == _reservation.StartingDate?.Year && (int)dt.Month == _reservation.StartingDate?.Month && (int)dt.Day < _reservation.StartingDate?.Day)) ||
-                        ((int)dt.Year == _reservation.EndingDate?.Year && (int)dt.Month == _reservation.EndingDate?.Month && (int)dt.Day > _reservation.EndingDate?.Day)))" />
+                    <MudDatePicker @bind-Date="report.DateTraining" For="() => report.DateTraining" Label="Training Date" Variant="Variant.Outlined" ShowToolbar="false" IsDateDisabledFunc="@((DateTime dt)=>(
+                        ((int)dt.Year < reservation.StartingDate?.Year ||
+                        (int)dt.Year > reservation.EndingDate?.Year ||
+                        ((int)dt.Year == reservation.StartingDate?.Year && (int)dt.Month < reservation.StartingDate?.Month) ||
+                        ((int)dt.Year == reservation.EndingDate?.Year && (int)dt.Month > reservation.EndingDate?.Month) ||
+                        ((int)dt.Year == reservation.StartingDate?.Year && (int)dt.Month == reservation.StartingDate?.Month && (int)dt.Day < reservation.StartingDate?.Day)) ||
+                        ((int)dt.Year == reservation.EndingDate?.Year && (int)dt.Month == reservation.EndingDate?.Month && (int)dt.Day > reservation.EndingDate?.Day)))" />
                 </MudItem>
 
                 <MudItem xs="12" sm="4">
                     <MudStack Spacing="0" AlignItems="AlignItems.Center">
                         <MudText Typo="Typo.caption">Obedience Rating: </MudText>
-                        <MudRating @bind-SelectedValue="_report.ScoreObedience" MaxValue="5" />
+                        <MudRating @bind-SelectedValue="report.ScoreObedience" MaxValue="5" />
                     </MudStack>
                 </MudItem>
 
                 <MudItem xs="12" sm="4">
                     <MudStack Spacing="0" AlignItems="AlignItems.Center">
                         <MudText Typo="Typo.caption">Focus Rating: </MudText>
-                        <MudRating @bind-SelectedValue="_report.ScoreFocus" MaxValue="5" />
+                        <MudRating @bind-SelectedValue="report.ScoreFocus" MaxValue="5" />
                     </MudStack>
                 </MudItem>
 
                 <MudItem xs="12" sm="4">
                     <MudStack Spacing="0" AlignItems="AlignItems.Center">
                         <MudText Typo="Typo.caption">Protection Rating: </MudText>
-                        <MudRating @bind-SelectedValue="_report.ScoreProtection" MaxValue="5" />
+                        <MudRating @bind-SelectedValue="report.ScoreProtection" MaxValue="5" />
                     </MudStack>
                 </MudItem>
 
@@ -95,11 +95,11 @@
     <DialogActions>
 
         <MudButton OnClick="_Cancel">Cancel</MudButton>
-        @if (_report.ID == 0)
+        @if (report.ID == 0)
         {
             <MudButton OnClick="_SubmitAsync" StartIcon="@Icons.Material.Filled.AddCircle" Color="Color.Primary" Variant="Variant.Filled">Post</MudButton>
         }
-        @if (_report.ID != 0)
+        @if (report.ID != 0)
         {
             <MudButton OnClick="_SubmitAsync" StartIcon="@Icons.Material.Filled.Save" Color="Color.Primary" Variant="Variant.Filled">Save</MudButton>
         }
@@ -113,8 +113,8 @@
     [CascadingParameter] MudDialogInstance MudDialog { get; set; } = new();
 
     [Parameter] public int dogID { get; set; }
-    [Parameter] public Shared.ProgressReport _report { get; set; } = new();
-    [Parameter] public Shared.Reservation _reservation { get; set; } = new();
+    [Parameter] public Shared.ProgressReport report { get; set; } = new();
+    [Parameter] public Shared.Reservation reservation { get; set; } = new();
 
     // image model with validation
     private class ImageModel
@@ -142,7 +142,7 @@
 
     protected override void OnParametersSet()
     {
-        _reportForm = new EditContext(_report);
+        _reportForm = new EditContext(report);
     }
 
     // image upload logic
@@ -167,7 +167,7 @@
         MultipartFormDataContent multipartContent = new MultipartFormDataContent();
 
         // create report as json content
-        string json = JsonConvert.SerializeObject(_report, new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
+        string json = JsonConvert.SerializeObject(report, new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
         multipartContent.Add(new StringContent(json), "reportContent");
 
         if (_imageModel.file != null)
@@ -182,16 +182,16 @@
             multipartContent.Add(byteContent, "imageContent", _imageModel.file.Name);
         }
 
-        if(_report.ID == 0)
+        if(report.ID == 0)
         {
             await HttpClient.Report.PostAsync(dogID, multipartContent);
             Snackbar.Add("New progress added", MudBlazor.Severity.Success);
             MudDialog.Close();
             return;
         }
-        if (_report.ID != 0)
+        if (report.ID != 0)
         {
-            await HttpClient.Report.UpdateAsync(dogID, multipartContent);
+            await HttpClient.Report.UpdateAsync(report.ID, multipartContent);
             Snackbar.Add("Progress changes saved", MudBlazor.Severity.Success);
             MudDialog.Close();
             return;

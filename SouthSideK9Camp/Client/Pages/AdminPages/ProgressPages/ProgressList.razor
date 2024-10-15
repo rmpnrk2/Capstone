@@ -51,6 +51,7 @@
                 <HeaderContent>
                     <MudTh>Name</MudTh>
                     <MudTh>Status</MudTh>
+                    <MudTh>Score</MudTh>
                     <MudTh></MudTh>
                 </HeaderContent>
 
@@ -76,7 +77,8 @@
                     <MudTd DataLabel="Status">
                         <MudChip T="string" Variant="Variant.Text">@context.Contract.TrainingType</MudChip>
                     </MudTd>
-                    <MudTd DataLabel="Status">
+
+                    <MudTd DataLabel="Score">
                         <MudRating MaxValue="5" ReadOnly
                             SelectedValue="@(((context.ProgressReports.OrderByDescending(r => r.ID).FirstOrDefault()?.ScoreObedience ?? 0)
                             + (context.ProgressReports.OrderByDescending(r => r.ID).FirstOrDefault()?.ScoreFocus ?? 0)

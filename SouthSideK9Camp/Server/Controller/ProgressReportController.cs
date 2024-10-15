@@ -54,19 +54,46 @@ namespace SouthSideK9Camp.Server.Controller
         }
 
         // update
-        [HttpPut("{reportID}")] public async Task<IResult> PutAsync(int reportID, ProgressReport updatedProgressReport)
+        [HttpPut("{reportID}")] public async Task<IResult> PutAsync(int reportID, [FromForm] string reportContent, IFormFile? imageContent)
         {
-            int rowsAffected = await _dataContext.ProgressReports.Where(progressReport => progressReport.ID == reportID).ExecuteUpdateAsync(updates => updates
-                .SetProperty(progressReport => progressReport.Subject, updatedProgressReport.Subject)
-                .SetProperty(progressReport => progressReport.Message, updatedProgressReport.Message)
-                .SetProperty(progressReport => progressReport.DateTraining, updatedProgressReport.DateTraining)
-                .SetProperty(progressReport => progressReport.SpanDuration, updatedProgressReport.SpanDuration)
-                .SetProperty(progressReport => progressReport.ScoreFocus, updatedProgressReport.ScoreFocus)
-                .SetProperty(progressReport => progressReport.ScoreObedience, updatedProgressReport.ScoreObedience)
-                .SetProperty(progressReport => progressReport.ScoreProtection, updatedProgressReport.ScoreProtection)
-            );
+            Shared.ProgressReport? report = _dataContext.ProgressReports.FirstOrDefault(r => r.ID == reportID);
+            Shared.ProgressReport reportDesrialized = JsonConvert.DeserializeObject<Shared.ProgressReport>(reportContent) ?? new();
 
-            return rowsAffected == 0 ? Results.NotFound() : Results.NoContent();
+            if (report != null)
+            {
+                report.Subject = reportDesrialized.Subject;
+                report.Message = reportDesrialized.Message;
+                report.DateCreated = reportDesrialized.DateCreated;
+                report.SpanDuration = reportDesrialized.SpanDuration;
+                report.ScoreFocus = reportDesrialized.ScoreFocus;
+                report.ScoreObedience = reportDesrialized.ScoreObedience;
+                report.ScoreProtection = reportDesrialized.ScoreProtection;
+
+                if (imageContent != null) 
+                {
+                    // create unique GUID for image file
+                    string imageFileName = $"{Guid.NewGuid()}{Extension()}";
+                    string Extension()
+                    {
+                        if (imageContent.ContentType == "image/jpeg") return ".jpeg";
+                        if (imageContent.ContentType == "image/png") return ".png";
+                        return string.Empty;
+                    }
+
+                    // save image to wwwroot/Images/ReportImages
+                    string path = Path.Combine(_hostingEnvironment.WebRootPath, "Images/ReportImages", imageFileName);
+                    using (FileStream stream = new FileStream(path, FileMode.Create))
+                    {
+                        await imageContent.CopyToAsync(stream);
+                    }
+
+                    report.ImageURL = _configuration["Host"] + "/Images/ReportImages/" + imageFileName;
+                }
+                _dataContext.SaveChanges();
+
+                return Results.NoContent();
+            }
+            return Results.NotFound();
         }
 
         // delete

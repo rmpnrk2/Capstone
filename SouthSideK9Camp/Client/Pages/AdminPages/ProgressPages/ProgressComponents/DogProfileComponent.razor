@@ -1,0 +1,61 @@
+﻿<MudPaper Class="pa-6">
+    <MudStack>
+
+        @* dog *@
+        <MudGrid Spacing="1" Justify="Justify.Center">
+
+            <MudItem xs="12" sm="3">
+                <MudAvatar Color="Color.Dark" Variant="Variant.Filled" Size="Size.Large">
+                    <MudImage ObjectFit="ObjectFit.Cover" Src="@dog.AvatarURL" />
+                </MudAvatar>
+            </MudItem>
+
+            <MudItem xs="12" sm="9">
+                <MudText Typo="Typo.h4" Color="Color.Primary">@dog.Name</MudText>
+                <MudText Typo="Typo.body2">@dog.Breed</MudText>
+            </MudItem>
+
+            <MudItem xs="12">
+                <MudStack Spacing="3">
+
+                    <MudStack Row AlignItems="AlignItems.Center">
+                        <MudIcon Icon="@Icons.Material.Filled.FitnessCenter" Size="Size.Small" />
+                        <MudChip T="string" Variant="Variant.Text" Color="Color.Default">@dog.Contract.TrainingType</MudChip>
+                    </MudStack>
+
+                    <MudStack Row AlignItems="AlignItems.Center">
+                        <MudIcon Icon="@Icons.Material.Filled.Flag" Size="Size.Small" />
+                        <MudText Typo="Typo.body1">@dog.Contract.TrainingGoal</MudText>
+                    </MudStack>
+
+                    <MudStack Row AlignItems="AlignItems.Center">
+                        <MudIcon Icon="@Icons.Material.Filled.DateRange" Size="Size.Small" />
+                        <MudStack Spacing="0">
+                            <MudText Typo="Typo.caption">@dog.Reservation?.StartingDate?.ToString("dd MMMM yyyy")</MudText>
+                            <MudText Typo="Typo.caption">@dog.Reservation?.EndingDate?.ToString("dd MMMM yyyy")</MudText>
+                        </MudStack>
+                    </MudStack>
+
+                </MudStack>
+            </MudItem>
+
+        </MudGrid>
+
+        <MudDivider Class="my-2"/>
+
+        @* Owner *@
+        <MudStack Spacing="0">
+
+            <MudText Typo="Typo.h6">@dog.Client?.FirstName @dog.Client?.MiddleInitial @dog.Client?.LastName</MudText>
+            <MudText Typo="Typo.body1">@dog.Client?.Email</MudText>
+            <MudText Typo="Typo.body1">@dog.Client?.Contact</MudText>
+
+        </MudStack>
+
+    </MudStack>
+</MudPaper>
+
+@code
+{
+    [Parameter] public Shared.Dog dog { get; set; } = new();
+}

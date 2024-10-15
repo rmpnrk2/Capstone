@@ -1,0 +1,113 @@
+﻿<MudItem xs="12">
+    <MudPaper Class="pa-6">
+
+        <MudGrid Spacing="1">
+            <MudItem xs="12" sm="6">
+                <MudStack Spacing="0" AlignItems="AlignItems.Center">
+                    <MudText Typo="Typo.h4" Color="Color.Primary">@_TotalHours().ToString("0.00") hours</MudText>
+                    <MudText Typo="Typo.body1">Total hours trained:</MudText>
+                </MudStack>
+            </MudItem>
+
+            <MudItem xs="12" sm="6">
+                <MudStack Spacing="0" AlignItems="AlignItems.Center">
+                    <MudText Typo="Typo.h4" Color="Color.Primary">@_AverageHours().ToString("0.00") hours</MudText>
+                    <MudText Typo="Typo.body1">Average training hours:</MudText>
+                </MudStack>
+            </MudItem>
+        </MudGrid>
+
+        <MudChart ChartType="ChartType.Bar" ChartSeries="@_chartSeries" XAxisLabels="@_xAxisLabels" ChartOptions="@_chartOptions" Width="100%" Height="100%"></MudChart>
+    </MudPaper>
+</MudItem>
+
+@code
+{
+    [Parameter] public Shared.Dog dog { get; set; } = new();
+
+    private ChartOptions _chartOptions = new ChartOptions
+    {
+        YAxisLines = true,
+        YAxisTicks = 1,
+        LineStrokeWidth = 1
+    };
+
+    private List<ChartSeries> _chartSeries = new();
+
+    public string[] _xAxisLabels = {};
+
+    protected override void OnParametersSet()
+    {
+        _chartSeries = new List<ChartSeries>()
+        {
+            new ChartSeries() { Name = "Hours Trained", Data = _ChartSeriesArray() },
+        };
+
+        _xAxisLabels = _XAxisLabels();
+    }
+
+    // Create series of the number of hours trained each day from the starting day to the ending day of the reservation
+    private double[] _ChartSeriesArray()
+    {
+        List<DateTime> dateRange = new();
+
+        for (DateTime date = dog.Reservation?.StartingDate ?? new(); date <= dog.Reservation?.EndingDate; date = date.AddDays(1))
+            dateRange.Add(date);
+
+        List<double> series = new();
+
+        foreach (DateTime date in dateRange)
+        {
+            Shared.ProgressReport? report = dog.ProgressReports.Where(r => r.DateTraining?.Day == date.Day && r.DateTraining?.Month == date.Month).FirstOrDefault();
+
+            if (report == null)
+                series.Add(0);
+            else
+                series.Add(report.SpanDuration?.TotalHours ?? 0);
+        }
+
+        return series.ToArray();
+    }
+
+    // Chart x-axis label, each day based on the reservation duration
+    private string[] _XAxisLabels()
+    {
+        List<DateTime> dateRange = new();
+
+        for (DateTime date = dog.Reservation?.StartingDate ?? new(); date <= dog.Reservation?.EndingDate; date = date.AddDays(1))
+            dateRange.Add(date);
+
+        List<string> axisLabels = new();
+
+        foreach (DateTime date in dateRange)
+            axisLabels.Add(date.ToString("dd"));
+
+        return axisLabels.ToArray();
+    }
+
+    // Calculates total hours trained
+    private double _TotalHours()
+    {
+        double totalHours = 0;
+
+        foreach (Shared.ProgressReport report in dog.ProgressReports)
+        {
+            totalHours += report.SpanDuration?.TotalHours ?? 0;
+        }
+
+        return totalHours;
+    }
+
+    // Calculates average hours trained per
+    private double _AverageHours()
+    {
+        double totalHours = 0;
+
+        foreach (Shared.ProgressReport report in dog.ProgressReports)
+        {
+            totalHours += report.SpanDuration?.TotalHours ?? 0;
+        }
+
+        return totalHours/dog.ProgressReports.Count;
+    }
+}
