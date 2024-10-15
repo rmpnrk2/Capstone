@@ -180,6 +180,20 @@
         {
             await HttpClient.User.DeleteAsync(userID);
             await _RefreshDataAsync();
+
+            // Log the user out if the user deleted itself
+            Shared.User? user = await HttpClient.User.LoginStatusAsync();
+            if (user != null && user.ID == userID)
+            {
+                NavigationManager.NavigateTo("/admin/user-login");
+            }
+
+            // Checks if there are no User in database, if there are no user redirect to create user page
+            List<Shared.User> users = await HttpClient.User.FetchAsync();
+            if (!users.Any())
+            {
+                NavigationManager.NavigateTo("/admin/user-create");
+            }
         }
     }
 
