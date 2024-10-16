@@ -48,10 +48,10 @@
 
                 <MudItem xs="12" sm="6">
                     <MudDatePicker @bind-Date="_client.Birthday" For="@(() => _client.Birthday)" Label="Birthday" Variant="Variant.Outlined" ShowToolbar="false"
-                                   IsDateDisabledFunc="@((DateTime dt) =>(
-                    (int)dt.Year > DateTime.UtcNow.Year ||
-                    ((int)dt.Year == DateTime.UtcNow.Year && (int)dt.Month > DateTime.UtcNow.Month) ||
-                    ((int)dt.Year == DateTime.UtcNow.Year && (int)dt.Month == DateTime.UtcNow.Month && (int)dt.Day > DateTime.UtcNow.Day)))" />
+                        IsDateDisabledFunc="@((DateTime dt) =>(
+                        (int)dt.Year > DateTime.UtcNow.Year ||
+                        ((int)dt.Year == DateTime.UtcNow.Year && (int)dt.Month > DateTime.UtcNow.Month) ||
+                        ((int)dt.Year == DateTime.UtcNow.Year && (int)dt.Month == DateTime.UtcNow.Month && (int)dt.Day > DateTime.UtcNow.Day)))" />
                 </MudItem>
 
             </MudGrid>
