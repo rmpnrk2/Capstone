@@ -7,7 +7,7 @@
 
             @foreach (Shared.Log log in _logs)
             {
-                <MudTimelineItem Color="Color.Info" Size="Size.Small">
+                <MudTimelineItem Color="@_Color(log.Severity)" Size="Size.Small">
                     <MudText Typo="Typo.body2" Color="@_Color(log.Severity)">@log.Message</MudText>
                     <MudText Typo="Typo.subtitle2">@log.Subject</MudText>
                     <MudText Typo="Typo.caption" Style="@($"color:{Colors.Gray.Lighten1};")">@log.DateCreated.ToString("h:M tt | dd MMM")</MudText>

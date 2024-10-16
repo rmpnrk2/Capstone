@@ -15,6 +15,9 @@
 <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-16 mb-16">
     <MudStack>
 
+        @* Breadcrumbs *@
+        <MudBreadcrumbs Items="_breadcrumbs" />
+
         <MudText Typo="Typo.h3">Clients Records</MudText>
 
         @* toolbar *@
@@ -96,6 +99,12 @@
 @code
 {
     List<Shared.Client> _clients = new();
+
+    // Breadcrumbs
+    private List<BreadcrumbItem> _breadcrumbs = new()
+    {
+        new BreadcrumbItem("Client Records", "/admin/client-list", true, Icons.Material.Filled.Group),
+    };
 
     // on initialize
     protected override async Task OnInitializedAsync()

@@ -2,10 +2,13 @@
 
 @layout AdminLayout
 
-@inject SouthSideK9CampHttpClient HttpClient;
+@inject SouthSideK9CampHttpClient HttpClient
 
 <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-16 mb-16">
     <MudStack Spacing="2">
+
+        @* Breadcrumbs *@
+        <MudBreadcrumbs Items="_breadcrumbs" />
 
         <MudItem xs="12">
             <MudText Typo="Typo.h3">Dashboard</MudText>
@@ -92,4 +95,10 @@
 
         StateHasChanged();
     }
+
+    // Breadcrumbs
+    private List<BreadcrumbItem> _breadcrumbs = new List<BreadcrumbItem>
+    {
+        new BreadcrumbItem("Dashboard", null, true, Icons.Material.Filled.Dashboard),
+    };
 }

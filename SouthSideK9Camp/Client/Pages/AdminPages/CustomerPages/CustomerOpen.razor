@@ -12,6 +12,11 @@
 <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-16 mb-16">
     <MudStack>
 
+        @* Breadcrumbs *@
+        <MudBreadcrumbs Items="_breadcrumbs" />
+
+        <MudText Typo="Typo.h3">Board & Train Record</MudText>
+
         <MudPaper>
             <MudToolBar>
                 <MudStack Row>
@@ -199,20 +204,29 @@
 {
     [Parameter] public int dogID { get; set; }
 
-    // on initialize
-    EditContext? _editContext;
-    Shared.Dog _dog = new()
+    // Breadcrumbs
+    private List<BreadcrumbItem> _breadcrumbs = new()
+    {
+        new BreadcrumbItem("Board & Train Record", "/admin/customer-list", false, Icons.Material.Filled.Group),
+        new BreadcrumbItem(string.Empty, null, true, Icons.Material.Filled.Tag)
+    };
+
+    private EditContext? _editContext;
+    private Shared.Dog _dog = new()
     {
         Birthday = DateTime.UtcNow
     };
+
+    // on initialize
     protected override void OnInitialized()
     {
         _editContext = new EditContext(_dog);
     }
 
+    private Shared.Client _client = new();
+    private Shared.Client _editClient = new();
+
     // on parameterset
-    Shared.Client _client = new();
-    Shared.Client _editClient = new();
     protected override async Task OnParametersSetAsync()
     {
         await _RefreshData();
@@ -291,11 +305,13 @@
     {
         List<Shared.Reservation> reservations = await HttpClient.Reservation.GetAsync();
         _dog = reservations.SelectMany(r => r.Dogs).FirstOrDefault(d => d.ID == dogID) ?? new();
+        _breadcrumbs[1] = new BreadcrumbItem(_dog.Name, null, true, Icons.Material.Filled.Tag);
         StateHasChanged();
 
         await HttpClient.Reservation.FetchAsync();
         reservations = await HttpClient.Reservation.GetAsync();
         _dog = reservations.SelectMany(r => r.Dogs).FirstOrDefault(d => d.ID == dogID) ?? new();
+        _breadcrumbs[1] = new BreadcrumbItem(_dog.Name, null, true, Icons.Material.Filled.Tag);
 
         _editContext = new EditContext(_dog);
         return;

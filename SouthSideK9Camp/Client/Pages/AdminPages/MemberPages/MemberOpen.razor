@@ -13,6 +13,9 @@
 <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-16 mb-16">
     <MudStack>
 
+        @* Breadcrumbs *@
+        <MudBreadcrumbs Items="_breadcrumbs" />
+
         <MudText Typo="Typo.h3">Member Records</MudText>
 
         <MudPaper>
@@ -170,6 +173,13 @@
         Birthday = DateTime.UtcNow
     };
 
+    // Breadcrumbs
+    private List<BreadcrumbItem> _breadcrumbs = new()
+    {
+        new BreadcrumbItem("Member Records", "/admin/member-list", false, Icons.Material.Filled.Group),
+        new BreadcrumbItem(string.Empty, null, true, Icons.Material.Filled.Person)
+    };
+
     // on initialize
     protected override void OnInitialized()
     {
@@ -283,7 +293,7 @@
                 await HttpClient.Member.RejectPaymentAsync(clientID, reason);
 
                 Snackbar.Add("Payment Rejected", MudBlazor.Severity.Error);
-                 
+
                 await _RefreshDataAsync();
             }
         }
@@ -322,7 +332,12 @@
 
     private async Task _RefreshDataAsync()
     {
-        List<Shared.Client> _clients = await HttpClient.Client.FetchAsync();
+        List<Shared.Client> _clients = await HttpClient.Client.GetAsync();
+        _client = _clients.FirstOrDefault(c => c.ID == clientID) ?? new();
+        _breadcrumbs[1] = new BreadcrumbItem(_client.FirstName + " " + _client.LastName, null, true, Icons.Material.Filled.Person);
+        StateHasChanged();
+
+        _clients = await HttpClient.Client.FetchAsync();
         _client = _clients.FirstOrDefault(c => c.ID == clientID) ?? new();
     }
 }

@@ -47,7 +47,7 @@
             <MudNavLink Href="/admin/report-list" Icon="@Icons.Material.Filled.Flag" Match="NavLinkMatch.All">Progress</MudNavLink>
             <MudNavLink Disabled="@( (user != null && user.Role == "trainer") ? true : false )" Href="/admin/invoice-list" Icon="@Icons.Material.Filled.ReceiptLong" Match="NavLinkMatch.All">Statements</MudNavLink>
 
-            <MudNavGroup Title="Records" Icon="@Icons.Material.Filled.People" Expanded>
+            <MudNavGroup Title="Records" Icon="@Icons.Material.Filled.Groups" Expanded>
                 <MudNavLink Href="/admin/client-list" Icon="@Icons.Material.Filled.Person" Match="NavLinkMatch.All">Clients</MudNavLink>
                 <MudNavLink Href="/admin/customer-list" Icon="@Icons.Material.Filled.Person" Match="NavLinkMatch.All">Board and Train</MudNavLink>
                 <MudNavLink Href="/admin/member-list" Icon="@Icons.Material.Filled.Person" Match="NavLinkMatch.All">Members</MudNavLink>

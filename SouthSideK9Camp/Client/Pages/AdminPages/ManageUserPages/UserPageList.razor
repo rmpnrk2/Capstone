@@ -10,6 +10,9 @@
 <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-16 mb-16">
     <MudStack>
 
+        @* Breadcrumbs *@
+        <MudBreadcrumbs Items="_breadcrumbs" />
+
         <MudText Typo="Typo.h3">Manage Users</MudText>
 
         @* table toolbar *@
@@ -118,6 +121,12 @@
 
 @code
 {
+    // Breadcrumbs
+    private List<BreadcrumbItem> _breadcrumbs = new()
+    {
+        new BreadcrumbItem("Manage Accounts", null, true, Icons.Material.Filled.ManageAccounts),
+    };
+
     // On initialize
     protected override async Task OnInitializedAsync()
     {

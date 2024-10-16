@@ -10,6 +10,9 @@
 <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-16 mb-16">
     <MudStack>
 
+        @* Breadcrumbs *@
+        <MudBreadcrumbs Items="_breadcrumbs" />
+
         <MudText Typo="Typo.h3">Reservations</MudText>
 
         @* toolbar *@
@@ -167,7 +170,7 @@
         return _notPaidCount;
     }
 
-    // refresh data
+    // Refresh data
     private async Task _RefreshDataAsync()
     {
         _reservations = await HttpClient.Reservation.GetAsync();
@@ -176,4 +179,10 @@
         await HttpClient.Reservation.FetchAsync();
         _reservations = await HttpClient.Reservation.GetAsync();
     }
+
+    // Breadcrumbs
+    private List<BreadcrumbItem> _breadcrumbs = new List<BreadcrumbItem>
+    {
+        new BreadcrumbItem("Reservation", "#", true, Icons.Material.Filled.DateRange),
+    };
 }

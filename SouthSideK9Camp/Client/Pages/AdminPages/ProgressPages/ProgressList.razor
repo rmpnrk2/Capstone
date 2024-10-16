@@ -8,6 +8,9 @@
 <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-16 mb-16">
     <MudStack>
 
+        @* Breadcrumbs *@
+        <MudBreadcrumbs Items="_breadcrumbs" />
+
         <MudText Typo="Typo.h3">Progress Reports</MudText>
 
         @* toolbar *@
@@ -107,6 +110,12 @@
 @code
 {
     private List<Shared.Reservation> _reservations = new();
+
+    // Breadcrumbs
+    private List<BreadcrumbItem> _breadcrumbs = new()
+    {
+        new BreadcrumbItem("Progress Reports", "/admin/report-list", false, Icons.Material.Filled.Flag),
+    };
 
     protected override async Task OnInitializedAsync()
     {
