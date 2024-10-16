@@ -80,6 +80,20 @@ namespace SouthSideK9Camp.Server.Controller
             if(reservation == null || (reservation.Slots - reservation.Dogs.Count) < client.Dogs.Count)
                 return Results.NotFound();
 
+            // Automatically adjust reservation ending date based on the training type duration
+            foreach (Shared.Dog dog in client.Dogs)
+            {
+                int numberOfWeeks = (dog.Contract.TrainingType == "Basic Obedience (4 weeks)") ? 4 : 6; // Set number of weeks depending on the selected training type
+
+                // If reservatin ending data is null set the ending date based on the number of weeks
+                if (reservation.EndingDate == null)
+                    reservation.EndingDate = reservation.StartingDate?.AddDays(numberOfWeeks * 7);
+
+                // If reservation is set to 4 weeks then set to 6 weeks
+                if (reservation.StartingDate?.AddDays(numberOfWeeks * 7) > reservation.EndingDate)
+                    reservation.EndingDate = reservation.StartingDate?.AddDays(numberOfWeeks * 7);
+            }
+
             // reserve dogs
             foreach(Shared.Dog dog in client.Dogs)
             {
@@ -90,8 +104,8 @@ namespace SouthSideK9Camp.Server.Controller
                 string emailBody = new ComponentRenderer<EmailTemplates.CustomerRegistratinReservationPayment>()
                     .Set(c => c.clientName, client.FirstName + " " + client.LastName)
                     .Set(c => c.dogName, dog.Name)
-                    .Set(c => c.startingDate, reservation.StartingDate!.Value)
-                    .Set(c => c.endingDate, reservation.EndingDate!.Value)
+                    .Set(c => c.startingDate, reservation.StartingDate)
+                    .Set(c => c.endingDate, (reservation.DateCreated.AddDays(5) < reservation.EndingDate) ? reservation.DateCreated.AddDays(5) : reservation.EndingDate )
                     .Set(c => c.host, _configuration["Host"])
                     .Set(c => c.dogGUID, dog.GUID.ToString())
                     .Set(c => c.dueDate, (dog.DateCreated.AddDays(5) > reservation.StartingDate) ? reservation.StartingDate : dog.DateCreated.AddDays(5)) // Duedate is 5 days upon reservation or the ending date of reservation

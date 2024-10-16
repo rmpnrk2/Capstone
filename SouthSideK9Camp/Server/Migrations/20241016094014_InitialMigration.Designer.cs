@@ -12,8 +12,8 @@ using SouthSideK9Camp.Server.Data;
 namespace SouthSideK9Camp.Server.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20241014091819_LogsEdit")]
-    partial class LogsEdit
+    [Migration("20241016094014_InitialMigration")]
+    partial class InitialMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

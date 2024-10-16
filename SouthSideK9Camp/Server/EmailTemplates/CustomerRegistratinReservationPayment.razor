@@ -41,9 +41,9 @@
 		<br />
 		<h6>Payment Details:</h6>
 		<p>Dog's Name': @dogName</p>
-		<p>Schedule: @startingDate.ToString("dd MMMM yyyy") to @endingDate.ToString("dd MMMM yyyy")</p>
+		<p>Schedule: @startingDate?.ToString("dd MMMM yyyy") to @endingDate?.ToString("dd MMMM yyyy")</p>
 		<p>Reservation Fee: 300.00 PHP</p>
-		<p>Deadline: @dueDate.ToString("dd MMMM yyyy")</p>
+		<p>Deadline: @dueDate?.ToString("dd MMMM yyyy")</p>
 		<br />
 		<a href="@link" target="_blank">Proceed to Payment</a>
 		<br />
@@ -57,9 +57,9 @@
 {
 	[Parameter] public string clientName { get; set; } = string.Empty;
 	[Parameter] public string dogName { get; set; } = string.Empty;
-	[Parameter] public DateTime endingDate { get; set; }
-	[Parameter] public DateTime startingDate { get; set; }
-	[Parameter] public DateTime dueDate { get; set; }
+	[Parameter] public DateTime? endingDate { get; set; }
+	[Parameter] public DateTime? startingDate { get; set; }
+	[Parameter] public DateTime? dueDate { get; set; }
 
 	[Parameter] public string host { get; set; } = string.Empty;
 	[Parameter] public string dogGUID { get; set; } = string.Empty;
