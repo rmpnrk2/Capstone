@@ -19,7 +19,7 @@
 
         <MudPaper>
             <MudToolBar>
-                <MudStack Row>
+                <MudStack Row Spacing="1">
 
                     <MudButton OnClick="@_Back" StartIcon="@Icons.Material.Filled.ArrowBack">Back</MudButton>
                     <MudButton OnClick="@_Cancel" Style="@_editModeButtonsDisplay" StartIcon="@Icons.Material.Filled.Cancel" Variant="Variant.Filled">Cancel</MudButton>
@@ -54,7 +54,7 @@
 
                 <MudItem xs="12" sm="6">
                     <MudAutocomplete @bind-Value="_dog.Breed" For="@(() => _dog.Breed)" Variant="Variant.Outlined" ReadOnly="@_readOnly"
-                        Label="Breed" SearchFunc="@_dogBreedAutocomplete" CoerceText="false" />
+                        Label="Breed" SearchFunc="@_dogBreedAutocomplete" CoerceValue/>
                 </MudItem>
 
                 <MudItem xs="12" sm="6">
@@ -353,9 +353,14 @@
         });
 
         // on dialog close
-        var result = await dialog.Result;
-        if (!result.Canceled)
+        var dialogResult = await dialog.Result;
+        if (dialogResult != null && !dialogResult.Canceled)
         {
+            Func<Task>? uploadAvatar = dialogResult.Data as Func<Task>;
+
+            if (uploadAvatar != null)
+                await uploadAvatar();
+
             await _RefreshData();
         }
     }

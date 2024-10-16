@@ -24,14 +24,4 @@
     <ProjectReference Include="..\Shared\SouthSideK9Camp.Shared.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="wwwroot\Images\MembershipRegistrationPayment\" />
-    <Folder Include="wwwroot\Images\MembershipDuePayments\" />
-    <Folder Include="wwwroot\Images\DogAvatar\" />
-    <Folder Include="wwwroot\Images\InvoicePayments\" />
-    <Folder Include="wwwroot\Images\ReportImages\" />
-    <Folder Include="wwwroot\Images\ReportImages\" />
-    <Folder Include="wwwroot\Images\ReservationPayment\" />
-  </ItemGroup>
-
 </Project>

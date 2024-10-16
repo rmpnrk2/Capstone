@@ -2,6 +2,7 @@
 @using System.Net.Http.Headers
 
 @inject SouthSideK9CampHttpClient HttpClient
+@inject ISnackbar Snackbar
 
 <MudDialog>
 
@@ -86,7 +87,7 @@
     // submit
     private async Task _SubmitAsync()
     {
-        if (_FormContext.Validate())
+        if (_FormContext != null && _FormContext.Validate())
         {
             // image to stream
             MemoryStream stream = new MemoryStream();
@@ -100,8 +101,11 @@
             MultipartFormDataContent multipartContent = new MultipartFormDataContent();
             multipartContent.Add(imageContent, "imageContent", _FormModel.file.Name);
 
-            await HttpClient.Dog.UploadAvatar(dog.ID, multipartContent);
-            MudDialog.Close();
+            Func<Task> uploadAvatar = async() => await HttpClient.Dog.UploadAvatar(dog.ID, multipartContent);
+
+            Snackbar.Add("Avatar uploaded successfully", MudBlazor.Severity.Success);
+
+            MudDialog.Close(uploadAvatar);
         }
         return;
     }
