@@ -18,22 +18,24 @@
 
         @* toolbar *@
         <MudPaper Elevation="2">
-            <MudToolBar WrapContent>
+            <MudToolBar>
+                <MudStack Row Spacing="1">
 
-                <MudIconButton OnClick="_Back" Icon="@Icons.Material.Outlined.ArrowBack" />
-                <MudButton Class="mr-2" OnClick="@_OpenCreateInvoiceDialog" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Outlined.Add">Invoice</MudButton>
-                <MudButton OnClick="@_OpenItemListDialog" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.ViewList">Items</MudButton>
+                    <MudButton OnClick="_Back" StartIcon="@Icons.Material.Outlined.ArrowBack">Back</MudButton>
+                    <MudButton OnClick="@_OpenCreateInvoiceDialog" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Outlined.Add">Invoice</MudButton>
+                    <MudButton OnClick="@_OpenItemListDialog" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.ViewList">Items</MudButton>
 
+                </MudStack>
             </MudToolBar>
         </MudPaper>
 
         @* invoice *@
         @foreach (Shared.Invoice invoice in _dog.Invoices)
         {
-            <MudStack Spacing="1" Class="mt-3">
+            <MudStack Spacing="0">
 
                 @* header *@
-                <MudPaper Class="pa-3">
+                <MudPaper Class="pa-4 mb-1">
 
                     @* toolbar *@
                     <MudGrid Spacing="2" Justify="Justify.FlexEnd">

@@ -18,23 +18,25 @@
         @* table toolbar *@
         <MudPaper Elevation="1">
             <MudToolBar>
+                <MudStack Row Spacing="1">
 
-                <MudButton Class="mr-1" OnClick="@(() => _OpenEditUser(new()))" StartIcon="@Icons.Material.Filled.Add" Color="Color.Primary" Variant="Variant.Filled">New</MudButton>
+                    <MudButton OnClick="@(() => _OpenEditUser(new()))" StartIcon="@Icons.Material.Filled.Add" Color="Color.Primary" Variant="Variant.Filled">New</MudButton>
 
-                <MudMenu TransformOrigin="Origin.TopCenter" AnchorOrigin="Origin.BottomCenter">
+                    <MudMenu TransformOrigin="Origin.TopCenter" AnchorOrigin="Origin.BottomCenter">
 
-                    <ActivatorContent>
-                        <MudButton StartIcon="@Icons.Material.Outlined.FilterAlt" EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Variant="Variant.Filled" Color="Color.Primary">@_filter</MudButton>
-                    </ActivatorContent>
+                        <ActivatorContent>
+                            <MudButton StartIcon="@Icons.Material.Outlined.FilterAlt" EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Variant="Variant.Filled" Color="Color.Primary">@_filter</MudButton>
+                        </ActivatorContent>
 
-                    <ChildContent>
-                        <MudMenuItem OnTouch="@(() => _FilterListAsync("All"))" OnClick="@(() => _FilterListAsync("All"))">All</MudMenuItem>
-                        <MudMenuItem OnTouch="@(() => _FilterListAsync("Admin"))" OnClick="@(() => _FilterListAsync("Admin"))">Admin</MudMenuItem>
-                        <MudMenuItem OnTouch="@(() => _FilterListAsync("Trainer"))" OnClick="@(() => _FilterListAsync("Trainer"))">Trainer</MudMenuItem>
-                    </ChildContent>
+                        <ChildContent>
+                            <MudMenuItem OnTouch="@(() => _FilterListAsync("All"))" OnClick="@(() => _FilterListAsync("All"))">All</MudMenuItem>
+                            <MudMenuItem OnTouch="@(() => _FilterListAsync("Admin"))" OnClick="@(() => _FilterListAsync("Admin"))">Admin</MudMenuItem>
+                            <MudMenuItem OnTouch="@(() => _FilterListAsync("Trainer"))" OnClick="@(() => _FilterListAsync("Trainer"))">Trainer</MudMenuItem>
+                        </ChildContent>
 
-                </MudMenu>
+                    </MudMenu>
 
+                </MudStack>
             </MudToolBar>
         </MudPaper>
 

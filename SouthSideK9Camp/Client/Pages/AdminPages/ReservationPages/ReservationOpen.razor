@@ -21,9 +21,9 @@
         @* toolbar *@
         <MudPaper>
             <MudToolBar>
-                <MudStack Row>
+                <MudStack Row Spacing="1">
 
-                    <MudButton OnClick="@_Back" StartIcon="@Icons.Material.Filled.ArrowBack"/>
+                    <MudButton OnClick="@_Back" StartIcon="@Icons.Material.Filled.ArrowBack">Back</MudButton>
                     <MudButton OnClick="@_EditMode" Style="@_editButtonDisplay" StartIcon="@Icons.Material.Filled.Edit" Variant="Variant.Filled" Color="Color.Primary">Edit</MudButton>
                     <MudButton OnClick="@_CancelAsync" Style="@_editModeButtonDisplay" StartIcon="@Icons.Material.Filled.Cancel" Variant="Variant.Filled">Cancel</MudButton>
                     <MudButton OnClick="@_SaveAsync" Style="@_editModeButtonDisplay" StartIcon="@Icons.Material.Filled.Save" Variant="Variant.Filled" Color="Color.Primary">Save</MudButton>
