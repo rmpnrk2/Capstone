@@ -282,6 +282,8 @@
             _editModeButtonsDisplay = "display: none";
             _editButtonDisplay = string.Empty;
 
+            await HttpClient.Client.UpdateAsync(_client);
+            await HttpClient.Customer.UpdateAsync(_client.Customer ?? new());
             await HttpClient.Member.UpdateAsync(_client);
             Snackbar.Add("Saved succesful", MudBlazor.Severity.Success);
         }

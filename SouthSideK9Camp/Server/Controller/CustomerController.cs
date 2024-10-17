@@ -198,6 +198,7 @@ namespace SouthSideK9Camp.Server.Controller
         [HttpPut("{customerID}")] public async Task<IResult> PutAsync(int customerID, Shared.Customer customerUpdate)
         {
             int rowsAffected = await _dataContext.Customers.Where(c => c.ID == customerID).ExecuteUpdateAsync(updates => updates
+                .SetProperty(c => c.WhereWillYouBeStating, customerUpdate.WhereWillYouBeStating)
                 .SetProperty(c => c.EmergencyVet, customerUpdate.EmergencyVet)
                 .SetProperty(c => c.EmergencyVetNumber, customerUpdate.EmergencyVetNumber)
                 .SetProperty(c => c.EmergencyContactName, customerUpdate.EmergencyContactName)
