@@ -274,9 +274,13 @@ namespace SouthSideK9Camp.Server.Controller
             string emailSubject = "SouthSideK9 Camp Board & Train Registration Payment Unsuccessful";
             string emailBody = new ComponentRenderer<EmailTemplates.CustomerRegistrationReservationRejection>()
                 .Set(c => c.clientName, dog.Client.FirstName + " " + dog.Client.LastName)
+                .Set(c => c.dogName, dog.Name)
+                .Set(c => c.startingDate, dog.Reservation?.StartingDate)
+                .Set(c => c.endingDate, (dog.Reservation?.DateCreated.AddDays(5) < dog.Reservation?.EndingDate) ? dog.Reservation.DateCreated.AddDays(5) : dog.Reservation?.EndingDate )
+                .Set(c => c.dueDate, (dog.DateCreated.AddDays(5) > dog.Reservation?.StartingDate) ? dog.Reservation?.StartingDate : dog.DateCreated.AddDays(5)) // Duedate is 5 days upon reservation or the ending date of reservation
+                .Set(c => c.host, _configuration["Host"])
                 .Set(c => c.dogGUID, dog.GUID.ToString())
                 .Set(c => c.reason, reason)
-                .Set(c => c.host, _configuration["Host"])
                 .Render();
             await _smtp.SendEmailAsync(dog.Client.Email, emailSubject, emailBody);
 

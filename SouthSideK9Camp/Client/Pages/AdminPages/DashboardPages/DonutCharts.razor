@@ -15,7 +15,7 @@
                     <MudStack Row AlignItems="AlignItems.Center">
                         <MudIcon Icon="@Icons.Material.Filled.FiberManualRecord" Size="Size.Small" Color="Color.Info"></MudIcon>
                         <MudText Typo="Typo.body2">Customers:</MudText>
-                        <MudText Typo="Typo.subtitle1" Color="Color.Info">@_customers.Count()</MudText>
+                        <MudText Typo="Typo.subtitle1" Color="Color.Info">@_boardAndTrain.Count()</MudText>
                     </MudStack>
                     <MudStack Row AlignItems="AlignItems.Center">
                         <MudIcon Icon="@Icons.Material.Filled.FiberManualRecord" Size="Size.Small" Color="Color.Tertiary"></MudIcon>
@@ -24,7 +24,7 @@
                     </MudStack>
                     <MudStack Row AlignItems="AlignItems.Center">
                         <MudText Typo="Typo.body2">Total:</MudText>
-                        <MudText Typo="Typo.subtitle1">@(_members.Count() + _customers.Count())</MudText>
+                        <MudText Typo="Typo.subtitle1">@(_members.Count() + _boardAndTrain.Count())</MudText>
                     </MudStack>
                 </MudStack>
             </MudStack>
@@ -44,6 +44,7 @@
                 <MudChart ChartType="ChartType.Donut" Width="100px" ChartOptions="_ClientDonutOptions" Height="100px" InputData="@_financeRatioData" InputLabels="@_clientDonutLabels" LegendPosition="Position.Right" />
                 <MudStack Spacing="0">
 
+                    @* Client Ratio *@
                     <MudHidden Breakpoint="Breakpoint.SmAndDown" Invert>
                         <MudStack Spacing="0">
                             <MudText Typo="Typo.body2">
@@ -74,6 +75,7 @@
                         </MudStack>
                     </MudHidden>
 
+                    @* Ravenue Ratio *@
                     <MudHidden Breakpoint="Breakpoint.SmAndUp" Invert>
                         <MudStack Row AlignItems="AlignItems.Center">
                             <MudIcon Icon="@Icons.Material.Filled.FiberManualRecord" Size="Size.Small" Color="Color.Info"></MudIcon>
@@ -112,16 +114,16 @@
 {
     [Parameter] public List<Shared.Client> Client { get; set; } = new();
 
-    private List<Shared.Dog> _customers = new();
+    private List<Shared.Dog> _boardAndTrain = new();
     private List<Shared.Member> _members = new();
     private List<Shared.Invoice> _invoices = new();
     private List<Shared.MembershipDue> _membershipdues = new();
 
     protected override void OnParametersSet()
     {
-        _customers = Client.Where(c => c.Dogs != null).SelectMany(c => c.Dogs).Where(d => d.ReservationPaymentConfirmed).ToList();
+        _boardAndTrain = Client.Where(c => c.Dogs != null).SelectMany(c => c.Dogs).Where(d => d.ReservationPaymentConfirmed).ToList();
         _members = Client.Where(c => c.Member != null).Select(c => c.Member).Where(m => m.RegistrationConfirmed).ToList()!;
-        _invoices = Client.SelectMany(c => c.Dogs).SelectMany(d => d.Invoices).ToList();
+        _invoices = Client.SelectMany(c => c.Dogs).SelectMany(d => d.Invoices).Where(i => i.PaymentConfirmed).ToList();
         _membershipdues = Client.Where(c => c.Member != null).Select(c => c.Member).SelectMany(m => m.MembershipDues).Where(m => m.PaymentConfirmed).ToList();
 
         // Update donut chart
@@ -141,7 +143,7 @@
     private double[] _CalculateClientData()
     {
         List<double> listSeries = new();
-        listSeries.Add(_customers.Count());
+        listSeries.Add(_boardAndTrain.Count());
         listSeries.Add(_members.Count());
 
         return listSeries.ToArray();
@@ -149,7 +151,7 @@
 
     // Finance Ratio
     private double[] _financeRatioData = { 0, 0 };
-    private string[] _financeRatioLabels = { "Customers Revenue", "Membership Revenue" };
+    private string[] _financeRatioLabels = { "Customers", "Memberships" };
     private ChartOptions _financeRatioOptions = new ChartOptions()
     {
         ShowLegend = false
@@ -158,16 +160,24 @@
     {
         List<double> listSeries = new();
 
-        // Total all invoices
-        double invoiceGrandTotal = 0.00F;
-        foreach (SouthSideK9Camp.Shared.Invoice invoice in _invoices)
-        {
-            invoiceGrandTotal += invoice.Balance;
-        }
-        listSeries.Add(invoiceGrandTotal);
+        // Total all invoices and reservation fees
+        double statementOfAccountGrandTotal = 0.00F;
 
-        // Total all memberships
-        listSeries.Add(_membershipdues.Count() * 300); // membership fee is 300.00
+        statementOfAccountGrandTotal += _boardAndTrain.Where(b => b.ReservationPaymentConfirmed).Count() * 300; // Add all reservation fee
+
+        foreach (SouthSideK9Camp.Shared.Invoice invoice in _invoices) // Add all invoices balance
+        {
+            statementOfAccountGrandTotal += invoice.Balance;
+        }
+
+        listSeries.Add(statementOfAccountGrandTotal);
+
+        // Add all Member Revenue
+        double memberRevenue = 0;
+        memberRevenue += _members.Count() * 300; // membership due fee is 300.00
+        memberRevenue += _membershipdues.Count() * 300; // membership due fee is 300.00
+
+        listSeries.Add(memberRevenue);
 
         return listSeries.ToArray();
     }

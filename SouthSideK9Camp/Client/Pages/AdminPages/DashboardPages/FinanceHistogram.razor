@@ -16,14 +16,14 @@
 {
     [Parameter] public List<Shared.Client> Client { get; set; } = new();
 
-    private List<Shared.Dog> _customers = new();
+    private List<Shared.Dog> _boardAndTrain = new();
     private List<Shared.Member> _members = new();
     private List<Shared.Invoice> _invoices = new();
     private List<Shared.MembershipDue> _membershipdues = new();
 
     protected override void OnParametersSet()
     {
-        _customers = Client.SelectMany(c => c.Dogs).Where(d => d.ReservationPaymentConfirmed).ToList();
+        _boardAndTrain = Client.SelectMany(c => c.Dogs).Where(d => d.ReservationPaymentConfirmed).ToList();
         _members = Client.Where(c => c.Member != null).Select(c => c.Member).Where(m => m.RegistrationConfirmed).ToList();
         _invoices = Client.SelectMany(c => c.Dogs).SelectMany(d => d.Invoices).Where(i => i.PaymentConfirmed).ToList();
         _membershipdues = Client.Where(c => c.Member != null).Select(c => c.Member).SelectMany(m => m.MembershipDues).Where(m => m.PaymentConfirmed).ToList();
@@ -31,7 +31,7 @@
         // Compute finance histogram
         _financeSeries = new List<ChartSeries>()
         {
-            new ChartSeries() { Name = "Statement of Account Revenue", Data = _FinanceSeriesInvoiceData() },
+            new ChartSeries() { Name = "Customer Revenue", Data = _FinanceSeriesInvoiceData() },
             new ChartSeries() { Name = "Membership Revenue", Data = _FinanceSeriesMembershipData() },
         };
     }
@@ -41,7 +41,7 @@
     private ChartOptions _financeSeriesOptions = new ChartOptions()
         {
             YAxisLines = true,
-            YAxisTicks = 1000
+            YAxisTicks = 5000
         };
     private string[] _financeSeriesLabels = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
 
@@ -51,20 +51,18 @@
         List<double> seriesData = new();
 
         // Loop through every month of the year
-        DateTime date = new(DateTime.Now.Year, 1, 1);
-        while (date.Year == DateTime.UtcNow.Year)
+        for (DateTime date = new(DateTime.Now.Year, 1, 1); date.Year == DateTime.UtcNow.Year; date = date.AddMonths(1))
         {
-            // Filter Invoices that are not tamplates
-            List<Shared.Invoice> invoicesOfTheMonth = _invoices.FindAll(c => c.DateCreated.Month == date.Month).ToList();
-
-            // Add all invoice balance of that month
-            double invoicesOfTheMonthTotal = 0.00F;
-            foreach (SouthSideK9Camp.Shared.Invoice invoice in invoicesOfTheMonth)
+            // Total all invoices and reservation fees
+            double customerRevenue = 0;
+            foreach (SouthSideK9Camp.Shared.Invoice invoice in _invoices) // Add statement of accounts
             {
-                invoicesOfTheMonthTotal += invoice.Balance;
+                if (invoice.DateCreated.Month == date.Month && invoice.PaymentConfirmed)
+                    customerRevenue += invoice.Balance;
             }
-            seriesData.Add(invoicesOfTheMonthTotal);
-            date = date.AddMonths(1);
+            customerRevenue += _boardAndTrain.Where(m => m.DateCreated.Month == date.Month).Where(b => b.ReservationPaymentConfirmed).Count() * 300; // Add reservation fees
+
+            seriesData.Add(customerRevenue);
         }
         return seriesData.ToArray();
     }
@@ -73,17 +71,16 @@
         List<double> seriesData = new();
 
         // Loop through every month of the year
-        DateTime date = new(DateTime.Now.Year, 1, 1);
-        while (date.Year == DateTime.UtcNow.Year)
+        for (DateTime date = new(DateTime.Now.Year, 1, 1); date.Year == DateTime.UtcNow.Year; date = date.AddMonths(1))
         {
+            // Add all Member Revenue
+            double memberRevenue = 0;
+            memberRevenue += _members.Where(m => m.DateCreated.Month == date.Month).Count() * 300; // membership due fee is 300.00
+            memberRevenue += _membershipdues.Where(m => m.DateCreated.Month == date.Month).Count() * 300; // membership due fee is 300.00
 
-            // Add all membership of that month
-            double membershipOfTheMonthTotal = 0.00F;
-            membershipOfTheMonthTotal += _membershipdues.FindAll(c => c.DateCreated.Month == date.Month).Count() * 300; // membership fee is 300.00
-
-            seriesData.Add(membershipOfTheMonthTotal);
-            date = date.AddMonths(1);
+            seriesData.Add(memberRevenue);
         }
+
         return seriesData.ToArray();
     }
 

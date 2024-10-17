@@ -87,7 +87,7 @@
         for (int i = 0; i < numDays; i++) // Populate date[] with dates
         {
             DateTime date = dateRange.Start?.AddDays(i) ?? new();
-            dates[i] = date.ToString("dd");
+            dates[i] = date.ToString("d");
         }
 
         return dates;
