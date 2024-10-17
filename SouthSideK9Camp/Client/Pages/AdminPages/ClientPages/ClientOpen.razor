@@ -31,11 +31,16 @@
             </MudToolBar>
         </MudPaper>
 
-        <EditForm EditContext="_editContext" OnValidSubmit="@_Save">
+        <EditForm EditContext="_editContext" OnValidSubmit="@_Save" Context="context">
             <FluentValidationValidator />
 
-            @* client info *@
             <MudGrid Spacing="2">
+
+                @* client info *@
+                <MudItem xs="12">
+                    <MudText Typo="Typo.h5" Class="mt-2">Personal Information</MudText>
+                </MudItem>
+
                 <MudItem xs="12" sm="6">
                     <MudTextField @bind-Value="_client.FirstName" For="@(() => _client.FirstName)" Label="First Name" Variant="Variant.Outlined" ReadOnly="@_readOnly" />
                 </MudItem>
@@ -69,8 +74,36 @@
                 </MudItem>
 
                 @* member info *@
+                @if (_client.Member is not null)
+                {
+                    <MudItem xs="12">
+                        <MudText Typo="Typo.h5" Class="mt-2">Membership Information</MudText>
+                    </MudItem>
+
+                    <MudItem xs="12" sm="6">
+                        <MudTextField @bind-Value="_client.Member.Occupation" For="@(() => _client.Member.Occupation)" Label="Occupation" Variant="Variant.Outlined" ReadOnly="@_readOnly" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudAutocomplete @bind-Value="_client.Member.WhereDidYouHereAboutUs" For="@(() => _client.Member.WhereDidYouHereAboutUs)" Label="Where did you here about us?" SearchFunc="@_WhereDidYouHereAboutUsAutocomplete" Variant="Variant.Outlined" ReadOnly="@_readOnly" CoerceValue />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudAutocomplete @bind-Value="_client.Member.PurposeOfJoining" For="@(() => _client.Member.PurposeOfJoining)" Label="Purpose of joining" SearchFunc="@_PurposeOfJoiningAutocomplete" Variant="Variant.Outlined" ReadOnly="@_readOnly" CoerceValue />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudTextField @bind-Value="_client.Member.DogClinicAddress" For="@(() => _client.Member.DogClinicAddress)" Label="Dog's Veterinarian Clinic Address'" ReadOnly="@_readOnly" Variant="Variant.Outlined" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudTextField @bind-Value="_client.Member.WhoTrainYourDog" For="@(() => _client.Member.WhoTrainYourDog)" Label="Who will train your dog?" ReadOnly="@_readOnly" Variant="Variant.Outlined" />
+                    </MudItem>
+                }
+
+                @* customer info *@
                 @if (_client.Customer is not null)
                 {
+                    <MudItem xs="12">
+                        <MudText Typo="Typo.h5" Class="mt-2">Board & Train Information</MudText>
+                    </MudItem>
+
                     <MudItem xs="12" sm="12">
                         <MudTextField @bind-Value="_client.Customer.WhereWillYouBeStating" For="@(() => _client.Customer.WhereWillYouBeStating)" Label="Where Will You Be Staying" Variant="Variant.Outlined" ReadOnly="@_readOnly" />
                     </MudItem>
@@ -89,31 +122,72 @@
                     <MudItem xs="12" sm="6">
                         <MudTextField @bind-Value="_client.Customer.EmergencyContactEmail" For="@(() => _client.Customer.EmergencyContactEmail)" Label="Emergency Contact Email" ReadOnly="@_readOnly" Variant="Variant.Outlined" />
                     </MudItem>
-
                 }
 
-                @* member info *@
-                @if (_client.Member is not null)
-                {
-                    <MudItem xs="12" sm="6">
-                        <MudTextField @bind-Value="_client.Member.Occupation" For="@(() => _client.Member.Occupation)" Label="Occupation" Variant="Variant.Outlined" ReadOnly="@_readOnly" />
-                    </MudItem>
-                    <MudItem xs="12" sm="6">
-                        <MudAutocomplete @bind-Value="_client.Member.WhereDidYouHereAboutUs" For="@(() => _client.Member.WhereDidYouHereAboutUs)" Label="Where did you here about us?" SearchFunc="@_WhereDidYouHereAboutUsAutocomplete" Variant="Variant.Outlined" ReadOnly="@_readOnly" CoerceValue />
-                    </MudItem>
-                    <MudItem xs="12" sm="6">
-                        <MudAutocomplete @bind-Value="_client.Member.PurposeOfJoining" For="@(() => _client.Member.PurposeOfJoining)" Label="Purpose of joining" SearchFunc="@_PurposeOfJoiningAutocomplete" Variant="Variant.Outlined" ReadOnly="@_readOnly" CoerceValue />
-                    </MudItem>
-                    <MudItem xs="12" sm="6">
-                        <MudTextField @bind-Value="_client.Member.DogClinicAddress" For="@(() => _client.Member.DogClinicAddress)" Label="Dog's Veterinarian Clinic Address'" ReadOnly="@_readOnly" Variant="Variant.Outlined" />
-                    </MudItem>
-                    <MudItem xs="12" sm="6">
-                        <MudTextField @bind-Value="_client.Member.WhoTrainYourDog" For="@(() => _client.Member.WhoTrainYourDog)" Label="Who will train your dog?" ReadOnly="@_readOnly" Variant="Variant.Outlined" />
-                    </MudItem>
-                }
             </MudGrid>
 
         </EditForm>
+
+        @* dog info *@
+        @if (_client.Dogs is not null)
+        {
+            <MudTable Items="@_client.Dogs" Hover="true">
+
+                <ToolBarContent>
+                    <MudText Typo="Typo.h6">Dogs Enrolled</MudText>
+                </ToolBarContent>
+
+                <HeaderContent>
+                    <MudTh>Label</MudTh>
+                </HeaderContent>
+
+                <HeaderContent>
+                    <MudTh>Name</MudTh>
+                    <MudTh>Training Type</MudTh>
+                    <MudTh>Reservation</MudTh>
+                </HeaderContent>
+
+                <RowTemplate>
+
+                    <MudTd DataLabel="Name">
+                        <MudStack Row AlignItems="AlignItems.Center">
+
+                            <MudAvatar>
+                                <MudImage ObjectFit="ObjectFit.Cover" Src="@context.AvatarURL" />
+                            </MudAvatar>
+
+                            <MudStack Spacing="0">
+                                <MudText Typo="Typo.h6">@context.Name</MudText>
+                                <MudText Typo="Typo.caption">@context.Breed</MudText>
+                            </MudStack>
+
+                        </MudStack>
+                    </MudTd>
+
+                    <MudTd DataLabel="Training Type">
+                        <MudText Typo="Typo.body1">@context.Contract.TrainingType</MudText>
+                    </MudTd>
+
+                    <MudTd DataLabel="Reservation">
+
+                        <MudText Typo="Typo.body1" Class="mr-3">@context.Reservation?.Name</MudText>
+
+                        <MudStack Row Spacing="0">
+                            <MudText Typo="Typo.caption"g>@context.Reservation?.StartingDate?.ToString("dd MMMM yyyy")</MudText>
+                            <MudIcon Icon="@Icons.Material.Filled.ArrowRight" Size="Size.Small" />
+                            <MudText Typo="Typo.caption">@context.Reservation?.EndingDate?.ToString("dd MMMM yyyy")</MudText>
+                        </MudStack>
+
+                    </MudTd>
+
+                </RowTemplate>
+
+                <PagerContent>
+                    <MudTablePager />
+                </PagerContent>
+
+            </MudTable>
+        }
 
     </MudStack>
 </MudContainer>
