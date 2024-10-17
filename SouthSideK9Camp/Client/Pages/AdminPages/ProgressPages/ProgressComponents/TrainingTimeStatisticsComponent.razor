@@ -80,7 +80,12 @@
         List<string> axisLabels = new();
 
         foreach (DateTime date in dateRange)
-            axisLabels.Add(date.ToString("dd"));
+        {
+            if (date.Day % 2 == 1)
+                axisLabels.Add(date.ToString(" d "));
+            else
+                axisLabels.Add(string.Empty);
+        }
 
         return axisLabels.ToArray();
     }
@@ -102,6 +107,9 @@
     private double _AverageHours()
     {
         double totalHours = 0;
+
+        if (dog.ProgressReports == null)
+            return 0.00;
 
         foreach (Shared.ProgressReport report in dog.ProgressReports)
         {
