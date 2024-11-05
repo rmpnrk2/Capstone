@@ -20,7 +20,6 @@ builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("Emai
 
 var app = builder.Build();
 
-/*
 // apply migrations
 using (var scope = app.Services.CreateScope())
 {
@@ -28,7 +27,6 @@ using (var scope = app.Services.CreateScope())
     var context = services.GetRequiredService<DataContext>();
     context.Database.Migrate();
 }
-*/
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

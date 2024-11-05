@@ -85,7 +85,7 @@
     private async Task _CheckExistingUsers()
     {
         List<Shared.User> users = await HttpClient.User.FetchAsync();
-        if (users.Any())
+        if (users.Where(u => u.Role == "admin").Any())
             NavigationManager.NavigateTo("/admin/user-login");
     }
 }

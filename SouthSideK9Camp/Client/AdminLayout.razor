@@ -88,7 +88,7 @@
     {
         // Checks if there are no User in database, if there are no user redirect to create user page
         List<Shared.User> users = await HttpClient.User.FetchAsync();
-        if (!users.Any())
+        if (!users.Where(u => u.Role == "admin").Any())
         {
             NavigationManager.NavigateTo("/admin/user-create");
             return;
