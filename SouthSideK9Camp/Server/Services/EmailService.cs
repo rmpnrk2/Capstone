@@ -24,7 +24,7 @@ public class EmailService : IEmailService
         SmtpClient client = new SmtpClient()
         {
             Port = 587,
-            Host = "mail37.mailasp.net",
+            Host = "mail73.mailasp.net",
             EnableSsl = true,
             DeliveryMethod = SmtpDeliveryMethod.Network,
             UseDefaultCredentials = false,
@@ -39,6 +39,8 @@ public class EmailService : IEmailService
             Subject = subject,
             Body = body
         };
+
+        // emailMessage.Headers.Add("Message-Id", $"<{Guid.NewGuid()}@southsidek9camp.com>");
 
         return client.SendMailAsync(emailMessage);
     }

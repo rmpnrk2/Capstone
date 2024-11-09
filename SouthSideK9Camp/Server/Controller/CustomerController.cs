@@ -105,7 +105,7 @@ namespace SouthSideK9Camp.Server.Controller
                     .Set(c => c.clientName, client.FirstName + " " + client.LastName)
                     .Set(c => c.dogName, dog.Name)
                     .Set(c => c.startingDate, reservation.StartingDate)
-                    .Set(c => c.endingDate, (reservation.DateCreated.AddDays(5) < reservation.EndingDate) ? reservation.DateCreated.AddDays(5) : reservation.EndingDate )
+                    .Set(c => c.endingDate, reservation.EndingDate )
                     .Set(c => c.host, _configuration["Host"])
                     .Set(c => c.dogGUID, dog.GUID.ToString())
                     .Set(c => c.dueDate, (dog.DateCreated.AddDays(5) > reservation.StartingDate) ? reservation.StartingDate : dog.DateCreated.AddDays(5)) // Duedate is 5 days upon reservation or the ending date of reservation

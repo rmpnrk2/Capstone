@@ -69,7 +69,12 @@
     protected override async void OnParametersSet()
     { 
         // default values
-        _invoice = await HttpClient.Invoice.GetDefaultAsync();
+        Invoice _defaultInvoice = await HttpClient.Invoice.GetDefaultAsync();
+
+        _invoice.CompanyName = _defaultInvoice.CompanyName;
+        _invoice.CompanyAddress = _defaultInvoice.AccountAddress;
+        _invoice.CompanyZIPCode = _defaultInvoice.CompanyZIPCode;
+        _invoice.CompanyPhone = _defaultInvoice.CompanyPhone;
 
         _invoice.AccountName = dog.Client?.FirstName + " " + dog.Client?.LastName;
         _invoice.AccountAddress = dog.Client?.Address ?? string.Empty;
