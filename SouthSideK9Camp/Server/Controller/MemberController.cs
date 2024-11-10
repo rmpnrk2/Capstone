@@ -159,8 +159,8 @@ namespace SouthSideK9Camp.Server.Controller
             await _dataContext.SaveChangesAsync();
 
             // email client
-            string emailSubject = "SouthSideK9 Camp Board & Train Registration Payment Unsuccessful";
-            string emailBody = new ComponentRenderer<EmailTemplates.PaymentConfirmationMembershipDue>()
+            string emailSubject = "SouthSideK9 Membership Registration Payment Successful";
+            string emailBody = new ComponentRenderer<EmailTemplates.PaymentConfirmationMembershipRegistration>()
                 .Set(c => c.client, client)
                 .Render();
             await _smtp.SendEmailAsync(client.Email, emailSubject, emailBody);

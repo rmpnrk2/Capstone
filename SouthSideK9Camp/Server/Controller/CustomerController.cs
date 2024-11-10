@@ -238,7 +238,7 @@ namespace SouthSideK9Camp.Server.Controller
             }
 
             // email client
-            string emailSubject = "SouthSideK9 Camp Board & Train Registration Payment Unsuccessful";
+            string emailSubject = "SouthSideK9 Camp Board & Train Registration Payment Successful";
             string emailBody = new ComponentRenderer<EmailTemplates.PaymentConfirmationReservation>()
                 .Set(c => c.client, dog.Client)
                 .Set(c => c.reservation , dog.Reservation)
