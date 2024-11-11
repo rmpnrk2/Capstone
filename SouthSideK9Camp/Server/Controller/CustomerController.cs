@@ -99,6 +99,9 @@ namespace SouthSideK9Camp.Server.Controller
             {
                 dog.ReservationID = reservation.ID;
 
+                // Add avatar for dog
+                dog.AvatarURL = "http://southsidek9camp.premiumasp.net/Images/DogAvatar/noavatar.png";
+
                 // send email for each registered dog
                 string emailSubject = "SouthSideK9 Camp Board & Train Registration";
                 string emailBody = new ComponentRenderer<EmailTemplates.CustomerRegistratinReservationPayment>()

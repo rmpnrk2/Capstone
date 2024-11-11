@@ -1,8 +1,10 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using BlazorTemplater;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using SouthSideK9Camp.Server.Data;
+using SouthSideK9Camp.Server.Services;
 using SouthSideK9Camp.Shared;
 
 namespace SouthSideK9Camp.Server.Controller
@@ -12,12 +14,14 @@ namespace SouthSideK9Camp.Server.Controller
         private readonly DataContext _dataContext;
         private readonly IWebHostEnvironment _hostingEnvironment;
         private readonly IConfiguration _configuration;
+        private readonly IEmailService _smtp;
 
-        public ProgressReportController(DataContext dataContext, IWebHostEnvironment webHostEnvironment, IConfiguration configuration)
+        public ProgressReportController(DataContext dataContext, IWebHostEnvironment webHostEnvironment, IConfiguration configuration, IEmailService smtp)
         {
             _dataContext = dataContext;
             _hostingEnvironment = webHostEnvironment;
             _configuration = configuration;
+            _smtp = smtp;
         }
 
         // create
@@ -46,6 +50,20 @@ namespace SouthSideK9Camp.Server.Controller
 
                 report.ImageURL = _configuration["Host"] + "/Images/ReportImages/" + imageFileName;
             }
+
+            // send email for each registered dog
+            Dog? dog = await _dataContext.Dogs.Where(d => d.ID == dogID).Include(d => d.Client).FirstOrDefaultAsync();
+            if(dog != null && dog.Client != null)
+            {
+                string emailSubject = "SouthSideK9 Camp Board & Train Registration";
+                string emailBody = new ComponentRenderer<EmailTemplates.EmailProgressReport>()
+                    .Set(c => c.clientName, dog.Client.FirstName + " " + dog.Client?.LastName)
+                    .Set(c => c.dogName, dog.Name)
+                    .Set(c => c.dogGUID, dog.GUID.ToString())
+                    .Set(c => c.host, _configuration["Host"])
+                    .Render();
+                await _smtp.SendEmailAsync(dog.Client.Email, emailSubject, emailBody);
+            }    
 
             _dataContext.ProgressReports.Add(report);
             _dataContext.SaveChanges();

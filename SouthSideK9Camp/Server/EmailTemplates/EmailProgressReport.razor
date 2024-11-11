@@ -1,0 +1,66 @@
+﻿<head>
+	<style>
+		body {
+			font-family: Arial, sans-serif;
+			margin: 0;
+			padding: 20px;
+		}
+
+		.container {
+			max-width: 500px;
+			margin: 0 auto;
+			text-align: center;
+		}
+
+		h1 {
+			font-size: 24px;
+			margin-bottom: 10px;
+		}
+
+		a {
+			background-color: #4CAF50;
+			border: none;
+			color: white;
+			padding: 10px 20px;
+			text-align: center;
+			text-decoration: none;
+			display: inline-block;
+			font-size: 16px;
+		}
+	</style>
+</head>
+
+<body>
+	<div class="container">
+		<h1>SouthSide K9 Camp Board & Train Registration</h1>
+		<br />
+		<p>Dear, @clientName</p>
+		<br />
+		<p>Your dog @dogName has a new progress report that is ready for you to check!</p>
+		<p>Click the link below to check the latest report:</p>
+		<br />
+		<p>Dog's Name': @dogName</p>
+		<br />
+		<a href="@link" target="_blank">Check Progress</a>
+		<br />
+		<br />
+		<p>Best regards,</p>
+		<p>SouthSide K9 Camp</p>
+	</div>
+</body>
+
+@code
+{
+	[Parameter] public string clientName { get; set; } = string.Empty;
+	[Parameter] public string dogName { get; set; } = string.Empty;
+
+	[Parameter] public string host { get; set; } = string.Empty;
+	[Parameter] public string dogGUID { get; set; } = string.Empty;
+
+	private string? link;
+	protected override void OnInitialized()
+	{
+		link = $"{host}/progress/{dogGUID}";
+		base.OnInitialized();
+	}
+}

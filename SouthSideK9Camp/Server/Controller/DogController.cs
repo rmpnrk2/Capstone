@@ -62,6 +62,8 @@ namespace SouthSideK9Camp.Server.Controller
             Shared.Dog? dog = await _dataContext.Dogs
                 .Include(c => c.Client)
                 .Include(c => c.Reservation)
+                .Include(dog => dog.Contract)
+                .Include(dog => dog.ProgressReports)
                 .FirstOrDefaultAsync(d => d.GUID.ToString() == dogGUID);
 
             if (dog == null)
