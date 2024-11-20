@@ -15,12 +15,12 @@
                     <MudStack Row AlignItems="AlignItems.Center">
                         <MudIcon Icon="@Icons.Material.Filled.FiberManualRecord" Size="Size.Small" Color="Color.Info"></MudIcon>
                         <MudText Typo="Typo.body2">Customers:</MudText>
-                        <MudText Typo="Typo.subtitle1" Color="Color.Info">@Receipts.Where(r => r.receiptType <= 2).Count()</MudText>
+                        <MudText Typo="Typo.subtitle1" Color="Color.Info">@Receipts.Where(r => r.receiptType == 2).Count()</MudText>
                     </MudStack>
                     <MudStack Row AlignItems="AlignItems.Center">
                         <MudIcon Icon="@Icons.Material.Filled.FiberManualRecord" Size="Size.Small" Color="Color.Tertiary"></MudIcon>
                         <MudText Typo="Typo.body2">Members:</MudText>
-                        <MudText Typo="Typo.subtitle1" Color="Color.Tertiary">@Receipts.Where(r => 2 <= r.receiptType).Count()</MudText>
+                        <MudText Typo="Typo.subtitle1" Color="Color.Tertiary">@Receipts.Where(r => r.receiptType == 3).Count()</MudText>
                     </MudStack>
                 </MudStack>
             </MudStack>
@@ -28,6 +28,7 @@
         </MudPaper>
     </MudItem>
 
+    @* Finance donut chart *@
     <MudItem xs="6">
         <MudPaper Class="py-4">
 
@@ -35,63 +36,33 @@
                 <MudText Typo="Typo.h6">Revenue Ratio</MudText>
             </MudStack>
 
-            @* Finance donut chart *@
             <MudStack AlignItems="AlignItems.Center">
+
+                @* Donut chart *@
                 <MudChart ChartType="ChartType.Donut" Width="100px" ChartOptions="_ClientDonutOptions" Height="100px" InputData="@_financeRatioData" InputLabels="@_clientDonutLabels" LegendPosition="Position.Right" />
+
                 <MudStack Spacing="0">
 
-                    @* Client Ratio *@
-                    <MudHidden Breakpoint="Breakpoint.SmAndDown" Invert>
-                        <MudStack Spacing="0">
-                            <MudText Typo="Typo.body2">
-                                <MudIcon Icon="@Icons.Material.Filled.FiberManualRecord" Size="Size.Small" Color="Color.Info" />
-                                Invoices:
-                            </MudText>
-                            <MudText Typo="Typo.subtitle1" Color="Color.Info" Align="Align.Right">
-                                @_financeRatioData[0]
-                                <MudText Typo="Typo.caption" Color="Color.Info">PHP</MudText>
-                            </MudText>
-                        </MudStack>
-                        <MudStack Spacing="0">
-                            <MudText Typo="Typo.body2">
-                                <MudIcon Icon="@Icons.Material.Filled.FiberManualRecord" Size="Size.Small" Color="Color.Tertiary" />
-                                Memberships:
-                            </MudText>
-                            <MudText Typo="Typo.subtitle1" Color="Color.Tertiary" Align="Align.Right">
-                                @_financeRatioData[1].ToString("F2")
-                                <MudText Typo="Typo.caption" Color="Color.Tertiary">PHP</MudText>
-                            </MudText>
-                        </MudStack>
-                        <MudStack Spacing="0">
-                            <MudText Typo="Typo.body2">Total Revenue:</MudText>
-                            <MudText Typo="Typo.subtitle1" Align="Align.Right">
-                                @((_financeRatioData[0] + _financeRatioData[1]).ToString("F2"))
-                                <MudText Typo="Typo.caption">PHP</MudText>
-                            </MudText>
-                        </MudStack>
-                    </MudHidden>
-
-                    @* Ravenue Ratio *@
-                    <MudHidden Breakpoint="Breakpoint.SmAndUp" Invert>
-                        <MudStack Row AlignItems="AlignItems.Center">
-                            <MudIcon Icon="@Icons.Material.Filled.FiberManualRecord" Size="Size.Small" Color="Color.Info"></MudIcon>
-                            <MudText Typo="Typo.body2">Invoices:</MudText>
+                    <MudStack Row AlignItems="AlignItems.Center">
+                        <MudIcon Icon="@Icons.Material.Filled.FiberManualRecord" Size="Size.Small" Color="Color.Info"></MudIcon>
+                        <MudText Typo="Typo.body2">Customers:</MudText>
                             <MudText Typo="Typo.subtitle1" Color="Color.Info">
-                                @_financeRatioData[0]
-                                <MudText Typo="Typo.caption" Color="Color.Info">PHP</MudText>
-                            </MudText>
-                        </MudStack>
-                        <MudStack Row AlignItems="AlignItems.Center">
-                            <MudIcon Icon="@Icons.Material.Filled.FiberManualRecord" Size="Size.Small" Color="Color.Tertiary"></MudIcon>
-                            <MudText Typo="Typo.body2">Memberships:</MudText>
-                            <MudText Typo="Typo.subtitle1" Color="Color.Tertiary">
-                                @_financeRatioData[1].ToString("F2")
-                                <MudText Typo="Typo.caption" Color="Color.Tertiary">PHP</MudText>
-                            </MudText>
-                        </MudStack>
-                    </MudHidden>
+                            @_financeRatioData[0].ToString("F2")
+                            <MudText Typo="Typo.caption" Color="Color.Info">PHP</MudText>
+                        </MudText>
+                    </MudStack>
+
+                    <MudStack Row AlignItems="AlignItems.Center">
+                        <MudIcon Icon="@Icons.Material.Filled.FiberManualRecord" Size="Size.Small" Color="Color.Tertiary"></MudIcon>
+                        <MudText Typo="Typo.body2">Members:</MudText>
+                        <MudText Typo="Typo.subtitle1" Color="Color.Tertiary">
+                            @_financeRatioData[1].ToString("F2")
+                            <MudText Typo="Typo.caption" Color="Color.Tertiary">PHP</MudText>
+                        </MudText>
+                    </MudStack>
 
                 </MudStack>
+
             </MudStack>
 
         </MudPaper>
@@ -122,8 +93,8 @@
     private double[] _CalculateClientData()
     {
         List<double> listSeries = new();
-        listSeries.Add(Receipts.Where(r => r.receiptType <= 2).Count());
-        listSeries.Add(Receipts.Where(r => 3 <= r.receiptType).Count());
+        listSeries.Add(Receipts.Where(r => r.receiptType == 2).Count());
+        listSeries.Add(Receipts.Where(r => r.receiptType == 3).Count());
 
         return listSeries.ToArray();
     }
@@ -142,7 +113,7 @@
         // Total all invoices and reservation fees
         double statementOfAccountGrandTotal = 0.00F;
 
-        statementOfAccountGrandTotal += Receipts.Where(r => r.receiptType == 2).Count() * 300; // Add all reservation fee
+        statementOfAccountGrandTotal += Receipts.Where(r => r.receiptType == 1).Count() * 300; // Add all reservation fee
 
         foreach (SouthSideK9Camp.Shared.Receipt receipt in Receipts) // Add all invoices balance
         {
