@@ -15,7 +15,7 @@
                     <MudStack Row AlignItems="AlignItems.Center">
                         <MudIcon Icon="@Icons.Material.Filled.FiberManualRecord" Size="Size.Small" Color="Color.Info"></MudIcon>
                         <MudText Typo="Typo.body2">Customers:</MudText>
-                        <MudText Typo="Typo.subtitle1" Color="Color.Info">@Receipts.Where(r => r.receiptType == 2).Count()</MudText>
+                        <MudText Typo="Typo.subtitle1" Color="Color.Info">@Receipts.Where(r => r.receiptType == 1).Count()</MudText>
                     </MudStack>
                     <MudStack Row AlignItems="AlignItems.Center">
                         <MudIcon Icon="@Icons.Material.Filled.FiberManualRecord" Size="Size.Small" Color="Color.Tertiary"></MudIcon>
