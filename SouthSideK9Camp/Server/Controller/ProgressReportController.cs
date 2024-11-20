@@ -55,7 +55,7 @@ namespace SouthSideK9Camp.Server.Controller
             Dog? dog = await _dataContext.Dogs.Where(d => d.ID == dogID).Include(d => d.Client).FirstOrDefaultAsync();
             if(dog != null && dog.Client != null)
             {
-                string emailSubject = "SouthSideK9 Camp Board & Train Registration";
+                string emailSubject = "SouthSideK9 Camp Progress Report";
                 string emailBody = new ComponentRenderer<EmailTemplates.EmailProgressReport>()
                     .Set(c => c.clientName, dog.Client.FirstName + " " + dog.Client?.LastName)
                     .Set(c => c.dogName, dog.Name)

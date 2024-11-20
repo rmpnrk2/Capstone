@@ -80,10 +80,10 @@
     {
         _receipts = await HttpClient.Receipt.LoadAsync(); // Get data from local storage
         _receipts = _receipts.Where(c => c.DateCreated.Year == _year?.Year).ToList(); // Filter by year
+        StateHasChanged();
 
         _logs = await HttpClient.Log.GetAsync(); // Get data from local storage
         _logs.Reverse();
-
         StateHasChanged();
 
         _receipts = await HttpClient.Receipt.GetAsync(); // Get data from local storage
@@ -92,7 +92,6 @@
         await HttpClient.Log.FetchAsync(); // Get data from server database
         _logs = await HttpClient.Log.GetAsync(); // Get data from local storage
         _logs.Reverse();
-
         StateHasChanged();
     }
 
