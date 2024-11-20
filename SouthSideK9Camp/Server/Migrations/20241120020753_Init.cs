@@ -398,7 +398,8 @@ namespace SouthSideK9Camp.Server.Migrations
                         name: "FK_Items_Invoices_InvoiceID",
                         column: x => x.InvoiceID,
                         principalTable: "Invoices",
-                        principalColumn: "ID");
+                        principalColumn: "ID",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(

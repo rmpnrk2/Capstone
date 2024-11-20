@@ -1,8 +1,10 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using BlazorTemplater;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using SouthSideK9Camp.Server.Data;
+using SouthSideK9Camp.Server.Services;
 using SouthSideK9Camp.Shared;
 
 namespace SouthSideK9Camp.Server.Controller
@@ -12,12 +14,14 @@ namespace SouthSideK9Camp.Server.Controller
         private readonly DataContext _dataContext;
         private readonly IWebHostEnvironment _environment;
         private readonly IConfiguration _configuration;
+        private readonly IEmailService _smtp;
 
-        public DogController(DataContext dataContext, IWebHostEnvironment environment, IConfiguration configuration)
+        public DogController(DataContext dataContext, IWebHostEnvironment environment, IConfiguration configuration, IEmailService emailService)
         {
             _dataContext = dataContext;
             _environment = environment;
             _configuration = configuration;
+            _smtp = emailService;
         }
 
         // get all
@@ -129,22 +133,42 @@ namespace SouthSideK9Camp.Server.Controller
         // Delete dogs who are expired
         [HttpDelete("delete-expired")] public async Task<IResult> DeleteExpiredAsync()
         {
-            List<Shared.Dog> dogs = _dataContext.Dogs.Include(d => d.Reservation).AsNoTracking().ToList();
-
             int rowsDeleted = 0;
+
+            List<Shared.Dog> dogs = _dataContext.Dogs
+                .Where(d => d.ReservationPaymentURL == string.Empty)
+                .Include(d => d.Reservation)
+                .Include(d => d.Client)
+                .AsNoTracking().ToList();
 
             foreach (Shared.Dog dog in dogs)
             {
                 DateTime? deadLine = (dog.DateCreated.AddDays(5) < dog.Reservation?.EndingDate) ? dog.DateCreated.AddDays(5) : dog.Reservation?.EndingDate;
                 TimeSpan? timeLeft = deadLine - DateTime.UtcNow;
 
+                // Delete if the dog reservation is expired
                 if (timeLeft != null)
                     if ((int)timeLeft.Value.TotalDays <= 0)
                     {
                         await _dataContext.Dogs.Where(d => d.ID == dog.ID).ExecuteDeleteAsync();
+
+                        // Email client because they are removed from the reservation
+                        string emailSubject = "SouthSideK9 Camp Statenent of Account Payment Successful";
+                        string emailBody = new ComponentRenderer<EmailTemplates.ReservationExpired>()
+                            .Set(m => m.clientName, dog.Client?.LastName + " " + dog.Client?.FirstName)
+                            .Set(m => m.dogName, dog.Name)
+                            .Set(m => m.startingDate, dog.Reservation?.StartingDate)
+                            .Set(m => m.endingDate, dog.Reservation?.EndingDate)
+                            .Set(m => m.dueDate, dog.DateCreated.AddDays(5))
+                            .Render();
+
+                        if(dog.Client != null)
+                            await _smtp.SendEmailAsync(dog.Client.Email, emailSubject, emailBody);
+
                         rowsDeleted++;
                     }
             }
+
             return rowsDeleted == 0 ? Results.NotFound() : Results.NoContent();
         }
 
