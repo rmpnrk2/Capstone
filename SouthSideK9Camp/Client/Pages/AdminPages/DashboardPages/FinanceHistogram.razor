@@ -14,20 +14,10 @@
 
 @code
 {
-    [Parameter] public List<Shared.Client> Client { get; set; } = new();
-
-    private List<Shared.Dog> _boardAndTrain = new();
-    private List<Shared.Member> _members = new();
-    private List<Shared.Invoice> _invoices = new();
-    private List<Shared.MembershipDue> _membershipdues = new();
+    [Parameter] public List<Shared.Receipt> Receipts { get; set; } = new();
 
     protected override void OnParametersSet()
     {
-        _boardAndTrain = Client.SelectMany(c => c.Dogs).Where(d => d.ReservationPaymentConfirmed).ToList();
-        _members = Client.Where(c => c.Member != null).Select(c => c.Member).Where(m => m.RegistrationConfirmed).ToList();
-        _invoices = Client.SelectMany(c => c.Dogs).SelectMany(d => d.Invoices).Where(i => i.PaymentConfirmed).ToList();
-        _membershipdues = Client.Where(c => c.Member != null).Select(c => c.Member).SelectMany(m => m.MembershipDues).Where(m => m.PaymentConfirmed).ToList();
-
         // Compute finance histogram
         _financeSeries = new List<ChartSeries>()
         {
@@ -39,10 +29,10 @@
     // Finance Histogram
     private List<ChartSeries> _financeSeries = new List<ChartSeries>();
     private ChartOptions _financeSeriesOptions = new ChartOptions()
-        {
-            YAxisLines = true,
-            YAxisTicks = 5000
-        };
+    {
+        YAxisLines = true,
+        YAxisTicks = 5000
+    };
     private string[] _financeSeriesLabels = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
 
     // Calculate Client statistics
@@ -55,12 +45,12 @@
         {
             // Total all invoices and reservation fees
             double customerRevenue = 0;
-            foreach (SouthSideK9Camp.Shared.Invoice invoice in _invoices) // Add statement of accounts
+            foreach (SouthSideK9Camp.Shared.Receipt receipt in Receipts) // Add statement of accounts
             {
-                if (invoice.DateCreated.Month == date.Month && invoice.PaymentConfirmed)
-                    customerRevenue += invoice.Balance;
+                if (receipt.receiptType == 2 && receipt.DateCreated.Month == date.Month)
+                    customerRevenue += receipt.Balance;
             }
-            customerRevenue += _boardAndTrain.Where(m => m.DateCreated.Month == date.Month).Where(b => b.ReservationPaymentConfirmed).Count() * 300; // Add reservation fees
+            customerRevenue += Receipts.Where(r => r.DateCreated.Month == date.Month).Where(r => r.receiptType == 1).Count() * 300; // Add reservation fees
 
             seriesData.Add(customerRevenue);
         }
@@ -75,8 +65,8 @@
         {
             // Add all Member Revenue
             double memberRevenue = 0;
-            memberRevenue += _members.Where(m => m.DateCreated.Month == date.Month).Count() * 300; // membership due fee is 300.00
-            memberRevenue += _membershipdues.Where(m => m.DateCreated.Month == date.Month).Count() * 300; // membership due fee is 300.00
+            memberRevenue += Receipts.Where(r => r.DateCreated.Month == date.Month).Where(r => r.receiptType == 3).Count() * 1500; // Membership registration fee is 1500.00
+            memberRevenue += Receipts.Where(r => r.DateCreated.Month == date.Month).Where(r => r.receiptType == 4).Count() * 300; // Membership due fee is 1500.00
 
             seriesData.Add(memberRevenue);
         }

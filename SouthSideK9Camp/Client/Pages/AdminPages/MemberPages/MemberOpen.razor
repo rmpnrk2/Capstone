@@ -55,8 +55,6 @@
         <EditForm EditContext="_editContext" OnValidSubmit="@_Save">
             <FluentValidationValidator />
 
-            <ValidationSummary />
-
             <MudGrid Spacing="2">
                 <MudItem xs="12" sm="6">
                     <MudTextField @bind-Value="_client.FirstName" For="@(() => _client.FirstName)" Label="First Name" Variant="Variant.Outlined" ReadOnly="@_readOnly" />
@@ -191,6 +189,7 @@
     protected override async Task OnParametersSetAsync()
     {
         await _RefreshDataAsync();
+        _editContext = new EditContext(_client);
     }
 
     // back

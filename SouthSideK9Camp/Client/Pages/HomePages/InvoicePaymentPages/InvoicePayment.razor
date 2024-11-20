@@ -33,7 +33,7 @@
             3. Scan QR Code
             <MudButton OnClick="@_ViewQRcode" StartIcon="@Icons.Material.Filled.OpenInNew" Size="Size.Small" Color="Color.Primary">Click here to view QR code</MudButton>
         </MudText>
-        <MudText Typo="Typo.body1">4. Input Ammount: 300.00 php</MudText>
+        <MudText Typo="Typo.body1">4. Input Ammount: @_invoice.Balance.ToString("0.00")</MudText>
         <MudText Typo="Typo.body1">5. Send payment</MudText>
         <MudText Typo="Typo.body1">6. Screenshot payment receipt</MudText>
         <MudText Typo="Typo.body1">7. Upload payment receipt</MudText>

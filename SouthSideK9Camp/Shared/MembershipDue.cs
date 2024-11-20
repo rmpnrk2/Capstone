@@ -8,7 +8,9 @@ public class MembershipDue : BaseModel
     public bool PaymentConfirmed { get; set; }
     public DateTime DateTimeDue { get; set; } = DateTime.UtcNow.AddDays(30);
 
-    // Relationships
+    // Relationships (Parent)
     public int MemberID { get; set; }
-    [JsonIgnore] public Member? Member { get; set; }
+    public Member? Member { get; set; }
+    public int? ReceiptID { get; set; }
+    public Receipt? Receipt { get; set; }
 }

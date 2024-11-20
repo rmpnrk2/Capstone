@@ -27,7 +27,7 @@
                 <MudTextField @bind-Value="user.Email" For="@(() => user.Email)" Label="Email Address" Variant="Variant.Outlined" FullWidth />
                 <MudTextField @bind-Value="user.FullName" For="@(() => user.FullName)" Label="Full Name" Variant="Variant.Outlined" FullWidth />
                 <MudNumericField @bind-Value="user.Contact" For="@(() => user.Contact)" Label="Contact Number" Variant="Variant.Outlined" FullWidth HideSpinButtons="true" />
-                <MudSelect @bind-Value="user.Role" Label="Training Type" For="@(() => user.Role)" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter" TransformOrigin="Origin.TopCenter" FullWidth>
+                <MudSelect @bind-Value="user.Role" Label="Role Type" For="@(() => user.Role)" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter" TransformOrigin="Origin.TopCenter" FullWidth>
                     <MudSelectItem Value="@("admin")">Admin</MudSelectItem>
                     <MudSelectItem Value="@("trainer")">Trainer</MudSelectItem>
                 </MudSelect>
@@ -38,16 +38,18 @@
 
     @* dialog button *@
     <DialogActions>
+
         <MudButton OnClick="@_Cancel">Cancel</MudButton>
 
         @if (user.ID == 0)
         {
-            <MudButton OnClick="@_CreateAsync" Color="Color.Primary" Class="mt-2" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Create">Create</MudButton>
+            <MudButton OnClick="@_CreateAsync" Color="Color.Primary" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Create">Create</MudButton>
         }
         else
         {
-            <MudButton OnClick="@_UpdateUser" Color="Color.Primary" Class="mt-2" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Save">Save</MudButton>
+            <MudButton OnClick="@_UpdateUser" Color="Color.Primary" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Save">Save</MudButton>
         }
+
     </DialogActions>
 
 </MudDialog>

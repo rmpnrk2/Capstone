@@ -35,9 +35,9 @@
             <MudItem xs="12" sm="8">
                 <MudStack Spacing="2">
 
-                    <ClientHistogram Client="_clients" />
-                    <DonutCharts Client="_clients" />
-                    <FinanceHistogram Client="_clients" />
+                    <ClientHistogram Receipts="_receipts" />
+                    <DonutCharts Receipts="_receipts" />
+                    <FinanceHistogram Receipts="_receipts" />
 
                 </MudStack>
             </MudItem>
@@ -54,7 +54,7 @@
 
 @code
 {
-    private List<Shared.Client> _clients = new();
+    private List<Shared.Receipt> _receipts = new();
     private List<Shared.Log> _logs = new();
 
     protected override async Task OnInitializedAsync()
@@ -78,16 +78,16 @@
     // Refresh data
     private async Task _RefreshDataAsync()
     {
-        _clients = await HttpClient.Client.GetAsync(); // Get data from local storage
-        _clients = _clients.Where(c => c.DateCreated.Year == _year?.Year).ToList(); // Filter by year
+        _receipts = await HttpClient.Receipt.LoadAsync(); // Get data from local storage
+        _receipts = _receipts.Where(c => c.DateCreated.Year == _year?.Year).ToList(); // Filter by year
 
         _logs = await HttpClient.Log.GetAsync(); // Get data from local storage
         _logs.Reverse();
 
         StateHasChanged();
 
-        _clients = await HttpClient.Client.FetchAsync(); // Get data from local storage
-        _clients = _clients.Where(c => c.DateCreated.Year == _year?.Year).ToList(); // Filter by year
+        _receipts = await HttpClient.Receipt.GetAsync(); // Get data from local storage
+        _receipts = _receipts.Where(c => c.DateCreated.Year == _year?.Year).ToList(); // Filter by year
 
         await HttpClient.Log.FetchAsync(); // Get data from server database
         _logs = await HttpClient.Log.GetAsync(); // Get data from local storage

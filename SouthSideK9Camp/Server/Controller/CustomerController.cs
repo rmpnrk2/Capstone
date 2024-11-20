@@ -179,8 +179,17 @@ namespace SouthSideK9Camp.Server.Controller
               Subject = dog.Client?.FirstName + " " + dog.Client?.MiddleInitial + " " + dog.Client?.LastName,
               Severity = "Severity.Success"
             };
-
             _dataContext.Logs.Add(log);
+
+            // Create new receipt
+            Shared.Receipt receipt = new()
+            {
+                receiptType = 1,
+                Balance = 300
+            };
+            _dataContext.Receipts.Add(receipt);
+            await _dataContext.SaveChangesAsync();
+            dog.ReceiptID = receipt.ID;
             await _dataContext.SaveChangesAsync();
 
             return Results.Ok();

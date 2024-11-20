@@ -28,14 +28,17 @@ public class Invoice : BaseModel
     // Methods
     public void CalculateBalance()
     {
-        Balance = Items.Sum(item => item.Total);
+        Balance = Items.Sum(i => i.Total);
     }
 
-    // Relationships
+    // Relationships (Child)
     public List<Item> Items { get; set; } = new();
 
+    // Relationships (Parent)
     public int DogID { get; set; }
     public Dog? Dog { get; set; }
+    public int? ReceiptID { get; set; }
+    public Receipt? Receipt { get; set; }
 }
 
 public class InvoiceValidator : AbstractValidator<Invoice>

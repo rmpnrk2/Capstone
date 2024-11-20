@@ -1,6 +1,7 @@
 ﻿using BlazorTemplater;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using SouthSideK9Camp.Server.Data;
 using SouthSideK9Camp.Server.Services;
 using SouthSideK9Camp.Shared;
@@ -29,7 +30,8 @@ namespace SouthSideK9Camp.Server.Controller
                 .Include(member => member.MembershipDues)
                 .AsNoTracking().ToListAsync();
 
-             return Results.Ok(members);
+            var json = JsonConvert.SerializeObject(members, new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
+            return Results.Ok(JsonConvert.DeserializeObject<List<Shared.Member>>(json));
         }
 
         // get single
@@ -41,7 +43,8 @@ namespace SouthSideK9Camp.Server.Controller
             if (member == null)
                 return Results.NotFound();
 
-            return Results.Ok(member);
+            var json = JsonConvert.SerializeObject(member, new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
+            return Results.Ok(JsonConvert.DeserializeObject<Shared.Member>(json));
         }
 
         // get by guid
@@ -54,7 +57,8 @@ namespace SouthSideK9Camp.Server.Controller
             if (client == null)
                 return Results.NotFound();
 
-            return Results.Ok(client);
+            var json = JsonConvert.SerializeObject(client, new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
+            return Results.Ok(JsonConvert.DeserializeObject<Shared.Client>(json));
         }
 
         // registration payment
@@ -152,10 +156,21 @@ namespace SouthSideK9Camp.Server.Controller
             if (client == null || client.Member == null)
                 return Results.NotFound();
 
+            // Set member to paid
             client.Member.RegistrationConfirmed = true;
 
-            // create membership due
+            // Create membership due
             client.Member.MembershipDues.Add(new());
+
+            // Create new receipt
+            Shared.Receipt receipt = new()
+            {
+                receiptType = 3,
+                Balance = 1500,
+            };
+            _dataContext.Receipts.Add(receipt);
+            await _dataContext.SaveChangesAsync();
+            client.Member.ReceiptID = receipt.ID;
             await _dataContext.SaveChangesAsync();
 
             // email client

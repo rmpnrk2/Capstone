@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace SouthSideK9Camp.Server.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialMigration : Migration
+    public partial class Init : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -63,6 +63,22 @@ namespace SouthSideK9Camp.Server.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Reasons", x => x.ID);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Receipts",
+                columns: table => new
+                {
+                    ID = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    receiptType = table.Column<int>(type: "int", nullable: false),
+                    Balance = table.Column<double>(type: "float", nullable: false),
+                    GUID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    DateCreated = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Receipts", x => x.ID);
                 });
 
             migrationBuilder.CreateTable(
@@ -144,6 +160,7 @@ namespace SouthSideK9Camp.Server.Migrations
                     RegistrationPaymentURL = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     RegistrationConfirmed = table.Column<bool>(type: "bit", nullable: false),
                     ClientID = table.Column<int>(type: "int", nullable: false),
+                    ReceiptID = table.Column<int>(type: "int", nullable: true),
                     GUID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     DateCreated = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
@@ -156,6 +173,11 @@ namespace SouthSideK9Camp.Server.Migrations
                         principalTable: "Clients",
                         principalColumn: "ID",
                         onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Members_Receipts_ReceiptID",
+                        column: x => x.ReceiptID,
+                        principalTable: "Receipts",
+                        principalColumn: "ID");
                 });
 
             migrationBuilder.CreateTable(
@@ -180,6 +202,7 @@ namespace SouthSideK9Camp.Server.Migrations
                     ReservationPaymentConfirmed = table.Column<bool>(type: "bit", nullable: false),
                     ClientID = table.Column<int>(type: "int", nullable: false),
                     ReservationID = table.Column<int>(type: "int", nullable: false),
+                    ReceiptID = table.Column<int>(type: "int", nullable: true),
                     GUID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     DateCreated = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
@@ -192,6 +215,11 @@ namespace SouthSideK9Camp.Server.Migrations
                         principalTable: "Clients",
                         principalColumn: "ID",
                         onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Dogs_Receipts_ReceiptID",
+                        column: x => x.ReceiptID,
+                        principalTable: "Receipts",
+                        principalColumn: "ID");
                     table.ForeignKey(
                         name: "FK_Dogs_Reservations_ReservationID",
                         column: x => x.ReservationID,
@@ -210,6 +238,7 @@ namespace SouthSideK9Camp.Server.Migrations
                     PaymentConfirmed = table.Column<bool>(type: "bit", nullable: false),
                     DateTimeDue = table.Column<DateTime>(type: "datetime2", nullable: false),
                     MemberID = table.Column<int>(type: "int", nullable: false),
+                    ReceiptID = table.Column<int>(type: "int", nullable: true),
                     GUID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     DateCreated = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
@@ -222,6 +251,11 @@ namespace SouthSideK9Camp.Server.Migrations
                         principalTable: "Members",
                         principalColumn: "ID",
                         onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_MembershipDues_Receipts_ReceiptID",
+                        column: x => x.ReceiptID,
+                        principalTable: "Receipts",
+                        principalColumn: "ID");
                 });
 
             migrationBuilder.CreateTable(
@@ -289,6 +323,7 @@ namespace SouthSideK9Camp.Server.Migrations
                     PaymentConfirmed = table.Column<bool>(type: "bit", nullable: false),
                     isDefault = table.Column<bool>(type: "bit", nullable: false),
                     DogID = table.Column<int>(type: "int", nullable: false),
+                    ReceiptID = table.Column<int>(type: "int", nullable: true),
                     GUID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     DateCreated = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
@@ -301,6 +336,11 @@ namespace SouthSideK9Camp.Server.Migrations
                         principalTable: "Dogs",
                         principalColumn: "ID",
                         onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Invoices_Receipts_ReceiptID",
+                        column: x => x.ReceiptID,
+                        principalTable: "Receipts",
+                        principalColumn: "ID");
                 });
 
             migrationBuilder.CreateTable(
@@ -379,6 +419,13 @@ namespace SouthSideK9Camp.Server.Migrations
                 column: "ClientID");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Dogs_ReceiptID",
+                table: "Dogs",
+                column: "ReceiptID",
+                unique: true,
+                filter: "[ReceiptID] IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Dogs_ReservationID",
                 table: "Dogs",
                 column: "ReservationID");
@@ -387,6 +434,13 @@ namespace SouthSideK9Camp.Server.Migrations
                 name: "IX_Invoices_DogID",
                 table: "Invoices",
                 column: "DogID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Invoices_ReceiptID",
+                table: "Invoices",
+                column: "ReceiptID",
+                unique: true,
+                filter: "[ReceiptID] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Items_InvoiceID",
@@ -400,9 +454,23 @@ namespace SouthSideK9Camp.Server.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_Members_ReceiptID",
+                table: "Members",
+                column: "ReceiptID",
+                unique: true,
+                filter: "[ReceiptID] IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_MembershipDues_MemberID",
                 table: "MembershipDues",
                 column: "MemberID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_MembershipDues_ReceiptID",
+                table: "MembershipDues",
+                column: "ReceiptID",
+                unique: true,
+                filter: "[ReceiptID] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ProgressReports_DogID",
@@ -448,6 +516,9 @@ namespace SouthSideK9Camp.Server.Migrations
 
             migrationBuilder.DropTable(
                 name: "Clients");
+
+            migrationBuilder.DropTable(
+                name: "Receipts");
 
             migrationBuilder.DropTable(
                 name: "Reservations");

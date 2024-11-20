@@ -59,9 +59,6 @@ namespace SouthSideK9Camp.Server.Migrations
                     b.Property<Guid>("GUID")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
-
                     b.Property<string>("LastName")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -134,9 +131,6 @@ namespace SouthSideK9Camp.Server.Migrations
 
                     b.Property<Guid>("GUID")
                         .HasColumnType("uniqueidentifier");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
 
                     b.Property<bool>("PaymendConfirmed")
                         .HasColumnType("bit");
@@ -225,9 +219,6 @@ namespace SouthSideK9Camp.Server.Migrations
                     b.Property<Guid>("GUID")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
-
                     b.Property<string>("WhereWillYouBeStating")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -278,9 +269,6 @@ namespace SouthSideK9Camp.Server.Migrations
                     b.Property<bool>("HepatitisAdenovirus")
                         .HasColumnType("bit");
 
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -293,6 +281,9 @@ namespace SouthSideK9Camp.Server.Migrations
 
                     b.Property<bool>("Rabies")
                         .HasColumnType("bit");
+
+                    b.Property<int?>("ReceiptID")
+                        .HasColumnType("int");
 
                     b.Property<int>("ReservationID")
                         .HasColumnType("int");
@@ -315,6 +306,10 @@ namespace SouthSideK9Camp.Server.Migrations
                     b.HasKey("ID");
 
                     b.HasIndex("ClientID");
+
+                    b.HasIndex("ReceiptID")
+                        .IsUnique()
+                        .HasFilter("[ReceiptID] IS NOT NULL");
 
                     b.HasIndex("ReservationID");
 
@@ -371,9 +366,6 @@ namespace SouthSideK9Camp.Server.Migrations
                     b.Property<Guid>("GUID")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
-
                     b.Property<bool>("IsEmailed")
                         .HasColumnType("bit");
 
@@ -383,6 +375,9 @@ namespace SouthSideK9Camp.Server.Migrations
                     b.Property<string>("ProofOfPaymentURL")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("ReceiptID")
+                        .HasColumnType("int");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -394,6 +389,10 @@ namespace SouthSideK9Camp.Server.Migrations
                     b.HasKey("ID");
 
                     b.HasIndex("DogID");
+
+                    b.HasIndex("ReceiptID")
+                        .IsUnique()
+                        .HasFilter("[ReceiptID] IS NOT NULL");
 
                     b.ToTable("Invoices");
                 });
@@ -425,9 +424,6 @@ namespace SouthSideK9Camp.Server.Migrations
 
                     b.Property<int?>("InvoiceID")
                         .HasColumnType("int");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -470,9 +466,6 @@ namespace SouthSideK9Camp.Server.Migrations
                     b.Property<Guid>("GUID")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
-
                     b.Property<string>("Message")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -512,9 +505,6 @@ namespace SouthSideK9Camp.Server.Migrations
                     b.Property<Guid>("GUID")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
-
                     b.Property<string>("Occupation")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -524,6 +514,9 @@ namespace SouthSideK9Camp.Server.Migrations
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
+
+                    b.Property<int?>("ReceiptID")
+                        .HasColumnType("int");
 
                     b.Property<bool>("RegistrationConfirmed")
                         .HasColumnType("bit");
@@ -547,6 +540,10 @@ namespace SouthSideK9Camp.Server.Migrations
                     b.HasIndex("ClientID")
                         .IsUnique();
 
+                    b.HasIndex("ReceiptID")
+                        .IsUnique()
+                        .HasFilter("[ReceiptID] IS NOT NULL");
+
                     b.ToTable("Members");
                 });
 
@@ -567,9 +564,6 @@ namespace SouthSideK9Camp.Server.Migrations
                     b.Property<Guid>("GUID")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
-
                     b.Property<int>("MemberID")
                         .HasColumnType("int");
 
@@ -580,9 +574,16 @@ namespace SouthSideK9Camp.Server.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int?>("ReceiptID")
+                        .HasColumnType("int");
+
                     b.HasKey("ID");
 
                     b.HasIndex("MemberID");
+
+                    b.HasIndex("ReceiptID")
+                        .IsUnique()
+                        .HasFilter("[ReceiptID] IS NOT NULL");
 
                     b.ToTable("MembershipDues");
                 });
@@ -610,9 +611,6 @@ namespace SouthSideK9Camp.Server.Migrations
                     b.Property<string>("ImageURL")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
 
                     b.Property<string>("Message")
                         .IsRequired()
@@ -655,9 +653,6 @@ namespace SouthSideK9Camp.Server.Migrations
                     b.Property<Guid>("GUID")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
-
                     b.Property<string>("Reason")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -665,6 +660,31 @@ namespace SouthSideK9Camp.Server.Migrations
                     b.HasKey("ID");
 
                     b.ToTable("Reasons");
+                });
+
+            modelBuilder.Entity("SouthSideK9Camp.Shared.Receipt", b =>
+                {
+                    b.Property<int>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ID"));
+
+                    b.Property<double>("Balance")
+                        .HasColumnType("float");
+
+                    b.Property<DateTime>("DateCreated")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("GUID")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("receiptType")
+                        .HasColumnType("int");
+
+                    b.HasKey("ID");
+
+                    b.ToTable("Receipts");
                 });
 
             modelBuilder.Entity("SouthSideK9Camp.Shared.Reservation", b =>
@@ -683,9 +703,6 @@ namespace SouthSideK9Camp.Server.Migrations
 
                     b.Property<Guid>("GUID")
                         .HasColumnType("uniqueidentifier");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -727,9 +744,6 @@ namespace SouthSideK9Camp.Server.Migrations
 
                     b.Property<Guid>("GUID")
                         .HasColumnType("uniqueidentifier");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
 
                     b.Property<string>("Password")
                         .IsRequired()
@@ -778,6 +792,10 @@ namespace SouthSideK9Camp.Server.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("SouthSideK9Camp.Shared.Receipt", "Receipt")
+                        .WithOne("Dog")
+                        .HasForeignKey("SouthSideK9Camp.Shared.Dog", "ReceiptID");
+
                     b.HasOne("SouthSideK9Camp.Shared.Reservation", "Reservation")
                         .WithMany("Dogs")
                         .HasForeignKey("ReservationID")
@@ -785,6 +803,8 @@ namespace SouthSideK9Camp.Server.Migrations
                         .IsRequired();
 
                     b.Navigation("Client");
+
+                    b.Navigation("Receipt");
 
                     b.Navigation("Reservation");
                 });
@@ -797,7 +817,13 @@ namespace SouthSideK9Camp.Server.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("SouthSideK9Camp.Shared.Receipt", "Receipt")
+                        .WithOne("Invoice")
+                        .HasForeignKey("SouthSideK9Camp.Shared.Invoice", "ReceiptID");
+
                     b.Navigation("Dog");
+
+                    b.Navigation("Receipt");
                 });
 
             modelBuilder.Entity("SouthSideK9Camp.Shared.Item", b =>
@@ -817,7 +843,13 @@ namespace SouthSideK9Camp.Server.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("SouthSideK9Camp.Shared.Receipt", "Receipt")
+                        .WithOne("Member")
+                        .HasForeignKey("SouthSideK9Camp.Shared.Member", "ReceiptID");
+
                     b.Navigation("Client");
+
+                    b.Navigation("Receipt");
                 });
 
             modelBuilder.Entity("SouthSideK9Camp.Shared.MembershipDue", b =>
@@ -828,7 +860,13 @@ namespace SouthSideK9Camp.Server.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("SouthSideK9Camp.Shared.Receipt", "Receipt")
+                        .WithOne("MembershipDue")
+                        .HasForeignKey("SouthSideK9Camp.Shared.MembershipDue", "ReceiptID");
+
                     b.Navigation("Member");
+
+                    b.Navigation("Receipt");
                 });
 
             modelBuilder.Entity("SouthSideK9Camp.Shared.ProgressReport", b =>
@@ -869,6 +907,17 @@ namespace SouthSideK9Camp.Server.Migrations
             modelBuilder.Entity("SouthSideK9Camp.Shared.Member", b =>
                 {
                     b.Navigation("MembershipDues");
+                });
+
+            modelBuilder.Entity("SouthSideK9Camp.Shared.Receipt", b =>
+                {
+                    b.Navigation("Dog");
+
+                    b.Navigation("Invoice");
+
+                    b.Navigation("Member");
+
+                    b.Navigation("MembershipDue");
                 });
 
             modelBuilder.Entity("SouthSideK9Camp.Shared.Reservation", b =>

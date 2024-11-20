@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using SouthSideK9Camp.Server.Data;
 using SouthSideK9Camp.Shared;
+using static MudBlazor.CategoryTypes;
 
 namespace SouthSideK9Camp.Server.Controller
 {
@@ -18,7 +19,7 @@ namespace SouthSideK9Camp.Server.Controller
         // get
         [HttpGet()] public async Task<IResult> GetAsync()
         {
-            List<Item> items = await _dataContext.Items.AsNoTracking().ToListAsync();
+            List<Shared.Item> items = await _dataContext.Items.AsNoTracking().ToListAsync();
 
             return Results.Ok(items);
         }
@@ -26,7 +27,7 @@ namespace SouthSideK9Camp.Server.Controller
         // get models
         [HttpGet("models")] public async Task<IResult> GetModelsAsync()
         {
-            List<Item> items = await _dataContext.Items.Where(i => i.isModel).AsNoTracking().ToListAsync();
+            List<Shared.Item> items = await _dataContext.Items.Where(i => i.isModel).AsNoTracking().ToListAsync();
 
             return Results.Ok(items);
         }
@@ -34,7 +35,7 @@ namespace SouthSideK9Camp.Server.Controller
         // get by id
         [HttpGet("{itemID}", Name = "GetItem")] public async Task<IResult> GetAsync(int itemID)
         {
-            Item? item = await _dataContext.Items.Where(item => item.ID == itemID).FirstOrDefaultAsync();
+            Shared.Item? item = await _dataContext.Items.Where(item => item.ID == itemID).FirstOrDefaultAsync();
 
             if(item == null)
                 return Results.NotFound();
@@ -79,7 +80,7 @@ namespace SouthSideK9Camp.Server.Controller
         }
 
         // update
-        [HttpPut("{itemID}")] public async Task<IResult> PutAsync(int itemID, Item updatedItem)
+        [HttpPut("{itemID}")] public async Task<IResult> PutAsync(int itemID, Shared.Item updatedItem)
         {
             Shared.Item? item = await _dataContext.Items.FirstOrDefaultAsync(i => i.ID == itemID);
 
@@ -98,9 +99,7 @@ namespace SouthSideK9Camp.Server.Controller
             _dataContext.SaveChanges();
 
             // calculate invoice price
-            Shared.Invoice? invoice = await _dataContext.Invoices.Include(i => i.Items)
-                .FirstOrDefaultAsync(i => i.ID == item.InvoiceID);
-
+            Shared.Invoice? invoice = await _dataContext.Invoices.Include(i => i.Items).FirstOrDefaultAsync(i => i.ID == item.InvoiceID);
             if(invoice != null) invoice.CalculateBalance();
             _dataContext.SaveChanges();
 
@@ -111,16 +110,24 @@ namespace SouthSideK9Camp.Server.Controller
         // delete
         [HttpDelete("{itemID}")] public async Task<IResult> DeleteAsync(int itemID)
         {
-            var rowsAffected = await _dataContext.Items.Where(item => item.ID == itemID).ExecuteDeleteAsync();
+            Shared.Item? item = await _dataContext.Items.FirstOrDefaultAsync(i => i.ID == itemID);
 
-            // calculate invoice price
-            Shared.Invoice? invoice = await _dataContext.Invoices.Where(i => i.Items.Any(i => i.ID == itemID))
-                .Include(i => i.Items).FirstOrDefaultAsync();
+            if (item == null) return Results.NotFound();
 
+            int? invoiceID = item.InvoiceID;
+
+            _dataContext.Items.Remove(item);
+            _dataContext.SaveChanges();
+          
+            // calculate invoice balance
+            Shared.Invoice? invoice = await _dataContext.Invoices.Include(i => i.Items).FirstOrDefaultAsync(i => i.ID == invoiceID);
             if(invoice != null) invoice.CalculateBalance();
             _dataContext.SaveChanges();
 
-            return rowsAffected == 0 ? Results.NotFound() : Results.NoContent();
+            var json = JsonConvert.SerializeObject(invoice, new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
+            Shared.Invoice deserializedItem = JsonConvert.DeserializeObject<Shared.Invoice>(json)!;
+
+            return Results.Ok(deserializedItem);
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using BlazorTemplater;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using SouthSideK9Camp.Server.Data;
 using SouthSideK9Camp.Server.Services;
 using SouthSideK9Camp.Shared;
@@ -27,7 +28,9 @@ namespace SouthSideK9Camp.Server.Controller
         {
             List<MembershipDue> membershipDues = await _dataContext.MembershipDues.Include(d => d.Member).AsNoTracking().ToListAsync();
 
-            return Results.Ok(membershipDues);
+
+            var json = JsonConvert.SerializeObject(membershipDues, new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
+            return Results.Ok(JsonConvert.DeserializeObject<Shared.MembershipDue>(json));
         }
 
         // get
@@ -38,7 +41,8 @@ namespace SouthSideK9Camp.Server.Controller
             if (membershipDue == null)
                 return Results.NotFound();
 
-            return Results.Ok(membershipDue);
+            var json = JsonConvert.SerializeObject(membershipDue, new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
+            return Results.Ok(JsonConvert.DeserializeObject<Shared.MembershipDue>(json));
         }
 
         // get by guid
@@ -51,7 +55,8 @@ namespace SouthSideK9Camp.Server.Controller
             if (client == null)
                 return Results.NotFound();
 
-            return Results.Ok(client);
+            var json = JsonConvert.SerializeObject(client, new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
+            return Results.Ok(JsonConvert.DeserializeObject<Shared.Client>(json));
         }
 
         // membership due payment
@@ -127,14 +132,25 @@ namespace SouthSideK9Camp.Server.Controller
             await _dataContext.SaveChangesAsync();
 
             // create new membershp due
-            Shared.MembershipDue newMembershipDue = new();
-            newMembershipDue.MemberID = membershipDue.MemberID;
-
+            Shared.MembershipDue newMembershipDue = new()
+            {
+                MemberID = membershipDueID,
+            };
             _dataContext.MembershipDues.Add(newMembershipDue);
+
+            // Create new receipt
+            Shared.Receipt receipt = new()
+            {
+                receiptType = 4,
+                Balance = 1500,
+            };
+            _dataContext.Receipts.Add(receipt);
+            await _dataContext.SaveChangesAsync();
+            membershipDue.ReceiptID = receipt.ID;
             await _dataContext.SaveChangesAsync();
 
             // email client
-            string emailSubject = "SouthSideK9 Payment Successful";
+            string emailSubject = "SouthSide K9 Camp Membership Due Payment Successful";
             string emailBody = new ComponentRenderer<EmailTemplates.PaymentConfirmationMembershipDue>()
                 .Set(c => c.membershipDue, membershipDue)
                 .Set(c => c.client, membershipDue.Member?.Client)

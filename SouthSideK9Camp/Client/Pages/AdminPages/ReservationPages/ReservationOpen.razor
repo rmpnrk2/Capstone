@@ -351,9 +351,9 @@
     }
 
     // Count how many days left before deadline
-    private int _PaymentDeadline(DateTime creationDate, Shared.Reservation reservation)
+    private int _PaymentDeadline(DateTime dogCreationDate, Shared.Reservation reservation)
     {
-        DateTime? deadLine = (creationDate.AddDays(5) > reservation.StartingDate) ? reservation.StartingDate : creationDate.AddDays(5);
+        DateTime? deadLine = (dogCreationDate.AddDays(5) < reservation.EndingDate) ? dogCreationDate.AddDays(5) : reservation.EndingDate;
         TimeSpan? timeLeft = deadLine - DateTime.UtcNow;
 
         if (timeLeft != null)

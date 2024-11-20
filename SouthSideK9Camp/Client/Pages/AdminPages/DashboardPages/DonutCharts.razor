@@ -15,16 +15,12 @@
                     <MudStack Row AlignItems="AlignItems.Center">
                         <MudIcon Icon="@Icons.Material.Filled.FiberManualRecord" Size="Size.Small" Color="Color.Info"></MudIcon>
                         <MudText Typo="Typo.body2">Customers:</MudText>
-                        <MudText Typo="Typo.subtitle1" Color="Color.Info">@_boardAndTrain.Count()</MudText>
+                        <MudText Typo="Typo.subtitle1" Color="Color.Info">@Receipts.Where(r => r.receiptType <= 2).Count()</MudText>
                     </MudStack>
                     <MudStack Row AlignItems="AlignItems.Center">
                         <MudIcon Icon="@Icons.Material.Filled.FiberManualRecord" Size="Size.Small" Color="Color.Tertiary"></MudIcon>
                         <MudText Typo="Typo.body2">Members:</MudText>
-                        <MudText Typo="Typo.subtitle1" Color="Color.Tertiary">@_members.Count()</MudText>
-                    </MudStack>
-                    <MudStack Row AlignItems="AlignItems.Center">
-                        <MudText Typo="Typo.body2">Total:</MudText>
-                        <MudText Typo="Typo.subtitle1">@(_members.Count() + _boardAndTrain.Count())</MudText>
+                        <MudText Typo="Typo.subtitle1" Color="Color.Tertiary">@Receipts.Where(r => 2 <= r.receiptType).Count()</MudText>
                     </MudStack>
                 </MudStack>
             </MudStack>
@@ -93,13 +89,6 @@
                                 <MudText Typo="Typo.caption" Color="Color.Tertiary">PHP</MudText>
                             </MudText>
                         </MudStack>
-                        <MudStack Row AlignItems="AlignItems.Center">
-                            <MudText Typo="Typo.body2">Total Revenue:</MudText>
-                            <MudText Typo="Typo.subtitle1">
-                                @((_financeRatioData[0] + _financeRatioData[1]).ToString("F2"))
-                                <MudText Typo="Typo.caption">PHP</MudText>
-                            </MudText>
-                        </MudStack>
                     </MudHidden>
 
                 </MudStack>
@@ -112,20 +101,10 @@
 
 @code
 {
-    [Parameter] public List<Shared.Client> Client { get; set; } = new();
-
-    private List<Shared.Dog> _boardAndTrain = new();
-    private List<Shared.Member> _members = new();
-    private List<Shared.Invoice> _invoices = new();
-    private List<Shared.MembershipDue> _membershipdues = new();
+    [Parameter] public List<Shared.Receipt> Receipts { get; set; } = new();
 
     protected override void OnParametersSet()
     {
-        _boardAndTrain = Client.Where(c => c.Dogs != null).SelectMany(c => c.Dogs).Where(d => d.ReservationPaymentConfirmed).ToList();
-        _members = Client.Where(c => c.Member != null).Select(c => c.Member).Where(m => m.RegistrationConfirmed).ToList()!;
-        _invoices = Client.SelectMany(c => c.Dogs).SelectMany(d => d.Invoices).Where(i => i.PaymentConfirmed).ToList();
-        _membershipdues = Client.Where(c => c.Member != null).Select(c => c.Member).SelectMany(m => m.MembershipDues).Where(m => m.PaymentConfirmed).ToList();
-
         // Update donut chart
         _clientDonutData = _CalculateClientData();
         _financeRatioData = _CalculateFinanceData();
@@ -143,8 +122,8 @@
     private double[] _CalculateClientData()
     {
         List<double> listSeries = new();
-        listSeries.Add(_boardAndTrain.Count());
-        listSeries.Add(_members.Count());
+        listSeries.Add(Receipts.Where(r => r.receiptType <= 2).Count());
+        listSeries.Add(Receipts.Where(r => 3 <= r.receiptType).Count());
 
         return listSeries.ToArray();
     }
@@ -163,19 +142,20 @@
         // Total all invoices and reservation fees
         double statementOfAccountGrandTotal = 0.00F;
 
-        statementOfAccountGrandTotal += _boardAndTrain.Where(b => b.ReservationPaymentConfirmed).Count() * 300; // Add all reservation fee
+        statementOfAccountGrandTotal += Receipts.Where(r => r.receiptType == 2).Count() * 300; // Add all reservation fee
 
-        foreach (SouthSideK9Camp.Shared.Invoice invoice in _invoices) // Add all invoices balance
+        foreach (SouthSideK9Camp.Shared.Receipt receipt in Receipts) // Add all invoices balance
         {
-            statementOfAccountGrandTotal += invoice.Balance;
+            if (receipt.receiptType == 2)
+                statementOfAccountGrandTotal += receipt.Balance;
         }
 
         listSeries.Add(statementOfAccountGrandTotal);
 
         // Add all Member Revenue
         double memberRevenue = 0;
-        memberRevenue += _members.Count() * 300; // membership due fee is 300.00
-        memberRevenue += _membershipdues.Count() * 300; // membership due fee is 300.00
+        memberRevenue += Receipts.Where(r => r.receiptType == 3).Count() * 1500; // membership registratopm fee is 1500.00
+        memberRevenue += Receipts.Where(r => r.receiptType == 4).Count() * 1500; // membership due fee is 1500.00
 
         listSeries.Add(memberRevenue);
 

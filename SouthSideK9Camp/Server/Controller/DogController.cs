@@ -135,7 +135,7 @@ namespace SouthSideK9Camp.Server.Controller
 
             foreach (Shared.Dog dog in dogs)
             {
-                DateTime? deadLine = (dog.DateCreated.AddDays(5) > dog.Reservation?.StartingDate) ? dog.Reservation.StartingDate : dog.DateCreated.AddDays(5);
+                DateTime? deadLine = (dog.DateCreated.AddDays(5) < dog.Reservation?.EndingDate) ? dog.DateCreated.AddDays(5) : dog.Reservation?.EndingDate;
                 TimeSpan? timeLeft = deadLine - DateTime.UtcNow;
 
                 if (timeLeft != null)

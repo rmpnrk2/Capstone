@@ -184,6 +184,15 @@ namespace SouthSideK9Camp.Server.Controller
 
             invoice.PaymentConfirmed = true;
             
+            // Create new receipt
+            Shared.Receipt receipt = new()
+            {
+                receiptType = 2,
+                Balance = invoice.Balance,
+            };
+            _dataContext.Receipts.Add(receipt);
+            await _dataContext.SaveChangesAsync();
+            invoice.ReceiptID = receipt.ID;
             await _dataContext.SaveChangesAsync();
 
             // email client

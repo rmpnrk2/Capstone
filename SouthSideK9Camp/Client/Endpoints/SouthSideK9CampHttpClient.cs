@@ -18,6 +18,7 @@ public class SouthSideK9CampHttpClient
     private readonly ReasonForRejectionHttpClient _reason;
     private readonly UserHttpClient _user;
     private readonly LogHttpClient _logs;
+    private readonly ReceiptHttpClient _receipt;
 
     public SouthSideK9CampHttpClient(HttpClient httpClient, ILocalStorageService localStorage, ISessionStorageService sessionStorageService)
     {
@@ -33,6 +34,7 @@ public class SouthSideK9CampHttpClient
         _reason = new(httpClient);
         _user = new(httpClient, localStorage, sessionStorageService);
         _logs = new(httpClient, localStorage);
+        _receipt = new(httpClient, localStorage);
     }
 
     public ClientHttpClient Client => _client;
@@ -47,4 +49,5 @@ public class SouthSideK9CampHttpClient
     public ReasonForRejectionHttpClient Reason => _reason;
     public UserHttpClient User => _user;
     public LogHttpClient Log => _logs;
+    public ReceiptHttpClient Receipt => _receipt;
 }

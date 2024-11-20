@@ -25,15 +25,19 @@ public class Dog : BaseModel
     public string ReservationPaymentURL { get; set; } = string.Empty;
     public bool ReservationPaymentConfirmed { get; set; }
 
-    // Relationships
+    // Relationships (Child)
     public Contract Contract { get; set; } = new();
     public  List<ProgressReport> ProgressReports { get; set; } = new();
     public List<Invoice> Invoices { get; set; } = new();
 
+
+    // Relationships (Parent)
     public int ClientID { get; set; }
     public Client? Client { get; set; }
     public int ReservationID { get; set; }
     public Reservation? Reservation { get; set; }
+    public int? ReceiptID { get; set; }
+    public Receipt? Receipt { get; set; }
 }
 
 public class DogValidator : AbstractValidator<Dog>

@@ -17,11 +17,14 @@ public class Member : BaseModel
     public string RegistrationPaymentURL { get; set; } = string.Empty;
     public bool RegistrationConfirmed { get; set; }
 
-    // Relationships
+    // Relationships (Child)
     public List<MembershipDue> MembershipDues { get; set; } = new();
 
+    // Relationships (Parent)
     public int ClientID { get; set; }
-    [JsonIgnore] public Client? Client { get; set; }
+    public Client? Client { get; set; }
+    public int? ReceiptID { get; set; }
+    public Receipt? Receipt { get; set; }
 }
 
 public class MemberValidatior : AbstractValidator<Member>
