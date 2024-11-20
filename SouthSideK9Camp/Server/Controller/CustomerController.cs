@@ -181,17 +181,6 @@ namespace SouthSideK9Camp.Server.Controller
             };
             _dataContext.Logs.Add(log);
 
-            // Create new receipt
-            Shared.Receipt receipt = new()
-            {
-                receiptType = 1,
-                Balance = 300
-            };
-            _dataContext.Receipts.Add(receipt);
-            await _dataContext.SaveChangesAsync();
-            dog.ReceiptID = receipt.ID;
-            await _dataContext.SaveChangesAsync();
-
             return Results.Ok();
         }
 
@@ -248,6 +237,17 @@ namespace SouthSideK9Camp.Server.Controller
                     reservation.EndingDate = reservation.StartingDate?.AddDays(42);
                 }
             }
+
+            // Create new receipt
+            Shared.Receipt receipt = new()
+            {
+                receiptType = 1,
+                Balance = 300
+            };
+            _dataContext.Receipts.Add(receipt);
+            await _dataContext.SaveChangesAsync();
+            dog.ReceiptID = receipt.ID;
+            await _dataContext.SaveChangesAsync();
 
             // email client
             string emailSubject = "SouthSideK9 Camp Board & Train Registration Payment Successful";
