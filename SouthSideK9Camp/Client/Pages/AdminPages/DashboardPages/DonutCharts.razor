@@ -93,7 +93,7 @@
     private double[] _CalculateClientData()
     {
         List<double> listSeries = new();
-        listSeries.Add(Receipts.Where(r => r.receiptType == 2).Count());
+        listSeries.Add(Receipts.Where(r => r.receiptType == 1).Count());
         listSeries.Add(Receipts.Where(r => r.receiptType == 3).Count());
 
         return listSeries.ToArray();

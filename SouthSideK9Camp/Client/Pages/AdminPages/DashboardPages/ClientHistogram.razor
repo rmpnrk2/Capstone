@@ -44,7 +44,7 @@
         DateTime date = new(DateTime.Now.Year, 1, 1);
         while (date.Year == DateTime.UtcNow.Year)
         {
-            double count = Receipts.FindAll(r => r.DateCreated.Month == date.Month).Where(r => r.receiptType <= 2).Count();
+            double count = Receipts.FindAll(r => r.DateCreated.Month == date.Month).Where(r => r.receiptType == 1).Count();
             listSeries.Add(count);
             date = date.AddMonths(1);
         }
@@ -59,7 +59,7 @@
         DateTime date = new(DateTime.Now.Year, 1, 1);
         while (date.Year == DateTime.UtcNow.Year)
         {
-            double count = Receipts.FindAll(c => c.DateCreated.Month == date.Month).Where(r => 2 <= r.receiptType).Count();
+            double count = Receipts.FindAll(c => c.DateCreated.Month == date.Month).Where(r => r.receiptType == 3).Count();
             listSeries.Add(count);
             date = date.AddMonths(1);
         }
