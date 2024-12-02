@@ -31,10 +31,10 @@ public class MemberValidatior : AbstractValidator<Member>
 {
     public MemberValidatior()
     {
-        RuleFor(m => m.Occupation).NotEmpty().WithMessage("This field is required").MaximumLength(50).WithMessage("This field should not exceed 50 characters");
-        RuleFor(m => m.WhereDidYouHereAboutUs).NotEmpty().WithMessage("This field is required").MaximumLength(50).WithMessage("This field should not exceed 50 characters");
-        RuleFor(m => m.PurposeOfJoining).NotEmpty().WithMessage("This field is required").MaximumLength(50).WithMessage("This field should not exceed 50 characters");
-        RuleFor(m => m.DogClinicAddress).NotEmpty().WithMessage("This field is required").MaximumLength(200).WithMessage("This field should not exceed 200 characters");
-        RuleFor(m => m.WhoTrainYourDog).NotEmpty().WithMessage("This field is required").MaximumLength(50).WithMessage("This field should not exceed 50 characters");
+        RuleFor(m => m.Occupation).NotEmpty().WithMessage("Occupation field is required").MaximumLength(50).WithMessage("Occupation field should not exceed 50 characters");
+        RuleFor(m => m.WhereDidYouHereAboutUs).NotEmpty().WithMessage("Where did you here about us question field is required").MaximumLength(50).WithMessage("Where did you here about us question field should not exceed 50 characters");
+        RuleFor(m => m.PurposeOfJoining).NotEmpty().WithMessage("Purpose of joining question field is required").MaximumLength(50).WithMessage("Purpose of joining question field should not exceed 50 characters");
+        RuleFor(m => m.DogClinicAddress).NotEmpty().WithMessage("Dog's clinic address field is required").MaximumLength(200).WithMessage("Dog's clinic address  field should not exceed 200 characters");
+        RuleFor(m => m.WhoTrainYourDog).NotEmpty().WithMessage("Who will train your dog question field is required").MaximumLength(50).WithMessage("Who will train your dog question field should not exceed 50 characters");
     }
 }
