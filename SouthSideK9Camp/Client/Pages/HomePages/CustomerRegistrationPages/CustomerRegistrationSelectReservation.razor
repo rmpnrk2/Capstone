@@ -104,6 +104,9 @@
     {
         await HttpClient.Reservation.FetchAsync();
         _reservations = await HttpClient.Reservation.GetAsync();
+
+        _reservations = _reservations.Where(r => DateTime.UtcNow < r.StartingDate).ToList();
+
         _loadingDisplay = "display: none";
     }
 
