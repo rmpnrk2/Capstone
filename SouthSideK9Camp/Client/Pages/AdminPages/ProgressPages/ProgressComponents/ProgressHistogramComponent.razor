@@ -23,7 +23,6 @@
         {
             new ChartSeries() { Name = "Obedience", Data = _GetReportScores(dog.Reservation ?? new(), dog.ProgressReports, "obedience") },
             new ChartSeries() { Name = "Focus", Data = _GetReportScores(dog.Reservation ?? new(), dog.ProgressReports, "focus") },
-            new ChartSeries() { Name = "Protection", Data = _GetReportScores(dog.Reservation ?? new(), dog.ProgressReports, "protection") },
         };
 
         XAxisLabels = _GetDates(new DateRange(dog.Reservation?.StartingDate, dog.Reservation?.EndingDate));

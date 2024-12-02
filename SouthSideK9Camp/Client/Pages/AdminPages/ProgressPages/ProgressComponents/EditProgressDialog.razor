@@ -63,24 +63,17 @@
                         ((int)dt.Year == reservation.EndingDate?.Year && (int)dt.Month == reservation.EndingDate?.Month && (int)dt.Day > reservation.EndingDate?.Day)))" />
                 </MudItem>
 
-                <MudItem xs="12" sm="4">
+                <MudItem xs="12" sm="6">
                     <MudStack Spacing="0" AlignItems="AlignItems.Center">
                         <MudText Typo="Typo.caption">Obedience Rating: </MudText>
                         <MudRating @bind-SelectedValue="report.ScoreObedience" MaxValue="5" />
                     </MudStack>
                 </MudItem>
 
-                <MudItem xs="12" sm="4">
+                <MudItem xs="12" sm="6">
                     <MudStack Spacing="0" AlignItems="AlignItems.Center">
                         <MudText Typo="Typo.caption">Focus Rating: </MudText>
                         <MudRating @bind-SelectedValue="report.ScoreFocus" MaxValue="5" />
-                    </MudStack>
-                </MudItem>
-
-                <MudItem xs="12" sm="4">
-                    <MudStack Spacing="0" AlignItems="AlignItems.Center">
-                        <MudText Typo="Typo.caption">Protection Rating: </MudText>
-                        <MudRating @bind-SelectedValue="report.ScoreProtection" MaxValue="5" />
                     </MudStack>
                 </MudItem>
 

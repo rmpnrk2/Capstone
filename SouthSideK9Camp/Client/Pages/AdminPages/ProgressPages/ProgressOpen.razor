@@ -87,41 +87,31 @@
                             @* ratings *@
                             <MudGrid>
 
-                                <MudItem xs="12" sm="6">
+                                <MudItem xs="12" sm="3">
                                     <MudStack Spacing="0" AlignItems="AlignItems.Center">
                                         <MudText Typo="Typo.body1" Style="font-weight: bold">@report.SpanDuration?.ToString(@"h\:mm") hours</MudText>
                                         <MudText Typo="Typo.caption">Hours Trained:</MudText>
                                     </MudStack>
                                 </MudItem>
 
-                                <MudItem xs="12" sm="6">
+                                <MudItem xs="12" sm="3">
                                     <MudStack Spacing="0" AlignItems="AlignItems.Center">
                                         <MudText Typo="Typo.body1" Style="font-weight: bold">@report.DateTraining?.ToString("dd MMM")</MudText>
                                         <MudText Typo="Typo.caption">Training Date:</MudText>
                                     </MudStack>
                                 </MudItem>
 
-                                <MudItem xs="12" sm="4">
+                                <MudItem xs="12" sm="3">
                                     <MudStack Spacing="0" AlignItems="AlignItems.Center">
-                                        <MudText Typo="Typo.caption">Obedience Rating:</MudText>
                                         <MudRating @bind-SelectedValue="report.ScoreObedience" ReadOnly MaxValue="5" />
-                                        <MudText Color="Color.Primary" Typo="Typo.subtitle2">@_RatingLabel(report.ScoreObedience)</MudText>
+                                        <MudText Typo="Typo.caption">Obedience Rating: <MudText Color="Color.Primary" Typo="Typo.caption">@_RatingLabel(report.ScoreObedience)</MudText></MudText>
                                     </MudStack>
                                 </MudItem>
 
-                                <MudItem xs="12" sm="4">
+                                <MudItem xs="12" sm="3">
                                     <MudStack Spacing="0" AlignItems="AlignItems.Center">
-                                        <MudText Typo="Typo.caption">Focus Rating:</MudText>
                                         <MudRating @bind-SelectedValue="report.ScoreFocus" Class="ma-0" ReadOnly MaxValue="5" />
-                                        <MudText Color="Color.Primary" Typo="Typo.subtitle2" Class="ma-0">@_RatingLabel(report.ScoreFocus)</MudText>
-                                    </MudStack>
-                                </MudItem>
-
-                                <MudItem xs="12" sm="4">
-                                    <MudStack Spacing="0" AlignItems="AlignItems.Center">
-                                        <MudText Typo="Typo.caption">Protection Rating:</MudText>
-                                        <MudRating @bind-SelectedValue="report.ScoreProtection" ReadOnly MaxValue="5" />
-                                        <MudText Color="Color.Primary" Typo="Typo.subtitle2">@_RatingLabel(report.ScoreProtection)</MudText>
+                                        <MudText Typo="Typo.caption">Focus Rating: <MudText Color="Color.Primary" Typo="Typo.caption" Class="ma-0">@_RatingLabel(report.ScoreFocus)</MudText></MudText>
                                     </MudStack>
                                 </MudItem>
 
