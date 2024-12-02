@@ -7,7 +7,7 @@ public class Reservation : BaseModel
     public string Name { get; set; } = string.Empty;
     public DateTime? StartingDate { get; set; }
     public DateTime? EndingDate { get; set; }
-    public int Slots { get; set; }
+    public int Slots { get; set; } = 8;
 
     // Relationships
     public List<Dog> Dogs { get; set; } = new();
