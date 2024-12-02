@@ -28,6 +28,10 @@
                 </MudItem>
 
                 <MudItem xs="12" sm="6">
+                    <MudTextField @bind-Value="_client.Suffix" For="@(() => _client.Suffix)" Label="Suffix" Variant="Variant.Outlined" />
+                </MudItem>
+
+                <MudItem xs="12" sm="6">
                     <MudSelect @bind-Value="_client.Sex" For="@(() => _client.Sex)" Label="Sex" Variant="Variant.Outlined">
                         <MudSelectItem Value="@("Male")" />
                         <MudSelectItem Value="@("Female")" />
@@ -39,11 +43,7 @@
                 </MudItem>
 
                 <MudItem xs="12" sm="6">
-                    <MudNumericField @bind-Value="_client.Contact" For="@(() => _client.Contact)" Label="Contact" Variant="Variant.Outlined" HideSpinButtons />
-                </MudItem>
-
-                <MudItem xs="12">
-                    <MudTextField @bind-Value="_client.Address" For="@(() => _client.Address)" Label="Address" Variant="Variant.Outlined" Lines="2" AutoGrow />
+                    <MudNumericField Adornment="Adornment.Start" AdornmentText="+63" @bind-Value="_client.Contact" For="@(() => _client.Contact)" Label="Contact" Variant="Variant.Outlined" HideSpinButtons />
                 </MudItem>
 
                 <MudItem xs="12" sm="6">
@@ -52,6 +52,10 @@
                         (int)dt.Year > DateTime.UtcNow.Year ||
                         ((int)dt.Year == DateTime.UtcNow.Year && (int)dt.Month > DateTime.UtcNow.Month) ||
                         ((int)dt.Year == DateTime.UtcNow.Year && (int)dt.Month == DateTime.UtcNow.Month && (int)dt.Day > DateTime.UtcNow.Day)))" />
+                </MudItem>
+
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="_client.Address" For="@(() => _client.Address)" Label="Address" Variant="Variant.Outlined" Lines="2" AutoGrow />
                 </MudItem>
 
             </MudGrid>
@@ -102,7 +106,7 @@
                     <MudTabPanel  Text="@((dog.Name == string.Empty) ? "Dog" : dog.Name)">
 
                         <MudStack Row Justify="Justify.FlexEnd">
-                            <MudButton OnClick="@(() => _RemoveContractForm(dog))" Variant="Variant.Outlined" Color="Color.Error" StartIcon="@Icons.Material.Filled.Remove">Remove @dog.Name</MudButton>
+                            <MudButton Disabled="@(_client.Dogs.Count == 1)" OnClick="@(() => _RemoveContractForm(dog))" Variant="Variant.Outlined" Color="Color.Error" StartIcon="@Icons.Material.Filled.Remove">Remove @dog.Name</MudButton>
                         </MudStack>
 
                         @* dog details *@
@@ -237,6 +241,10 @@
                 }
 
             </MudTabs>
+            
+            <MudText Align="Align.Center" Typo="Typo.body2" Color="Color.Error">
+                <ValidationSummary/>
+            </MudText>
 
         </EditForm>
 

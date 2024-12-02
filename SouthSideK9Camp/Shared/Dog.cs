@@ -44,12 +44,12 @@ public class DogValidator : AbstractValidator<Dog>
 {
     public DogValidator()
     {
-        RuleFor(d => d.Name).NotEmpty().WithMessage("This field is required").MaximumLength(50).WithMessage("This field should not exceed 50 characters");
-        RuleFor(d => d.Breed).NotEmpty().WithMessage("This field is required").MaximumLength(50).WithMessage("This field should not exceed 50 characters");
-        RuleFor(d => d.Sex).NotEmpty().WithMessage("This field is required");
-        RuleFor(d => d.Birthday).NotEmpty().WithMessage("This field is required");
+        RuleFor(d => d.Name).NotEmpty().WithMessage("Dog name field is required").MaximumLength(50).WithMessage("Dog name field should not exceed 50 characters");
+        RuleFor(d => d.Breed).NotEmpty().WithMessage("Dog breed field is required").MaximumLength(50).WithMessage("Dog breed field should not exceed 50 characters");
+        RuleFor(d => d.Sex).NotEmpty().WithMessage("Dog sex field is required");
+        RuleFor(d => d.Birthday).NotEmpty().WithMessage("Dog birthday field is required");
 
-        RuleFor(d => d.Clinic).NotEmpty().WithMessage("This field is required").MaximumLength(100).WithMessage("This field should not exceed 100 characters");
+        RuleFor(d => d.Clinic).NotEmpty().WithMessage("Dog clinic field is required").MaximumLength(100).WithMessage("Dog clinic field should not exceed 100 characters");
 
         RuleFor(d => d.Contract).SetValidator(new ContractValidator());
         RuleForEach(d => d.Invoices).SetValidator(new InvoiceValidator());

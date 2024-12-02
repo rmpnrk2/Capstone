@@ -41,14 +41,14 @@ public class ContractValidator : AbstractValidator<Contract>
 {
     public ContractValidator()
     {
-        RuleFor(d => d.TrainingType).NotEmpty().WithMessage("This field is required").MaximumLength(50).WithMessage("This field should not exceed 50 characters");
-        RuleFor(d => d.TrainingGoal).NotEmpty().WithMessage("This field is required").MaximumLength(200).WithMessage("This field should not exceed 200 characters");
-        RuleFor(d => d.Restrictions).NotEmpty().WithMessage("This field is required").MaximumLength(200).WithMessage("This field should not exceed 200 characters");
-        RuleFor(d => d.FeedingRoutine).NotEmpty().WithMessage("This field is required").MaximumLength(200).WithMessage("This field should not exceed 200 characters");
-        RuleFor(d => d.SleepingRoutine).NotEmpty().WithMessage("This field is required").MaximumLength(200).WithMessage("This field should not exceed 200 characters");
+        RuleFor(d => d.TrainingType).NotEmpty().WithMessage("Training type field is required").MaximumLength(50).WithMessage("Training type field should not exceed 50 characters");
+        RuleFor(d => d.TrainingGoal).NotEmpty().WithMessage("Training goal field is required").MaximumLength(200).WithMessage("Training goal field should not exceed 200 characters");
+        RuleFor(d => d.Restrictions).NotEmpty().WithMessage("Dog restrictions field is required").MaximumLength(200).WithMessage("Dog restrictions field should not exceed 200 characters");
+        RuleFor(d => d.FeedingRoutine).NotEmpty().WithMessage("Dog feeding routine field is required").MaximumLength(200).WithMessage("Dog feeding routine field should not exceed 200 characters");
+        RuleFor(d => d.SleepingRoutine).NotEmpty().WithMessage("Dog sleeping routine field is required").MaximumLength(200).WithMessage("Dog sleeping routine  field should not exceed 200 characters");
 
-        RuleFor(d => d.ProtectiveOverOther).MaximumLength(200).WithMessage("This field should not exceed 200 characters");
-        RuleFor(d => d.DiscomfortOverOther).MaximumLength(200).WithMessage("This field should not exceed 200 characters");
-        RuleFor(d => d.AnythingElseToShare).MaximumLength(200).WithMessage("This field should not exceed 200 characters");
+        RuleFor(d => d.ProtectiveOverOther).MaximumLength(200).WithMessage("Dog protective behavior field should not exceed 200 characters");
+        RuleFor(d => d.DiscomfortOverOther).MaximumLength(200).WithMessage("Dog discomfort behavior field should not exceed 200 characters");
+        RuleFor(d => d.AnythingElseToShare).MaximumLength(200).WithMessage("Anything else to share field should not exceed 200 characters");
     }
 }

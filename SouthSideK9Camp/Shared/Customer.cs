@@ -22,11 +22,11 @@ public class CustomerValidator : AbstractValidator<Customer>
 {
     public CustomerValidator()
     {
-        RuleFor(c => c.WhereWillYouBeStating).NotEmpty().WithMessage("This field is required").MaximumLength(100).WithMessage("This field should not exceed 100 characters");
-        RuleFor(c => c.EmergencyVet).NotEmpty().WithMessage("This field is required").MaximumLength(100).WithMessage("This field should not exceed 100 characters");
-        RuleFor(c => c.EmergencyVetNumber).NotEmpty().WithMessage("This field is required").MinimumLength(11).WithMessage("Invalid contact number").MaximumLength(11).WithMessage("Invalid contact number");
-        RuleFor(c => c.EmergencyContactName).NotEmpty().WithMessage("This field is required").MaximumLength(50).WithMessage("This field should not exceed 50 characters");
-        RuleFor(c => c.EmergencyContactNumber).NotEmpty().WithMessage("This field is required").MinimumLength(11).WithMessage("Invalid contact number").MaximumLength(11).WithMessage("Invalid contact number");
-        RuleFor(c => c.EmergencyContactEmail).NotEmpty().WithMessage("This field is required").EmailAddress().MaximumLength(50).WithMessage("This field should not exceed 50 characters");
+        RuleFor(c => c.WhereWillYouBeStating).NotEmpty().WithMessage("Where will you be staying field is required").MaximumLength(100).WithMessage("Where will you be staying Where will you be staying field should not exceed 100 characters");
+        RuleFor(c => c.EmergencyVet).NotEmpty().WithMessage("Emergency veterianian field is required").MaximumLength(100).WithMessage("Emergency veterianian field should not exceed 100 characters");
+        RuleFor(c => c.EmergencyVetNumber).NotEmpty().WithMessage("Emergency veterianian contact number field is required").MinimumLength(11).WithMessage("Invalid contact number").MaximumLength(11).WithMessage("Invalid contact number");
+        RuleFor(c => c.EmergencyContactName).NotEmpty().WithMessage("Emergency contact name field is required").MaximumLength(50).WithMessage("Emergency contact name field should not exceed 50 characters");
+        RuleFor(c => c.EmergencyContactNumber).NotEmpty().WithMessage("Emergency contact field is required").MinimumLength(11).WithMessage("Invalid contact number").MaximumLength(11).WithMessage("Invalid contact number");
+        RuleFor(c => c.EmergencyContactEmail).EmailAddress().WithMessage("Emergency contact email is not a valid email address.").NotEmpty().WithMessage("Emergency contact email field is required").EmailAddress().MaximumLength(50).WithMessage("Emergency contact email field should not exceed 50 characters");
     }
 }
