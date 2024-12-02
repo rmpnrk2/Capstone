@@ -14,7 +14,7 @@
 
             <FluentValidationValidator />
 
-            <MudTextField @bind-Value="_reason.Reason" For="@(() => _reason.Reason)" Label="Reason for rejection" Variant="Variant.Outlined" AutoGrow />
+            <MudAutocomplete @bind-Value="_reason.Reason" For="@(() => _reason.Reason)" Label="Reason for rejection" Variant="Variant.Outlined" SearchFunc="@_reasonForRejectionAutocomplete" CoerceValue />
 
         </EditForm>
     </DialogContent>
@@ -49,6 +49,21 @@
             return;
 
         MudDialog.Close(DialogResult.Ok(_reason));
+    }
+
+    // autocomplete reasons
+    private string[] _commonReasonsForRejection =
+    {
+        "Photo is blurry", "Photo is not a payment receipt", "Photo is unreadable", "Photo is cropped"
+    };
+    private async Task<IEnumerable<string>> _reasonForRejectionAutocomplete(string value, CancellationToken token)
+    {
+        await Task.Delay(5, token);
+
+        if (string.IsNullOrEmpty(value))
+            return _commonReasonsForRejection;
+
+        return _commonReasonsForRejection.Where(x => x.Contains(value, StringComparison.InvariantCultureIgnoreCase));
     }
 
     // close dialog
