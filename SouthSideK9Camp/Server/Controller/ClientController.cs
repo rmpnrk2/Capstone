@@ -140,6 +140,7 @@ namespace SouthSideK9Camp.Server.Controller
                 .SetProperty(client => client.LastName, updatedClient.LastName)
                 .SetProperty(client => client.FirstName, updatedClient.FirstName)
                 .SetProperty(client => client.MiddleInitial, updatedClient.MiddleInitial)
+                .SetProperty(client => client.Suffix, updatedClient.Suffix)
                 .SetProperty(client => client.Sex, updatedClient.Sex)
                 .SetProperty(client => client.Email, updatedClient.Email)
                 .SetProperty(client => client.Contact, updatedClient.Contact)

@@ -207,22 +207,52 @@ namespace SouthSideK9Camp.Server.Controller
             // send payment rejection email
             int count = 0;
 
-            foreach(Shared.MembershipDue due in membershipDues)
+            // filter members and accept those who are about to expire
+            List<Shared.MembershipDue> membershipDuesAboutToExpire = membershipDues
+                .Where(d => d.DateTimeDue.AddDays(5).Day == DateTime.UtcNow.Day)
+                .Where(d => d.DateTimeDue.Month == DateTime.UtcNow.Month)
+                .Where(d => d.DateTimeDue.Year == DateTime.UtcNow.Year)
+                .Where(d => d.ProofOfPaymentURL == string.Empty)
+                .Where(d => !d.PaymentConfirmed)
+                .ToList();
+
+            foreach(Shared.MembershipDue due in membershipDuesAboutToExpire)
             {
-                if(!due.PaymentConfirmed && due.ProofOfPaymentURL == string.Empty && due.DateTimeDue < DateTime.UtcNow)
-                {
-                    string emailSubject = "SouthSide K9 Camp Membership Due";
-                    string emailBody = new ComponentRenderer<EmailTemplates.MembershipDuePaymentReminder>()
-                        .Set(c => c.clientName, due.Member?.Client?.FirstName ?? string.Empty + " " + due.Member?.Client?.LastName ?? string.Empty)
-                        .Set(c => c.membershipDueGUID, due.GUID.ToString())
-                        .Set(c => c.host, _configuration["Host"])
-                        .Set(c => c.dueDate, due.DateTimeDue)
-                        .Render();
-                    await _smtp.SendEmailAsync(due.Member?.Client?.Email ?? string.Empty, emailSubject, emailBody);
+                string emailSubject = "SouthSide K9 Camp Membership Due is About to Expire";
+                string emailBody = new ComponentRenderer<EmailTemplates.MembershipDuePaymentReminder5DaysBefore>()
+                    .Set(c => c.clientName, due.Member?.Client?.FirstName ?? string.Empty + " " + due.Member?.Client?.LastName ?? string.Empty)
+                    .Set(c => c.membershipDueGUID, due.GUID.ToString())
+                    .Set(c => c.host, _configuration["Host"])
+                    .Set(c => c.dueDate, due.DateTimeDue)
+                    .Render();
+                await _smtp.SendEmailAsync(due.Member?.Client?.Email ?? string.Empty, emailSubject, emailBody);
                     
-                    count += 1;
-                }
+                count += 1;
             }
+
+            // filter members and accept those who just expired
+            List<Shared.MembershipDue> membershipDuesJustExpired = membershipDues
+                .Where(d => d.DateTimeDue.Day == DateTime.UtcNow.Day)
+                .Where(d => d.DateTimeDue.Month == DateTime.UtcNow.Month)
+                .Where(d => d.DateTimeDue.Year == DateTime.UtcNow.Year)
+                .Where(d => d.ProofOfPaymentURL == string.Empty)
+                .Where(d => !d.PaymentConfirmed)
+                .ToList();
+
+            foreach(Shared.MembershipDue due in membershipDuesJustExpired)
+            {
+                string emailSubject = "SouthSide K9 Camp Membership Due";
+                string emailBody = new ComponentRenderer<EmailTemplates.MembershipDuePaymentReminder>()
+                    .Set(c => c.clientName, due.Member?.Client?.FirstName ?? string.Empty + " " + due.Member?.Client?.LastName ?? string.Empty)
+                    .Set(c => c.membershipDueGUID, due.GUID.ToString())
+                    .Set(c => c.host, _configuration["Host"])
+                    .Set(c => c.dueDate, due.DateTimeDue)
+                    .Render();
+                await _smtp.SendEmailAsync(due.Member?.Client?.Email ?? string.Empty, emailSubject, emailBody);
+                    
+                count += 1;
+            }
+
             return Results.Ok(count);
 
         }

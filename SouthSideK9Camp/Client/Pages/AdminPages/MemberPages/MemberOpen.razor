@@ -62,10 +62,13 @@
                 <MudItem xs="12" sm="6">
                     <MudTextField @bind-Value="_client.LastName" For="@(() => _client.LastName)" Label="Last Name" Variant="Variant.Outlined" ReadOnly="@_readOnly" />
                 </MudItem>
-                <MudItem xs="12" sm="6">
+                <MudItem xs="12" sm="4">
                     <MudTextField @bind-Value="_client.MiddleInitial" For="@(() => _client.MiddleInitial)" Label="Middle Initial" Variant="Variant.Outlined" ReadOnly="@_readOnly" />
                 </MudItem>
-                <MudItem xs="12" sm="6">
+                <MudItem xs="12" sm="4">
+                    <MudTextField @bind-Value="_client.Suffix" For="@(() => _client.Suffix)" Label="Suffix" Variant="Variant.Outlined" ReadOnly="@_readOnly" />
+                </MudItem>
+                <MudItem xs="12" sm="4">
                     <MudSelect @bind-Value="_client.Sex" For="@(() => _client.Sex)" Label="Sex" Variant="Variant.Outlined" ReadOnly="@_readOnly">
                         <MudSelectItem Value="@("Male")" />
                         <MudSelectItem Value="@("Female")" />

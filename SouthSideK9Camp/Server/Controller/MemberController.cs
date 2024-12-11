@@ -123,6 +123,7 @@ namespace SouthSideK9Camp.Server.Controller
                 .SetProperty(c => c.LastName, updatedClient.LastName)
                 .SetProperty(c => c.FirstName, updatedClient.FirstName)
                 .SetProperty(c => c.MiddleInitial, updatedClient.MiddleInitial)
+                .SetProperty(c => c.Suffix, updatedClient.Suffix)
                 .SetProperty(c => c.Sex, updatedClient.Sex)
                 .SetProperty(c => c.Email, updatedClient.Email)
                 .SetProperty(c => c.Contact, updatedClient.Contact)
