@@ -209,7 +209,7 @@ namespace SouthSideK9Camp.Server.Controller
 
             // filter members and accept those who are about to expire
             List<Shared.MembershipDue> membershipDuesAboutToExpire = membershipDues
-                .Where(d => d.DateTimeDue.AddDays(5).Day == DateTime.UtcNow.Day)
+                .Where(d => d.DateTimeDue.AddDays(-5).Day == DateTime.UtcNow.Day)
                 .Where(d => d.DateTimeDue.Month == DateTime.UtcNow.Month)
                 .Where(d => d.DateTimeDue.Year == DateTime.UtcNow.Year)
                 .Where(d => d.ProofOfPaymentURL == string.Empty)
