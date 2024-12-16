@@ -13,12 +13,8 @@
         <MudToolBar>
 
             <MudIconButton OnClick="_PreviousMonth" Icon="@Icons.Material.Filled.NavigateBefore"></MudIconButton>
-            <MudDatePicker Variant="Variant.Outlined" Label="Month" @bind-Date="_yearMonthFilter" PickerMonthChanged="@_RefreshDataAsync" OpenTo="OpenTo.Month" DateFormat="MMMM yyyy" FixDay="1" Margin="Margin.Dense" ShowToolbar="false"
-                IsDateDisabledFunc="@((DateTime dt)=>
-                    (int)dt.Year > DateTime.UtcNow.Year ||
-                    ((int)dt.Year == DateTime.UtcNow.Year && (int)dt.Month > DateTime.UtcNow.AddMonths(1).Month)
-                )" />
-            <MudIconButton OnClick="_NextMonth" Disabled="@_isNextMonthDisabled" Icon="@Icons.Material.Filled.NavigateNext" />
+            <MudDatePicker Variant="Variant.Outlined" Label="Month" @bind-Date="_yearMonthFilter" PickerMonthChanged="@_RefreshDataAsync" OpenTo="OpenTo.Month" DateFormat="MMMM yyyy" FixDay="1" Margin="Margin.Dense" ShowToolbar="false" />
+            <MudIconButton OnClick="_NextMonth" Icon="@Icons.Material.Filled.NavigateNext" />
 
             <MudSpacer />
 
@@ -114,9 +110,9 @@
 <MudMessageBox @ref="_receiptMessageBox">
 
     <MessageContent>
-            <MudStack AlignItems="AlignItems.Center">
-                <MudImage Src="@_due?.ProofOfPaymentURL" Fluid />
-            </MudStack>
+        <MudStack AlignItems="AlignItems.Center">
+            <MudImage Src="@_due?.ProofOfPaymentURL" Fluid />
+        </MudStack>
     </MessageContent>
 
     <NoButton>
@@ -145,19 +141,18 @@
 
     protected override async Task OnInitializedAsync()
     {
+        _yearMonthFilter = DateTime.UtcNow;
         await _RefreshDataAsync();
     }
 
     // date filter
     private DateTime? _yearMonthFilter = DateTime.UtcNow;
-    private bool _isNextMonthDisabled = false;
 
     private async Task _NextMonth()
     {
         _yearMonthFilter = _yearMonthFilter?.AddMonths(1);
 
-        if (_yearMonthFilter?.Month == DateTime.UtcNow.AddMonths(1).Month || _yearMonthFilter?.Year > DateTime.UtcNow.Year)
-            _isNextMonthDisabled = true;
+        if (_yearMonthFilter?.Month == DateTime.UtcNow.AddMonths(1).Month || _yearMonthFilter?.Year < DateTime.UtcNow.Year)
 
         await _RefreshDataAsync();
     }
@@ -165,7 +160,6 @@
     private async Task _PreviousMonth()
     {
         _yearMonthFilter = _yearMonthFilter?.AddMonths(-1);
-        _isNextMonthDisabled = false;
         await _RefreshDataAsync();
     }
 
