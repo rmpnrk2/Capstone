@@ -151,9 +151,6 @@
     private async Task _NextMonth()
     {
         _yearMonthFilter = _yearMonthFilter?.AddMonths(1);
-
-        if (_yearMonthFilter?.Month == DateTime.UtcNow.AddMonths(1).Month || _yearMonthFilter?.Year < DateTime.UtcNow.Year)
-
         await _RefreshDataAsync();
     }
 
